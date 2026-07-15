@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VTC Visualizer</title>
+<link rel="icon" href="data:,">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  /* ===== chart chrome & ink tokens (dataviz reference palette, light) ===== */
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --ink-1: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --accent: #2a78d6;
+    --danger: #d03b3b;
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink-1);
+    font-family: var(--font); font-size: 14px; line-height: 1.5;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 20px 60px; }
+
+  header.app {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 0 16px;
+  }
+  header.app h1 { font-size: 20px; margin: 0; font-weight: 700; }
+  header.app .sub { color: var(--ink-muted); font-size: 12px; margin-right: auto; }
+
+  button, select, input[type="text"], input[type="number"], input[type="search"], textarea {
+    font-family: var(--font); font-size: 13px; color: var(--ink-1);
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 9px;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--ink-muted); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { filter: brightness(0.94); }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--danger); }
+  button.small { font-size: 12px; padding: 3px 7px; }
+  input[type="color"] { width: 30px; height: 24px; padding: 1px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-1); cursor: pointer; }
+  label.inline { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
+
+  section.card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+  }
+  section.card h2 { font-size: 13px; margin: 0 0 10px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* ===== data input ===== */
+  #dropzone {
+    border: 1.5px dashed var(--axis); border-radius: 8px;
+    padding: 18px; text-align: center; color: var(--ink-muted);
+    transition: background .15s, border-color .15s;
+  }
+  #dropzone.drag { background: #eef4fd; border-color: var(--accent); color: var(--accent); }
+  #dropzone .btns { margin-top: 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  #datasetChips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #eef4fd; border: 1px solid var(--border); border-radius: 999px;
+    padding: 2px 6px 2px 10px; font-size: 12px;
+  }
+  .chip .n { color: var(--ink-muted); }
+  .chip button { border: none; background: none; padding: 0 4px; color: var(--ink-muted); font-size: 13px; }
+  .chip button:hover { color: var(--danger); }
+
+  /* ===== chart cards ===== */
+  .chart-card { padding: 0; overflow: hidden; }
+  .chart-card .head {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); background: var(--surface-1);
+  }
+  .chart-card .head .name { font-weight: 600; margin-right: auto; font-size: 14px; }
+  .chart-card .body { display: flex; align-items: stretch; }
+  .chart-card .cfg {
+    width: 292px; flex: none; border-right: 1px solid var(--border);
+    padding: 10px 12px; overflow-y: auto; max-height: 640px; font-size: 13px;
+  }
+  .chart-card .cfg.hidden { display: none; }
+  .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
+  .chart-card .plot-hint { padding: 5px 12px; font-size: 11px; color: var(--ink-muted); border-top: 1px solid var(--grid); }
+  details.grp { margin-bottom: 8px; border-bottom: 1px solid var(--grid); padding-bottom: 8px; }
+  details.grp summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: 12.5px; padding: 3px 0; user-select: none; }
+  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+  .row > span.lbl { width: 74px; flex: none; color: var(--ink-muted); font-size: 12px; }
+  .row select, .row input[type="text"] { flex: 1; min-width: 60px; }
+  .row input[type="number"] { width: 74px; }
+  .hint { color: var(--ink-muted); font-size: 11.5px; margin: 4px 0; }
+  .filter-row { display: flex; gap: 4px; margin: 4px 0; align-items: center; }
+  .filter-row select { flex: 1; min-width: 40px; }
+  .filter-row .op { flex: none; width: 62px; }
+  .filter-row input { flex: 1; width: 50px; min-width: 40px; }
+  .filter-vals { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 2px 0 8px 6px; }
+  .filter-vals label.inline { font-size: 12px; gap: 4px; }
+  .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .series-row .sname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .series-row select { width: 92px; flex: none; }
+  .series-row input[type="number"] { width: 52px; }
+  .series-block { margin: 6px 0; padding-bottom: 4px; border-bottom: 1px dashed var(--grid); }
+  .series-block:last-child { border-bottom: none; }
+  .series-row.sub { margin: 2px 0 0 10px; }
+  .series-row.sub select { flex: 1; width: auto; min-width: 0; }
+  .series-row.sub input[type="number"] { width: 46px; flex: none; }
+
+  /* ===== data table ===== */
+  #tableCtrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  #tableCtrl input[type="search"] { width: 240px; }
+  #tableCtrl .count { color: var(--ink-muted); font-size: 12px; }
+  #tableWrap { overflow: auto; max-height: 480px; border: 1px solid var(--grid); border-radius: 8px; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  table.data th, table.data td { padding: 5px 10px; border-bottom: 1px solid var(--grid); text-align: left; white-space: nowrap; }
+  table.data th {
+    position: sticky; top: 0; background: var(--surface-1); cursor: pointer;
+    color: var(--ink-2); font-weight: 600; user-select: none; border-bottom: 1px solid var(--axis);
+  }
+  table.data th:hover { color: var(--accent); }
+  table.data tr:hover td { background: #f4f6fa; }
+  #pager { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--ink-muted); font-size: 12px; }
+
+  /* ===== modal ===== */
+  #modalBack {
+    display: none; position: fixed; inset: 0; background: rgba(11,11,11,0.35); z-index: 50;
+    align-items: center; justify-content: center;
+  }
+  #modalBack.show { display: flex; }
+  #pasteModal {
+    background: var(--surface-1); border-radius: 10px; padding: 18px; width: min(680px, 92vw);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #pasteModal textarea { width: 100%; height: 240px; font-family: ui-monospace, monospace; font-size: 12px; resize: vertical; }
+
+  /* ===== point-click popover ===== */
+  #ptPopover {
+    display: none; position: fixed; z-index: 60; min-width: 180px;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(11,11,11,0.14); padding: 6px;
+  }
+  #ptPopover.show { display: flex; flex-direction: column; gap: 4px; }
+  #ptPopover .pp-title { font-size: 11.5px; color: var(--ink-muted); padding: 2px 4px; font-variant-numeric: tabular-nums; }
+  #ptPopover .pp-note { font-size: 10.5px; color: var(--ink-muted); padding: 2px 4px 0; border-top: 1px solid var(--grid); }
+  #ptPopover button { text-align: left; border: none; padding: 6px 8px; border-radius: 6px; }
+  #ptPopover button:hover { background: #eef4fd; }
+  #ptPopover .pp-row { display: flex; gap: 4px; }
+  #ptPopover .pp-row button { flex: 1; text-align: center; border: 1px solid var(--border); }
+  #ptPopover input[type="text"] { width: 100%; }
+
+  /* ===== data table: include/exclude ===== */
+  table.data th.chk, table.data td.chk { width: 30px; text-align: center; padding: 5px 6px; cursor: default; }
+  table.data tr.excl td:not(.chk) { opacity: 0.4; }
+
+  /* ===== toast ===== */
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(10px);
+    background: var(--ink-1); color: #fff; border-radius: 8px; padding: 9px 14px;
+    display: flex; gap: 12px; align-items: center; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 70;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  #toast button { background: none; border: none; color: #8db9ee; font-weight: 600; padding: 0; }
+  #toast button:hover { text-decoration: underline; }
+
+  footer { color: var(--ink-muted); font-size: 12px; text-align: center; margin-top: 24px; }
+  #emptyCharts { color: var(--ink-muted); text-align: center; padding: 30px 0; }
+  @media (max-width: 860px) {
+    .chart-card .body { flex-direction: column; }
+    .chart-card .cfg { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 320px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app">
+    <h1>VTC Visualizer</h1>
+    <span class="sub" data-i18n="header.sub"></span>
+    <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
+    <button id="btnExportSession" data-i18n="btn.exportSession"></button>
+    <button id="btnImportSession" data-i18n="btn.importSession"></button>
+    <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
+    <button id="btnLangToggle" class="ghost"></button>
+  </header>
+
+  <section class="card">
+    <h2 data-i18n="section.dataInput"></h2>
+    <div id="dropzone">
+      <span data-i18n="dropzone.text"></span>
+      <div class="btns">
+        <button id="btnOpenFiles" data-i18n="btn.openFiles"></button>
+        <button id="btnOpenFolder" data-i18n="btn.openFolder"></button>
+        <button id="btnPaste" data-i18n="btn.paste"></button>
+      </div>
+    </div>
+    <div id="datasetChips"></div>
+    <input type="file" id="fileInput" accept=".csv,.json,.tsv" multiple hidden>
+    <input type="file" id="folderInput" webkitdirectory multiple hidden>
+  </section>
+
+  <div id="charts"></div>
+  <div id="emptyCharts" data-i18n="emptyCharts.text"></div>
+
+  <section class="card">
+    <h2 data-i18n="section.rawData"></h2>
+    <div id="tableCtrl">
+      <input type="search" id="tableSearch" data-i18n-ph="table.searchPh">
+      <span class="count" id="tableCount"></span>
+      <button class="small" id="restoreExcl" hidden data-i18n="table.restoreExcl"></button>
+    </div>
+    <div id="tableWrap"><table class="data" id="dataTable"></table></div>
+    <div id="pager">
+      <button class="small" id="pgPrev" data-i18n="pager.prev"></button>
+      <span id="pgInfo"></span>
+      <button class="small" id="pgNext" data-i18n="pager.next"></button>
+    </div>
+  </section>
+
+  <footer>VTC Visualizer — <span data-i18n="footer.text"></span> © mrc</footer>
+</div>
+
+<div id="modalBack">
+  <div id="pasteModal">
+    <strong data-i18n="modal.title"></strong>
+    <div class="row"><span class="lbl" data-i18n="modal.datasetName"></span><input type="text" id="pasteName" data-i18n-ph="modal.datasetNamePh"></div>
+    <textarea id="pasteText" data-i18n-ph="modal.pasteTextPh"></textarea>
+    <div class="row" style="justify-content:flex-end">
+      <button id="pasteCancel" data-i18n="btn.cancel"></button>
+      <button id="pasteAdd" class="primary" data-i18n="btn.add"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+ * VTC Visualizer — 범용 벤치마크/성능 비교 시각화 도구 (단일 파일) © mrc
+ * 데이터 계약: CSV(헤더+행) 또는 JSON 객체 배열. 필수 컬럼 없음.
+ * 각 파일에는 _source 컬럼(파일명)이 자동 부여된다.
+ * ===================================================================== */
+
+/* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
+const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
+const SYMBOLS = ['circle', 'square', 'diamond', 'triangle-up', 'cross', 'x', 'star', 'triangle-down'];
+const CHROME = {
+  surface: '#fcfcfb', ink: '#0b0b0b', ink2: '#52514e', muted: '#898781',
+  grid: '#e1e0d9', axis: '#c3c2b7',
+};
+const FONTS = [
+  'system-ui, -apple-system, "Segoe UI", sans-serif',
+  'Helvetica, Arial, sans-serif',
+  '"Times New Roman", Times, serif',
+  'Georgia, serif',
+  '"Courier New", ui-monospace, monospace',
+];
+const STORAGE_KEY = 'vtc-visualizer:session';
+const LEGACY_STORAGE_KEY = 'visualizer-by-mrc:session';   // 구버전 세션 마이그레이션용
+
+/* ================= i18n ================= */
+const LANG_KEY = 'vtc-visualizer:lang';
+let LANG = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'ko';
+const I18N = {
+  ko: {
+    'header.sub': 'CSV/JSON 벤치마크·성능 비교 인터랙티브 시각화',
+    'btn.addChart': '＋ 차트 추가',
+    'btn.exportSession': '세션 내보내기',
+    'btn.importSession': '세션 가져오기',
+    'btn.reset': '전체 초기화',
+    'section.dataInput': '데이터 입력',
+    'dropzone.text': 'CSV / JSON 파일을 여기에 드래그 앤 드랍하세요 (여러 개 가능)',
+    'btn.openFiles': '파일 열기…',
+    'btn.openFolder': '폴더 열기…',
+    'btn.paste': '직접 입력…',
+    'emptyCharts.text': '데이터를 추가하면 첫 차트가 자동으로 생성됩니다. 또는 ＋ 차트 추가를 누르세요.',
+    'section.rawData': '원본 데이터',
+    'table.searchPh': '검색…',
+    'table.restoreExcl': '제외 {n}행 모두 복원',
+    'pager.prev': '◀ 이전',
+    'pager.next': '다음 ▶',
+    'modal.title': '데이터 직접 입력',
+    'modal.datasetName': '데이터셋 이름',
+    'modal.datasetNamePh': '예: my-experiment',
+    'modal.pasteTextPh': 'CSV(헤더 포함) 또는 JSON 객체 배열을 붙여넣으세요.\n\nmethod,tokens,score\nA,1000,0.71\nA,4000,0.79',
+    'btn.cancel': '취소',
+    'btn.add': '추가',
+    'footer.text': '데이터는 브라우저 안에서만 처리되며 외부로 전송되지 않습니다.',
+    'lang.toggle': 'EN',
+    all: '전체',
+    'dash.solid': '실선', 'dash.dash': '파선', 'dash.dot': '점선', 'dash.dashdot': '파선+점',
+    'op.select': '선택', 'op.contains': '포함',
+    'err.csvHeaderRows': 'CSV에 헤더와 데이터 행이 필요합니다.',
+    'err.jsonArray': 'JSON은 객체 배열이어야 합니다.',
+    'err.noRowsInDataset': '{name}: 데이터 행이 없습니다.',
+    'err.drawChartFirst': '먼저 차트를 그려주세요.',
+    'err.parseFailed': '{name} 파싱 실패: {msg}',
+    'err.parseFailedGeneric': '파싱 실패: {msg}',
+    'err.sessionReadFailed': '세션 파일을 읽을 수 없습니다: {msg}',
+    'confirm.resetAll': '모든 데이터와 차트를 지우고 초기화할까요?',
+    'plot.placeholder': 'X·Y 컬럼을 선택하면 차트가 그려집니다.',
+    'card.chartNum': '차트 {n}',
+    'card.resetViewTitle': '줌·축 범위를 초기화하고 전체 데이터를 보여줍니다',
+    'card.resetView': '보기 초기화',
+    'card.settings': '⚙ 설정',
+    'card.duplicate': '복제',
+    'card.plotHint': '그래프 조작: 드래그 = 영역 확대 · 마우스 휠 = 줌 · 더블클릭 = 전체 보기 · 이동(팬)은 우상단 모드바의 십자 화살표 · 포인트 클릭 = 베이스라인/마커/제외 메뉴',
+    'card.copySuffix': ' (복사)',
+    'btn.delete': '삭제',
+    'cfg.data': '데이터',
+    'cfg.filterCount': '필터 ({n})',
+    'cfg.axis': '축',
+    'cfg.style': '스타일',
+    'cfg.pointLabels': '포인트 레이블',
+    'cfg.baselineCount': '베이스라인 ({n})',
+    'cfg.advanced': '고급',
+    'cfg.type': '유형',
+    'cfg.xAxis': 'X 축',
+    'cfg.yAxis': 'Y 축',
+    'cfg.group': '그룹(색상)',
+    'cfg.group2': '모양 그룹',
+    'cfg.group2Hint': '모양 그룹: 색과 별개로 마커 모양으로 구분하는 2차 그룹 (예: 색=method, 모양=frames)',
+    'cfg.size': '크기 컬럼',
+    'opt.scatter': '산점도', 'opt.line': '선', 'opt.scatterLine': '산점도+선', 'opt.bar': '막대',
+    'opt.noneParen': '(없음)', 'opt.select': '(선택)', 'opt.column': '(컬럼)', 'opt.selectValue': '(값 선택)', 'opt.auto': '(자동)',
+    'cfg.filterColFirst': '← 컬럼 먼저',
+    'cfg.filterValuePh': '값',
+    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다. 예: method = ensemble, tokens ≥ 2000',
+    'cfg.addFilter': '＋ 필터 추가',
+    'cfg.xLabel': 'X 레이블',
+    'cfg.yLabel': 'Y 레이블',
+    'cfg.xScale': 'X 스케일',
+    'cfg.yScale': 'Y 스케일',
+    'opt.linear': 'Linear', 'opt.log': 'Log',
+    'cfg.xRange': 'X 범위',
+    'cfg.yRange': 'Y 범위',
+    'cfg.rangeHint': '범위는 min/max 중 한쪽만 입력해도 됩니다. 비우면 자동.',
+    'cfg.grid': '그리드',
+    'cfg.title': '제목',
+    'cfg.font': '폰트',
+    'cfg.fontSize': '글자 크기',
+    'cfg.fontColorTitle': '글자 색',
+    'cfg.legend': '범례',
+    'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
+    'cfg.markerSize': '마커 크기',
+    'cfg.lineWidth': '선 굵기',
+    'cfg.lineType': '선 종류',
+    'opt.straightLine': '직선', 'opt.spline': '곡선(스무딩)',
+    'cfg.areaFill': '영역 채우기',
+    'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기',
+    'cfg.styleHint': '시리즈별: 색 · 마커 모양/크기 · 선 종류/굵기',
+    'cfg.markerShapeTitle': '마커 모양',
+    'cfg.markerSizeTitle': '마커 크기',
+    'cfg.show': '표시',
+    'cfg.labelCol': '레이블 컬럼',
+    'cfg.labelHint': '드래그: 위치 조정 · 클릭: 개별 숨김. 같은 값 중복은 하나만 표시되고 겹침은 자동 회피됩니다.',
+    'cfg.restoreHiddenLabels': '숨긴 레이블 {n}개 모두 복원',
+    'cfg.textMarkerGlobal': '텍스트 마커 (전체 스타일)',
+    'cfg.fontLabel': '글자',
+    'cfg.tmFontSizeTitle': '마커 글자 크기 (비우면 차트 폰트 크기)',
+    'cfg.tmColorTitle': '마커 글자 색',
+    'cfg.background': '배경',
+    'cfg.arrow': '화살표',
+    'cfg.tmMarkerColorTitle': '이 마커 글자 색',
+    'opt.shadeNone': '음영 없음', 'opt.shadeUR': '우상단', 'opt.shadeUL': '좌상단', 'opt.shadeLR': '우하단', 'opt.shadeLL': '좌하단',
+    'cfg.baselineHint': '차트에서 포인트를 클릭해 베이스라인이나 텍스트 마커를 추가하세요. 여러 개 지정 가능.',
+    'cfg.trend': '추세선',
+    'opt.trendLinear': '선형', 'opt.trendPoly2': '2차 다항', 'opt.trendLog': '로그 (a+b·ln x)', 'opt.trendExp': '지수', 'opt.trendPower': '거듭제곱', 'opt.trendMovavg': '이동평균',
+    'cfg.trendStyle': '추세선 스타일',
+    'cfg.trendWidthTitle': '추세선 굵기',
+    'cfg.errorBand': '오차 밴드',
+    'opt.band1': '±1σ 음영', 'opt.band2': '±2σ 음영',
+    'cfg.trendHint': '시리즈별로 같은 색의 추세선이 그려집니다 (3점 이상 필요). 오차 밴드는 피팅 잔차 표준편차(σ) 기준 음영입니다.',
+    'cfg.paretoDir': '방향',
+    'opt.paretoMinMax': 'X작을수록·Y클수록 좋음', 'opt.paretoMaxMax': 'X클수록·Y클수록 좋음', 'opt.paretoMinMin': 'X작을수록·Y작을수록 좋음', 'opt.paretoMaxMin': 'X클수록·Y작을수록 좋음',
+    'pt.removeBaseline': '📍 베이스라인 제거',
+    'pt.addBaseline': '📍 베이스라인 추가',
+    'pt.excludePoint': '🚫 이 포인트 제외',
+    'toast.excluded': '{n}개 포인트가 그래프에서 제외되었습니다.',
+    'toast.undo': '실행 취소',
+    'pt.addTextMarker': '💬 텍스트 마커 추가',
+    'pt.textPlaceholder': '표시할 텍스트',
+    'pt.textMarker': '텍스트 마커',
+    'pt.excludeNote': '제외는 모든 차트에 적용 · 하단 표에서 복원',
+    'pt.editTextMarker': '텍스트 마커 편집',
+    'pt.sizeTitle': '글자 크기 (비우면 전체 설정)',
+    'pt.sizePlaceholder': '크기',
+    'btn.save': '저장',
+    'table.allIncludeTitle': '전체 포함/제외',
+    'table.count': '{total}행 · {cols}컬럼 (전체 {all}행{excl})',
+    'table.exclSuffix': ', 그래프 제외 {n}행',
+    'pager.info': '{page} / {pages} 페이지',
+    'chips.rows': '{n}행',
+  },
+  en: {
+    'header.sub': 'Interactive visualization for CSV/JSON benchmark & performance comparisons',
+    'btn.addChart': '＋ Add chart',
+    'btn.exportSession': 'Export session',
+    'btn.importSession': 'Import session',
+    'btn.reset': 'Reset all',
+    'section.dataInput': 'Data input',
+    'dropzone.text': 'Drag and drop CSV / JSON files here (multiple allowed)',
+    'btn.openFiles': 'Open files…',
+    'btn.openFolder': 'Open folder…',
+    'btn.paste': 'Paste data…',
+    'emptyCharts.text': 'Adding data automatically creates the first chart. Or click ＋ Add chart.',
+    'section.rawData': 'Raw data',
+    'table.searchPh': 'Search…',
+    'table.restoreExcl': 'Restore all {n} excluded rows',
+    'pager.prev': '◀ Prev',
+    'pager.next': 'Next ▶',
+    'modal.title': 'Paste data',
+    'modal.datasetName': 'Dataset name',
+    'modal.datasetNamePh': 'e.g. my-experiment',
+    'modal.pasteTextPh': 'Paste CSV (with header) or a JSON array of objects.\n\nmethod,tokens,score\nA,1000,0.71\nA,4000,0.79',
+    'btn.cancel': 'Cancel',
+    'btn.add': 'Add',
+    'footer.text': 'Data is processed entirely in your browser and never sent anywhere.',
+    'lang.toggle': '한국어',
+    all: 'All',
+    'dash.solid': 'Solid', 'dash.dash': 'Dash', 'dash.dot': 'Dot', 'dash.dashdot': 'Dash-dot',
+    'op.select': 'Select', 'op.contains': 'Contains',
+    'err.csvHeaderRows': 'CSV needs a header row and at least one data row.',
+    'err.jsonArray': 'JSON must be an array of objects.',
+    'err.noRowsInDataset': '{name}: no data rows.',
+    'err.drawChartFirst': 'Please draw a chart first.',
+    'err.parseFailed': 'Failed to parse {name}: {msg}',
+    'err.parseFailedGeneric': 'Parse failed: {msg}',
+    'err.sessionReadFailed': 'Could not read session file: {msg}',
+    'confirm.resetAll': 'Clear all data and charts and reset?',
+    'plot.placeholder': 'Select X and Y columns to draw the chart.',
+    'card.chartNum': 'Chart {n}',
+    'card.resetViewTitle': 'Reset zoom/axis range and show all data',
+    'card.resetView': 'Reset view',
+    'card.settings': '⚙ Settings',
+    'card.duplicate': 'Duplicate',
+    'card.plotHint': 'Chart controls: drag = zoom to area · mouse wheel = zoom · double-click = reset view · pan via the crosshair icon in the top-right mode bar · click a point = baseline/marker/exclude menu',
+    'card.copySuffix': ' (copy)',
+    'btn.delete': 'Delete',
+    'cfg.data': 'Data',
+    'cfg.filterCount': 'Filters ({n})',
+    'cfg.axis': 'Axes',
+    'cfg.style': 'Style',
+    'cfg.pointLabels': 'Point labels',
+    'cfg.baselineCount': 'Baselines ({n})',
+    'cfg.advanced': 'Advanced',
+    'cfg.type': 'Type',
+    'cfg.xAxis': 'X axis',
+    'cfg.yAxis': 'Y axis',
+    'cfg.group': 'Group (color)',
+    'cfg.group2': 'Shape group',
+    'cfg.group2Hint': 'Shape group: a secondary grouping shown via marker shape, independent of color (e.g. color=method, shape=frames)',
+    'cfg.size': 'Size column',
+    'opt.scatter': 'Scatter', 'opt.line': 'Line', 'opt.scatterLine': 'Scatter + Line', 'opt.bar': 'Bar',
+    'opt.noneParen': '(None)', 'opt.select': '(select)', 'opt.column': '(column)', 'opt.selectValue': '(select value)', 'opt.auto': '(auto)',
+    'cfg.filterColFirst': '← pick a column first',
+    'cfg.filterValuePh': 'value',
+    'cfg.filterHint': 'Only rows matching all conditions are plotted. e.g. method = ensemble, tokens ≥ 2000',
+    'cfg.addFilter': '＋ Add filter',
+    'cfg.xLabel': 'X label',
+    'cfg.yLabel': 'Y label',
+    'cfg.xScale': 'X scale',
+    'cfg.yScale': 'Y scale',
+    'opt.linear': 'Linear', 'opt.log': 'Log',
+    'cfg.xRange': 'X range',
+    'cfg.yRange': 'Y range',
+    'cfg.rangeHint': 'You can enter just min or max. Leave blank for automatic.',
+    'cfg.grid': 'Grid',
+    'cfg.title': 'Title',
+    'cfg.font': 'Font',
+    'cfg.fontSize': 'Font size',
+    'cfg.fontColorTitle': 'Font color',
+    'cfg.legend': 'Legend',
+    'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
+    'cfg.markerSize': 'Marker size',
+    'cfg.lineWidth': 'Line width',
+    'cfg.lineType': 'Line style',
+    'opt.straightLine': 'Straight', 'opt.spline': 'Curved (spline)',
+    'cfg.areaFill': 'Area fill',
+    'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line',
+    'cfg.styleHint': 'Per series: color · marker shape/size · line style/width',
+    'cfg.markerShapeTitle': 'Marker shape',
+    'cfg.markerSizeTitle': 'Marker size',
+    'cfg.show': 'Show',
+    'cfg.labelCol': 'Label column',
+    'cfg.labelHint': 'Drag to reposition · click to hide individually. Duplicate values show once, and overlaps are avoided automatically.',
+    'cfg.restoreHiddenLabels': 'Restore all {n} hidden labels',
+    'cfg.textMarkerGlobal': 'Text markers (global style)',
+    'cfg.fontLabel': 'Font',
+    'cfg.tmFontSizeTitle': 'Marker font size (blank = chart font size)',
+    'cfg.tmColorTitle': 'Marker font color',
+    'cfg.background': 'Background',
+    'cfg.arrow': 'Arrow',
+    'cfg.tmMarkerColorTitle': 'This marker\'s font color',
+    'opt.shadeNone': 'No shading', 'opt.shadeUR': 'Upper right', 'opt.shadeUL': 'Upper left', 'opt.shadeLR': 'Lower right', 'opt.shadeLL': 'Lower left',
+    'cfg.baselineHint': 'Click a point on the chart to add a baseline or text marker. Multiple allowed.',
+    'cfg.trend': 'Trendline',
+    'opt.trendLinear': 'Linear', 'opt.trendPoly2': 'Quadratic', 'opt.trendLog': 'Log (a+b·ln x)', 'opt.trendExp': 'Exponential', 'opt.trendPower': 'Power', 'opt.trendMovavg': 'Moving average',
+    'cfg.trendStyle': 'Trendline style',
+    'cfg.trendWidthTitle': 'Trendline width',
+    'cfg.errorBand': 'Error band',
+    'opt.band1': '±1σ shading', 'opt.band2': '±2σ shading',
+    'cfg.trendHint': 'A trendline of the same color is drawn per series (needs 3+ points). The error band shades ±kσ of the fit residual.',
+    'cfg.paretoDir': 'Direction',
+    'opt.paretoMinMax': 'Lower X · Higher Y is better', 'opt.paretoMaxMax': 'Higher X · Higher Y is better', 'opt.paretoMinMin': 'Lower X · Lower Y is better', 'opt.paretoMaxMin': 'Higher X · Lower Y is better',
+    'pt.removeBaseline': '📍 Remove baseline',
+    'pt.addBaseline': '📍 Add baseline',
+    'pt.excludePoint': '🚫 Exclude this point',
+    'toast.excluded': '{n} point(s) excluded from the chart.',
+    'toast.undo': 'Undo',
+    'pt.addTextMarker': '💬 Add text marker',
+    'pt.textPlaceholder': 'Text to display',
+    'pt.textMarker': 'Text marker',
+    'pt.excludeNote': 'Exclusion applies to all charts · restore from the table below',
+    'pt.editTextMarker': 'Edit text marker',
+    'pt.sizeTitle': 'Font size (blank = use global setting)',
+    'pt.sizePlaceholder': 'Size',
+    'btn.save': 'Save',
+    'table.allIncludeTitle': 'Include/exclude all',
+    'table.count': '{total} rows · {cols} cols (of {all}{excl})',
+    'table.exclSuffix': ', {n} excluded from chart',
+    'pager.info': 'Page {page} / {pages}',
+    'chips.rows': '{n} rows',
+  },
+};
+function t(key) { return (I18N[LANG] && I18N[LANG][key]) !== undefined ? I18N[LANG][key] : (I18N.ko[key] !== undefined ? I18N.ko[key] : key); }
+function tf(key, params) { let s = t(key); for (const [k, v] of Object.entries(params)) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), v); return s; }
+function applyLang() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(elx => { elx.textContent = t(elx.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(elx => { elx.placeholder = t(elx.getAttribute('data-i18n-ph')); });
+  const langBtn = document.getElementById('btnLangToggle');
+  if (langBtn) langBtn.textContent = t('lang.toggle');
+}
+
+const state = {
+  datasets: [],   // {id, name, rows:[{col:val}]}
+  charts: [],     // [chartConfig]
+  nextId: 1,
+};
+
+function defaultChart() {
+  return {
+    id: state.nextId++,
+    type: 'scatter',            // scatter | line | scatter+line | bar
+    x: '', y: '', group: '', group2: '', size: '',   // group=색상, group2=마커 모양 (2차 그룹)
+    filters: [],                // {col, op, value}
+    title: '',
+    xLabel: '', yLabel: '',
+    xScale: 'linear', yScale: 'linear',
+    xMin: '', xMax: '', yMin: '', yMax: '',
+    grid: true,
+    fontFamily: FONTS[0], fontSize: 13, fontColor: CHROME.ink,
+    legendPos: 'right',         // right | top | inside | none
+    markerSize: 9, lineWidth: 2,
+    seriesStyles: {},           // name -> {color, symbol, msize}
+    showLabels: false, labelCol: '',
+    labelOffsets: {},           // pointKey -> {ax, ay}
+    hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
+    baselines: [],              // [{x, y, shade}] — shade: none|ur|ul|lr|ll
+    textMarkers: [],            // [{x, y, text, ax, ay}] — 클릭으로 추가하는 자유 주석
+    pareto: false, paretoDir: 'min-x-max-y',
+    trend: 'none',              // none | linear | poly2 | log | exp | power | movavg
+    trendDash: 'dash', trendWidth: 1.5,
+    trendBand: 'none',          // none | 1 | 2 — 추세선 잔차 ±kσ 음영 밴드
+    tmFontSize: '', tmColor: '', tmBg: true, tmArrow: true,   // 텍스트 마커 전역 스타일 (빈 값 = 차트 폰트 상속)
+    lineShape: 'linear',        // linear | spline — 선 스무딩
+    lineDash: 'solid',          // solid | dash | dot | dashdot — 시리즈별 오버라이드 가능
+    areaFill: 'none',           // none | tozeroy — 선 아래 파스텔 영역 채우기
+  };
+}
+
+/* ================= parsing ================= */
+function parseCSV(text) {
+  const rows = [];
+  let field = '', row = [], inQ = false;
+  const pushF = () => { row.push(field); field = ''; };
+  const pushR = () => { if (row.length > 1 || row[0] !== '') rows.push(row); row = []; };
+  const sep = text.split('\n', 1)[0].includes('\t') ? '\t' : ',';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') inQ = true;
+    else if (c === sep) pushF();
+    else if (c === '\n') { pushF(); pushR(); }
+    else if (c !== '\r') field += c;
+  }
+  if (field !== '' || row.length) { pushF(); pushR(); }
+  if (rows.length < 2) throw new Error(t('err.csvHeaderRows'));
+  const header = rows[0].map(h => h.trim());
+  return rows.slice(1).map(r => {
+    const o = {};
+    header.forEach((h, i) => { o[h] = coerce(r[i]); });
+    return o;
+  });
+}
+function coerce(v) {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim();
+  if (s === '') return null;
+  const n = Number(s.replace(/,/g, ''));
+  return Number.isFinite(n) && /^[\s]*[-+]?[\d.,eE+-]+[\s]*$/.test(s) ? n : s;
+}
+function parseAny(text, filename) {
+  const t = text.trim();
+  if (t.startsWith('[') || t.startsWith('{') || /\.json$/i.test(filename || '')) {
+    let j = JSON.parse(t);
+    if (!Array.isArray(j)) {
+      const arr = Object.values(j).find(v => Array.isArray(v));
+      if (arr) j = arr; else throw new Error(t('err.jsonArray'));
+    }
+    return j.map(o => {
+      const r = {};
+      for (const k of Object.keys(o)) {
+        const v = o[k];
+        r[k] = (v !== null && typeof v === 'object') ? JSON.stringify(v) : (typeof v === 'string' ? coerce(v) : v);
+      }
+      return r;
+    });
+  }
+  return parseCSV(text);
+}
+
+/* ================= data model ================= */
+function addDataset(name, rows) {
+  if (!rows.length) { alert(tf('err.noRowsInDataset', { name })); return; }
+  rows.forEach(r => { r._source = name; });
+  const existing = state.datasets.find(d => d.name === name);
+  if (existing) existing.rows = rows;
+  else state.datasets.push({ id: state.nextId++, name, rows });
+  onDataChanged();
+}
+function removeDataset(id) {
+  state.datasets = state.datasets.filter(d => d.id !== id);
+  onDataChanged();
+}
+function allRows() { return state.datasets.flatMap(d => d.rows); }
+function columns() {
+  const set = new Set();
+  for (const d of state.datasets) for (const r of d.rows) for (const k of Object.keys(r)) {
+    if (k.startsWith('_') && k !== '_source') continue;   // 내부 키(_excluded 등) 숨김
+    set.add(k);
+  }
+  return [...set];
+}
+/* _source는 데이터셋이 2개 이상일 때만 노출 (1개면 헷갈리기만 함) */
+function visibleColumns() {
+  const cols = columns();
+  return state.datasets.length > 1 ? cols : cols.filter(c => c !== '_source');
+}
+function numericColumns() {
+  const cols = columns(), rows = allRows(), out = [];
+  for (const c of cols) {
+    let any = false, ok = true;
+    for (const r of rows) {
+      const v = r[c];
+      if (v === null || v === undefined) continue;
+      any = true;
+      if (typeof v !== 'number') { ok = false; break; }
+    }
+    if (any && ok) out.push(c);
+  }
+  return out;
+}
+function uniqueVals(col) {
+  const s = new Set();
+  for (const r of allRows()) { const v = r[col]; if (v !== null && v !== undefined) s.add(v); }
+  return [...s].sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b)));
+}
+function applyFilters(rows, filters) {
+  return rows.filter(r => filters.every(f => {
+    if (!f.col) return true;
+    if (f.value === '' || f.value === null || f.value === undefined) return true;   // 값 미입력 필터는 무시 (차트가 갑자기 비지 않게)
+    const v = r[f.col];
+    if (v === null || v === undefined) return false;
+    if (f.op === 'in') {   // 다중 선택: 빈 배열이면 통과(미완성 필터)
+      return !Array.isArray(f.value) || f.value.length === 0 || f.value.map(String).includes(String(v));
+    }
+    const t = coerce(f.value);
+    switch (f.op) {
+      case '=': return String(v) === String(t);
+      case '≠': return String(v) !== String(t);
+      case '>': return typeof v === 'number' && v > Number(t);
+      case '<': return typeof v === 'number' && v < Number(t);
+      case '≥': return typeof v === 'number' && v >= Number(t);
+      case '≤': return typeof v === 'number' && v <= Number(t);
+      case '포함': return String(v).includes(String(f.value));
+      default: return true;
+    }
+  }));
+}
+
+/* ================= chart rendering ================= */
+const plotDivs = {};   // chartId -> div
+/* 시리즈 정의: 색=group, 모양=group2. 인덱스는 전체(미필터) 고유값 기준 — 색/모양이 엔티티를 따라감 */
+function seriesDefs(cfg) {
+  if (!cfg.group) return [{ name: t('all'), colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
+  const gs = uniqueVals(cfg.group).map(String);
+  if (!cfg.group2 || cfg.group2 === cfg.group) {
+    return gs.map((g, i) => ({ name: g, colorIdx: i, symIdx: i, g, g2: null, match: r => String(r[cfg.group]) === g }));
+  }
+  const hs = uniqueVals(cfg.group2).map(String);
+  const rows = allRows();
+  const defs = [];
+  gs.forEach((g, gi) => hs.forEach((h, hi) => {
+    if (rows.some(r => String(r[cfg.group]) === g && String(r[cfg.group2]) === h)) {
+      defs.push({
+        name: `${g} · ${h}`, colorIdx: gi, symIdx: hi, g, g2: h,
+        match: r => String(r[cfg.group]) === g && String(r[cfg.group2]) === h,
+      });
+    }
+  }));
+  return defs;
+}
+function seriesStyle(cfg, def) {
+  const o = cfg.seriesStyles[def.name] || {};
+  return {
+    color: o.color || PALETTE[def.colorIdx % PALETTE.length],
+    symbol: o.symbol || SYMBOLS[def.symIdx % SYMBOLS.length],
+    msize: o.msize || cfg.markerSize,
+    dash: o.dash || cfg.lineDash,
+    lwidth: o.lwidth || cfg.lineWidth,
+  };
+}
+function hexToRgba(hex, alpha) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return `rgba(42,120,214,${alpha})`;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+function DASHES() { return [['solid', t('dash.solid')], ['dash', t('dash.dash')], ['dot', t('dash.dot')], ['dashdot', t('dash.dashdot')]]; }
+function chartRows(cfg) {
+  let rows = applyFilters(allRows().filter(r => !r._excluded), cfg.filters);
+  return rows.filter(r => r[cfg.x] !== null && r[cfg.x] !== undefined && r[cfg.y] !== null && r[cfg.y] !== undefined);
+}
+function pointKey(series, x, y) { return `${series}|${x}|${y}`; }
+function logv(v) { return Math.log10(v); }
+function axCoord(v, scale) { return (scale === 'log' && typeof v === 'number') ? logv(v) : v; }
+
+function buildTraces(cfg) {
+  const rows = chartRows(cfg);
+  const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
+  const traces = [];
+  seriesDefs(cfg).forEach(def => {
+    let pts = rows.filter(def.match);
+    if (!pts.length) return;
+    if (cfg.type !== 'bar' && cfg.type !== 'scatter') {
+      pts = pts.slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
+    }
+    const name = def.name;
+    const st = seriesStyle(cfg, def);
+    const labels = pts.map(r => cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]));
+    const base = {
+      name, x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y]),
+      customdata: labels, _g: def.g, _g2: def.g2,
+      hovertemplate: `<b>${esc(name)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`,
+    };
+    if (cfg.type === 'bar') {
+      traces.push({ ...base, type: 'bar', marker: { color: st.color } });
+    } else {
+      const hasLine = lineMode.includes('lines');
+      const useFill = hasLine && cfg.areaFill === 'tozeroy';
+      if (useFill) {
+        // 축이 0까지 늘어나지 않도록 데이터 최소값을 바닥으로 하는 파스텔 밴드
+        const allY = rows.map(r => r[cfg.y]).filter(v => typeof v === 'number');
+        const floor = allY.length ? Math.min(...allY) : 0;
+        traces.push({
+          x: base.x, y: base.x.map(() => floor), type: 'scatter', mode: 'lines',
+          line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip',
+          name: `${name} __fillbase`,
+        });
+      }
+      traces.push({
+        ...base, type: 'scatter', mode: lineMode,
+        marker: { color: st.color, symbol: st.symbol, size: cfg.size ? pts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize,
+                  line: { width: 1.5, color: CHROME.surface } },
+        line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
+        ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
+      });
+      if (cfg.trend !== 'none') {
+        traces.push(...trendTraces(cfg, name, pts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), st.color));
+      }
+    }
+  });
+  if (cfg.pareto && cfg.type !== 'bar') traces.push(paretoTrace(cfg, rows));
+  return traces;
+}
+function sizeScale(v, cfg) {
+  if (typeof v !== 'number') return cfg.markerSize;
+  const rows = chartRows(cfg).map(r => r[cfg.size]).filter(x => typeof x === 'number');
+  const mn = Math.min(...rows), mx = Math.max(...rows);
+  if (mx === mn) return cfg.markerSize;
+  return 6 + 18 * (v - mn) / (mx - mn);
+}
+/* ---- 추세선 피팅 (최소자승) ---- */
+function linreg(pairs) {   // y = a + b·x
+  const n = pairs.length;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const [x, y] of pairs) { sx += x; sy += y; sxx += x * x; sxy += x * y; }
+  const d = n * sxx - sx * sx;
+  if (!d) return null;
+  const b = (n * sxy - sx * sy) / d;
+  return [(sy - b * sx) / n, b];
+}
+function poly2fit(pts) {   // y = c0 + c1·x + c2·x²  (3×3 정규방정식, Cramer)
+  let s0 = pts.length, s1 = 0, s2 = 0, s3 = 0, s4 = 0, t0 = 0, t1 = 0, t2 = 0;
+  for (const p of pts) {
+    const x = p.x, x2 = x * x;
+    s1 += x; s2 += x2; s3 += x2 * x; s4 += x2 * x2;
+    t0 += p.y; t1 += x * p.y; t2 += x2 * p.y;
+  }
+  const det3 = (a,b,c,d,e,f,g,h,i) => a*(e*i-f*h) - b*(d*i-f*g) + c*(d*h-e*g);
+  const D = det3(s0,s1,s2, s1,s2,s3, s2,s3,s4);
+  if (!D) return null;
+  return [
+    det3(t0,s1,s2, t1,s2,s3, t2,s3,s4) / D,
+    det3(s0,t0,s2, s1,t1,s3, s2,t2,s4) / D,
+    det3(s0,s1,t0, s1,s2,t1, s2,s3,t2) / D,
+  ];
+}
+function trendTraces(cfg, name, pts, color) {
+  const kind = cfg.trend;
+  let P = pts.filter(p => typeof p.x === 'number' && typeof p.y === 'number');
+  if (kind === 'log' || kind === 'power') P = P.filter(p => p.x > 0);
+  if (kind === 'exp' || kind === 'power') P = P.filter(p => p.y > 0);
+  if (P.length < 3) return [];
+  P = P.slice().sort((a, b) => a.x - b.x);
+  let xs = [], ys = [], sigma = 0;
+  if (kind === 'movavg') {
+    for (let i = 0; i < P.length; i++) {
+      const s = Math.max(0, i - 1), e = Math.min(P.length, i + 2);
+      let acc = 0; for (let j = s; j < e; j++) acc += P[j].y;
+      xs.push(P[i].x); ys.push(acc / (e - s));
+    }
+    sigma = Math.sqrt(P.reduce((a, p, i) => a + (p.y - ys[i]) ** 2, 0) / P.length);
+  } else {
+    let predict = null;
+    if (kind === 'poly2') {
+      const c = poly2fit(P);
+      if (c) predict = x => c[0] + c[1] * x + c[2] * x * x;
+    } else {
+      const maps = {
+        linear: [p => [p.x, p.y],                    (x, c) => c[0] + c[1] * x],
+        log:    [p => [Math.log(p.x), p.y],          (x, c) => c[0] + c[1] * Math.log(x)],
+        exp:    [p => [p.x, Math.log(p.y)],          (x, c) => Math.exp(c[0] + c[1] * x)],
+        power:  [p => [Math.log(p.x), Math.log(p.y)],(x, c) => Math.exp(c[0] + c[1] * Math.log(x))],
+      }[kind];
+      if (maps) {
+        const c = linreg(P.map(maps[0]));
+        if (c) predict = x => maps[1](x, c);
+      }
+    }
+    if (!predict) return [];
+    sigma = Math.sqrt(P.reduce((a, p) => a + (p.y - predict(p.x)) ** 2, 0) / P.length);   // 잔차 RMSE
+    const x0 = P[0].x, x1 = P[P.length - 1].x, N = 100;
+    const geometric = cfg.xScale === 'log' && x0 > 0;   // 로그축이면 기하급수 샘플링이 매끈함
+    for (let i = 0; i <= N; i++) {
+      const x = geometric ? x0 * Math.pow(x1 / x0, i / N) : x0 + (x1 - x0) * i / N;
+      xs.push(x); ys.push(predict(x));
+    }
+  }
+  const out = [];
+  const k = cfg.trendBand === '1' ? 1 : cfg.trendBand === '2' ? 2 : 0;
+  if (k && sigma > 0) {   // 잔차 ±kσ 음영 밴드
+    const bandBase = { type: 'scatter', mode: 'lines', x: xs, showlegend: false, hoverinfo: 'skip', name: `${name} __trendband` };
+    out.push({ ...bandBase, y: ys.map(v => v - k * sigma), line: { width: 0 } });
+    out.push({ ...bandBase, y: ys.map(v => v + k * sigma), line: { width: 0 }, fill: 'tonexty', fillcolor: hexToRgba(color, 0.08) });
+  }
+  out.push({
+    name: `${name} 추세`, type: 'scatter', mode: 'lines', x: xs, y: ys,
+    line: { color, width: cfg.trendWidth || 1.5, dash: cfg.trendDash || 'dash' },
+    showlegend: false, hoverinfo: 'skip',
+  });
+  return out;
+}
+
+function paretoTrace(cfg, rows) {
+  const [xd, yd] = { 'min-x-max-y': [-1, 1], 'max-x-max-y': [1, 1], 'min-x-min-y': [-1, -1], 'max-x-min-y': [1, -1] }[cfg.paretoDir];
+  const pts = rows.map(r => ({ x: r[cfg.x], y: r[cfg.y] })).filter(p => typeof p.x === 'number' && typeof p.y === 'number');
+  pts.sort((a, b) => xd * (b.x - a.x) || yd * (b.y - a.y));   // best-x first, tie: best-y first
+  const front = [];
+  let best = -Infinity;
+  for (const p of pts) {
+    if (yd * p.y > best) { front.push(p); best = yd * p.y; }
+  }
+  return {
+    name: 'Pareto frontier', type: 'scatter', mode: 'lines',
+    x: front.map(p => p.x), y: front.map(p => p.y),
+    line: { color: CHROME.muted, width: 1.5, dash: 'dash', shape: 'hv' },
+    hoverinfo: 'skip', showlegend: true,
+  };
+}
+function buildAnnotations(cfg) {
+  const ann = [];
+  if (cfg.showLabels) {
+    const rows = chartRows(cfg);
+    const seen = new Set();     // 동일 (x,y,텍스트) 중복 제거
+    const items = [];
+    seriesDefs(cfg).forEach((def) => {
+      const name = def.name;
+      const pts = rows.filter(def.match);
+      for (const r of pts) {
+        const text = cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]);
+        if (text === null || text === undefined) continue;
+        const dedup = `${r[cfg.x]}|${r[cfg.y]}|${text}`;
+        if (seen.has(dedup)) continue;
+        seen.add(dedup);
+        const key = pointKey(name, r[cfg.x], r[cfg.y]);
+        if (cfg.hiddenLabels.includes(key)) continue;
+        items.push({ x: axCoord(r[cfg.x], cfg.xScale), y: axCoord(r[cfg.y], cfg.yScale), text: String(text), key });
+      }
+    });
+    // 그리디 겹침 회피: 축좌표 → 근사 픽셀 변환 후 가까운 레이블은 위로 밀어냄
+    const div = plotDivs[cfg.id];
+    const W = Math.max(200, ((div && div.clientWidth) || 800) - 150);
+    const H = Math.max(150, ((div && div.clientHeight) || 460) - 100);
+    const xs = items.map(i => i.x).filter(v => typeof v === 'number');
+    const ys = items.map(i => i.y).filter(v => typeof v === 'number');
+    const xmn = Math.min(...xs), xmx = Math.max(...xs), ymn = Math.min(...ys), ymx = Math.max(...ys);
+    const px = v => (typeof v === 'number' && xmx > xmn) ? (v - xmn) / (xmx - xmn) * W : 0;
+    const py = v => (typeof v === 'number' && ymx > ymn) ? (1 - (v - ymn) / (ymx - ymn)) * H : 0;
+    const placed = [];
+    for (const it of items) {
+      const userOff = cfg.labelOffsets[it.key];
+      let off = userOff ? { ...userOff } : { ax: 0, ay: -14 };
+      if (!userOff) {   // 사용자가 직접 드래그한 레이블은 건드리지 않음
+        const ix = px(it.x), iy = py(it.y);
+        const w = 7 * it.text.length + 8;
+        for (let tries = 0; tries < 10; tries++) {
+          const hit = placed.some(p => Math.abs((ix + off.ax) - p.cx) < (w + p.w) / 2 && Math.abs((iy + off.ay) - p.cy) < 14);
+          if (!hit) break;
+          off.ay -= 15;
+        }
+        placed.push({ cx: ix + off.ax, cy: iy + off.ay, w });
+      }
+      ann.push({
+        x: it.x, y: it.y, text: it.text, showarrow: true,
+        arrowcolor: Math.abs(off.ay) > 30 || Math.abs(off.ax) > 30 ? CHROME.grid : 'rgba(0,0,0,0)',
+        arrowwidth: 1, arrowhead: 0, ax: off.ax, ay: off.ay, captureevents: true,
+        font: { family: cfg.fontFamily, size: Math.max(10, cfg.fontSize - 2), color: cfg.fontColor },
+        _key: it.key, _kind: 'plabel',
+      });
+    }
+  }
+  // 텍스트 마커 (클릭으로 추가한 자유 주석) — 전역 기본값 ← 개별 오버라이드 순으로 적용
+  cfg.textMarkers.forEach((m, i) => {
+    ann.push({
+      x: axCoord(m.x, cfg.xScale), y: axCoord(m.y, cfg.yScale), text: m.text,
+      showarrow: true, arrowcolor: cfg.tmArrow ? CHROME.muted : 'rgba(0,0,0,0)', arrowwidth: 1, arrowhead: 2,
+      ax: m.ax, ay: m.ay, captureevents: true,
+      font: { family: cfg.fontFamily, size: Number(m.size || cfg.tmFontSize) || cfg.fontSize, color: m.color || cfg.tmColor || cfg.fontColor },
+      ...(cfg.tmBg ? { bgcolor: 'rgba(252,252,251,0.85)', bordercolor: CHROME.axis, borderwidth: 1, borderpad: 3 } : { borderpad: 2 }),
+      _kind: 'tmarker', _tmIdx: i,
+    });
+  });
+  return ann;
+}
+function baselineShapes(cfg, gd) {
+  const shapes = [];
+  for (const b of cfg.baselines) {
+    const bx = axCoord(b.x, cfg.xScale), by = axCoord(b.y, cfg.yScale);
+    shapes.push(
+      { type: 'line', xref: 'x', yref: 'paper', x0: bx, x1: bx, y0: 0, y1: 1,
+        line: { color: CHROME.muted, width: 1, dash: 'dot' } },
+      { type: 'line', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: by, y1: by,
+        line: { color: CHROME.muted, width: 1, dash: 'dot' } },
+    );
+    const shade = b.shade || 'none';
+    if (shade !== 'none' && typeof b.x === 'number' && typeof b.y === 'number') {
+      let xr = [bx, bx], yr = [by, by];
+      if (gd && gd._fullLayout && gd._fullLayout.xaxis && gd._fullLayout.yaxis) {
+        const xrng = gd._fullLayout.xaxis.range, yrng = gd._fullLayout.yaxis.range;
+        xr = shade.includes('r') ? [bx, Math.max(...xrng)] : [Math.min(...xrng), bx];
+        yr = shade.startsWith('u') ? [by, Math.max(...yrng)] : [Math.min(...yrng), by];
+      } else {
+        // first render: shade to data extent
+        const rows = chartRows(cfg);
+        const xs = rows.map(r => axCoord(r[cfg.x], cfg.xScale)).filter(v => typeof v === 'number');
+        const ys = rows.map(r => axCoord(r[cfg.y], cfg.yScale)).filter(v => typeof v === 'number');
+        if (xs.length) xr = shade.includes('r') ? [bx, Math.max(...xs)] : [Math.min(...xs), bx];
+        if (ys.length) yr = shade.startsWith('u') ? [by, Math.max(...ys)] : [Math.min(...ys), by];
+      }
+      shapes.push({
+        type: 'rect', xref: 'x', yref: 'y', x0: xr[0], x1: xr[1], y0: yr[0], y1: yr[1],
+        fillcolor: 'rgba(42,120,214,0.06)', line: { width: 0 }, layer: 'below',
+      });
+    }
+  }
+  return shapes;
+}
+function buildLayout(cfg, gd) {
+  const legend = {
+    right: { orientation: 'v', x: 1.02, y: 1, xanchor: 'left' },
+    top: { orientation: 'h', x: 0, y: 1.12, xanchor: 'left' },
+    inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', bgcolor: 'rgba(252,252,251,0.8)' },
+  }[cfg.legendPos];
+  const axis = (label, scale, mn, mx, col) => {
+    const a = {
+      title: { text: label || col, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: cfg.fontColor } },
+      type: scale === 'log' ? 'log' : 'linear',
+      showgrid: cfg.grid, gridcolor: CHROME.grid, gridwidth: 1,
+      zeroline: false, linecolor: CHROME.axis, linewidth: 1,
+      tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted },
+      ticks: 'outside', tickcolor: CHROME.axis, mirror: false, automargin: true,
+    };
+    const lo = coerce(mn), hi = coerce(mx);
+    const hasLo = typeof lo === 'number', hasHi = typeof hi === 'number';
+    if (hasLo || hasHi) {   // 한쪽만 입력해도 동작 — 빈 쪽은 데이터 범위(±5%)로 채움
+      const vals = chartRows(cfg).map(r => r[col]).filter(v => typeof v === 'number');
+      if (scale === 'log') {
+        const pos = vals.filter(v => v > 0);
+        const pmin = pos.length ? Math.min(...pos) : 0.1, pmax = pos.length ? Math.max(...pos) : 10;
+        const r0 = hasLo && lo > 0 ? lo : pmin / 1.2;
+        const r1 = hasHi && hi > 0 ? hi : pmax * 1.2;
+        a.range = [logv(r0), logv(r1)];
+      } else {
+        const dmin = vals.length ? Math.min(...vals) : 0, dmax = vals.length ? Math.max(...vals) : 1;
+        const pad = (dmax - dmin) * 0.05 || Math.abs(dmax) * 0.05 || 1;
+        a.range = [hasLo ? lo : dmin - pad, hasHi ? hi : dmax + pad];
+      }
+      a.autorange = false;
+    }
+    return a;
+  };
+  return {
+    title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: cfg.fontColor }, x: 0.5 } : undefined,
+    font: { family: cfg.fontFamily, size: cfg.fontSize, color: cfg.fontColor },
+    paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
+    xaxis: axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x),
+    yaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y),
+    showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
+    legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
+    margin: { l: 64, r: cfg.legendPos === 'right' ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
+    hovermode: 'closest',
+    annotations: buildAnnotations(cfg),
+    shapes: baselineShapes(cfg, gd),
+    barmode: 'group', bargap: 0.25, bargroupgap: 0.08,
+    // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일이 바뀔 때만 뷰 리셋
+    uirevision: [cfg.id, cfg.x, cfg.y, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
+  };
+}
+
+function renderPlot(cfg) {
+  const div = plotDivs[cfg.id];
+  if (!div) return;
+  if (!cfg.x || !cfg.y || !allRows().length) {
+    Plotly.purge(div);
+    div.innerHTML = `<div style="padding:40px;color:#898781;text-align:center">${esc(t('plot.placeholder'))}</div>`;
+    div._vizBound = false;   // purge가 이벤트 에미터를 제거하므로 재바인딩 필요
+    return;
+  }
+  const gd = div;
+  if (!gd.data) gd.innerHTML = '';   // placeholder 텍스트만 제거 — 기존 플롯 DOM은 Plotly.react가 관리
+  Plotly.react(gd, buildTraces(cfg), buildLayout(cfg, gd._fullLayout ? gd : null), {
+    responsive: true, displaylogo: false,
+    scrollZoom: true, displayModeBar: true,
+    edits: { annotationTail: true },
+    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+  }).then(() => {
+    if (!gd._vizBound) {
+      gd._vizBound = true;
+      gd.on('plotly_click', ev => {
+        const p = ev.points && ev.points[0];
+        if (!p || p.data.name === 'Pareto frontier') return;
+        const c = state.charts.find(ch => ch.id === cfg.id);
+        if (c) showPointPopover(c, gd, p, ev.event);
+      });
+      gd.on('plotly_clickannotation', ev => {
+        const c = state.charts.find(ch => ch.id === cfg.id);
+        if (!c || !ev.annotation) return;
+        if (ev.annotation._kind === 'plabel') {          // 포인트 레이블 클릭 → 개별 숨김
+          if (!c.hiddenLabels.includes(ev.annotation._key)) c.hiddenLabels.push(ev.annotation._key);
+          renderPlot(c); refreshPanels(c); save();
+        } else if (ev.annotation._kind === 'tmarker') {  // 텍스트 마커 클릭 → 편집/삭제
+          showMarkerEditPopover(c, ev.annotation._tmIdx, ev.event);
+        }
+      });
+      gd.on('plotly_relayout', ev => {
+        const c = state.charts.find(ch => ch.id === cfg.id);
+        if (!c) return;
+        let moved = false, zoomed = false;
+        for (const k of Object.keys(ev)) {
+          const m = k.match(/^annotations\[(\d+)\]\.(ax|ay)$/);
+          if (m) {
+            const ann = gd.layout.annotations[Number(m[1])];
+            if (!ann) continue;
+            if (ann._kind === 'plabel' && ann._key) {
+              const off = c.labelOffsets[ann._key] || { ax: 0, ay: -14 };
+              off[m[2]] = ev[k];
+              c.labelOffsets[ann._key] = off;
+              moved = true;
+            } else if (ann._kind === 'tmarker' && c.textMarkers[ann._tmIdx]) {
+              c.textMarkers[ann._tmIdx][m[2]] = ev[k];
+              moved = true;
+            }
+          }
+          if (/^[xy]axis\.range/.test(k) || k === 'autosize') zoomed = true;
+        }
+        if (moved) save();
+        if (zoomed && c.baselines.some(b => (b.shade || 'none') !== 'none')) {
+          Plotly.relayout(gd, { shapes: baselineShapes(c, gd) });
+        }
+      });
+    }
+  });
+}
+
+/* ---- 포인트 클릭 팝오버: 베이스라인 / 텍스트 마커 ---- */
+const popover = document.createElement('div');
+popover.id = 'ptPopover';
+document.body.append(popover);
+document.addEventListener('pointerdown', e => { if (!popover.contains(e.target)) hidePopover(); }, true);
+function hidePopover() { popover.classList.remove('show'); popover.innerHTML = ''; }
+function placePopover(mouseEv) {
+  const x = Math.min((mouseEv && mouseEv.clientX || 200) + 6, window.innerWidth - 230);
+  const y = Math.min((mouseEv && mouseEv.clientY || 200) + 6, window.innerHeight - 140);
+  popover.style.left = x + 'px'; popover.style.top = y + 'px';
+  popover.classList.add('show');
+}
+function showPointPopover(c, gd, p, mouseEv) {
+  popover.innerHTML = '';
+  const bIdx = c.baselines.findIndex(b => b.x === p.x && b.y === p.y);
+  popover.append(
+    el('div', { class: 'pp-title' }, `(${p.x}, ${p.y})`),
+    el('button', {
+      onclick: () => {
+        if (bIdx >= 0) c.baselines.splice(bIdx, 1);
+        else c.baselines.push({ x: p.x, y: p.y, shade: 'none' });
+        hidePopover(); renderPlot(c); refreshPanels(c); save();
+      },
+    }, bIdx >= 0 ? t('pt.removeBaseline') : t('pt.addBaseline')),
+    el('button', {
+      onclick: () => {
+        const g = p.data && p.data._g, g2 = p.data && p.data._g2;
+        const hit = [];
+        for (const r of allRows()) {
+          if (r._excluded) continue;
+          if (r[c.x] === p.x && r[c.y] === p.y
+              && (g == null || String(r[c.group]) === g)
+              && (g2 == null || String(r[c.group2]) === g2)) { r._excluded = true; hit.push(r); }
+        }
+        hidePopover();
+        if (hit.length) {
+          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); save(); };
+          refresh();
+          showToast(tf('toast.excluded', { n: hit.length }), t('toast.undo'), () => { hit.forEach(r => delete r._excluded); refresh(); });
+        }
+      },
+    }, t('pt.excludePoint')),
+    el('button', {
+      onclick: () => {
+        popover.innerHTML = '';
+        const inp = el('input', { type: 'text', placeholder: t('pt.textPlaceholder') });
+        const add = () => {
+          const txt = inp.value.trim();
+          if (txt) { c.textMarkers.push({ x: p.x, y: p.y, text: txt, ax: 40, ay: -40 }); renderPlot(c); refreshPanels(c); save(); }
+          hidePopover();
+        };
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); if (e.key === 'Escape') hidePopover(); });
+        popover.append(el('div', { class: 'pp-title' }, t('pt.textMarker')), inp,
+          el('div', { class: 'pp-row' }, el('button', { onclick: add }, t('btn.add')), el('button', { onclick: hidePopover }, t('btn.cancel'))));
+        placePopover(mouseEv); inp.focus();
+      },
+    }, t('pt.addTextMarker')),
+    el('div', { class: 'pp-note' }, t('pt.excludeNote')),
+  );
+  placePopover(mouseEv);
+}
+function showMarkerEditPopover(c, idx, mouseEv) {
+  const m = c.textMarkers[idx];
+  if (!m) return;
+  popover.innerHTML = '';
+  const inp = el('input', { type: 'text', value: m.text });
+  const apply = () => {
+    const txt = inp.value.trim();
+    if (txt) m.text = txt; else c.textMarkers.splice(idx, 1);   // 비우면 삭제
+    hidePopover(); renderPlot(c); refreshPanels(c); save();
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') apply(); if (e.key === 'Escape') hidePopover(); });
+  const live = () => { renderPlot(c); refreshPanels(c); save(); };
+  popover.append(el('div', { class: 'pp-title' }, t('pt.editTextMarker')), inp,
+    el('div', { class: 'pp-row' },
+      el('input', { type: 'color', value: m.color || c.tmColor || c.fontColor, title: t('cfg.fontColorTitle'), oninput: e => { m.color = e.target.value; live(); } }),
+      el('input', { type: 'number', value: m.size || '', min: 8, max: 40, placeholder: t('pt.sizePlaceholder'), title: t('pt.sizeTitle'), style: 'width:64px', oninput: e => { m.size = e.target.value; live(); } }),
+    ),
+    el('div', { class: 'pp-row' },
+      el('button', { onclick: apply }, t('btn.save')),
+      el('button', { class: 'danger', onclick: () => { c.textMarkers.splice(idx, 1); hidePopover(); live(); } }, t('btn.delete')),
+      el('button', { onclick: hidePopover }, t('btn.cancel'))));
+  placePopover(mouseEv); inp.focus(); inp.select();
+}
+/* 설정 패널의 동적 목록(베이스라인/마커/숨긴 레이블) 갱신 */
+function refreshPanels(cfg) {
+  if (cfg._refreshLists) cfg._refreshLists();
+}
+
+/* ---- 토스트 (실행 취소 지원) ---- */
+const toastEl = document.createElement('div');
+toastEl.id = 'toast';
+document.body.append(toastEl);
+let toastTimer = null;
+function showToast(msg, actionLabel, action) {
+  toastEl.innerHTML = '';
+  toastEl.append(el('span', {}, msg));
+  if (action) toastEl.append(el('button', { onclick: () => { action(); toastEl.classList.remove('show'); } }, actionLabel));
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 5000);
+}
+
+/* ================= chart card UI ================= */
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'html') e.innerHTML = v;
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) e.append(c);
+  return e;
+}
+function select(options, value, onchange, attrs = {}) {
+  const s = el('select', { ...attrs, onchange: e => onchange(e.target.value) });
+  for (const o of options) {
+    const [val, label] = Array.isArray(o) ? o : [o, o];
+    const opt = el('option', { value: val }, label);
+    if (String(val) === String(value)) opt.selected = true;
+    s.append(opt);
+  }
+  return s;
+}
+function colSelect(cfg, key, opts) {
+  const { allowEmpty = true, emptyLabel = t('opt.noneParen'), onChange } = opts || {};
+  const cols = visibleColumns();
+  const items = allowEmpty ? [['', emptyLabel], ...cols] : cols;
+  return select(items, cfg[key], v => { cfg[key] = v; if (onChange) onChange(); renderPlot(cfg); save(); });
+}
+
+function renderChartCard(cfg) {
+  const card = el('section', { class: 'card chart-card', 'data-chart': cfg.id });
+
+  const chartNo = state.charts.indexOf(cfg) + 1;
+  const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
+  const cfgPanel = el('div', { class: 'cfg' });
+  const plotDiv = el('div', { class: 'plot' });
+  plotDivs[cfg.id] = plotDiv;
+
+  const head = el('div', { class: 'head' },
+    nameSpan,
+    el('button', { class: 'small', title: t('card.resetViewTitle'), onclick: () => {
+      cfg.xMin = cfg.xMax = cfg.yMin = cfg.yMax = '';
+      renderPlot(cfg);
+      if (plotDiv.data) Plotly.relayout(plotDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true });
+      buildCfgPanel(cfg, cfgPanel, nameSpan); save();
+    } }, t('card.resetView')),
+    el('button', { class: 'small', onclick: () => cfgPanel.classList.toggle('hidden') }, t('card.settings')),
+    el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
+    el('button', { class: 'small', onclick: () => exportImg(cfg, 'svg') }, 'SVG'),
+    el('button', { class: 'small', onclick: () => duplicateChart(cfg) }, t('card.duplicate')),
+    el('button', { class: 'small danger', onclick: () => removeChart(cfg.id) }, t('btn.delete')),
+  );
+
+  buildCfgPanel(cfg, cfgPanel, nameSpan);
+  card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
+    el('div', { class: 'plot-hint' }, t('card.plotHint')));
+  return card;
+}
+
+function buildCfgPanel(cfg, panel, nameSpan) {
+  panel.innerHTML = '';
+  const numCols = numericColumns();
+  const rp = () => { renderPlot(cfg); save(); };
+  const row = (label, ...ctrl) => el('div', { class: 'row' }, el('span', { class: 'lbl' }, label), ...ctrl);
+
+  /* --- 데이터 --- */
+  const gData = el('details', { class: 'grp', open: '' }, el('summary', {}, t('cfg.data')));
+  gData.append(
+    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')]], cfg.type, v => { cfg.type = v; rp(); })),
+    row(t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
+    row(t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
+    row(t('cfg.group'), colSelect(cfg, 'group', { onChange: () => rebuild() })),
+    row(t('cfg.group2'), colSelect(cfg, 'group2', { onChange: () => rebuild() })),
+    el('div', { class: 'hint' }, t('cfg.group2Hint')),
+    row(t('cfg.size'), colSelect(cfg, 'size')),
+  );
+
+  /* --- 필터 --- */
+  const gFilter = el('details', { class: 'grp' }, el('summary', {}, tf('cfg.filterCount', { n: cfg.filters.length })));
+  const fBox = el('div');
+  const renderFilters = () => {
+    fBox.innerHTML = '';
+    const nums = numericColumns();
+    cfg.filters.forEach((f, i) => {
+      const isNum = f.col && nums.includes(f.col);
+      const ops = !f.col ? [['=', '=']]
+        : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤']]
+        : [['in', t('op.select')], ['=', '='], ['≠', '≠'], ['포함', t('op.contains')]];
+      if (!ops.some(o => o[0] === f.op)) { f.op = ops[0][0]; f.value = f.op === 'in' ? [] : ''; }
+      // 카테고리 컬럼은 다중 선택 체크박스(기본) 또는 고유값 드롭다운, 숫자 컬럼은 숫자 입력
+      let valueCtrl = null, valsBox = null;
+      if (!f.col) {
+        valueCtrl = el('input', { type: 'text', disabled: '', placeholder: t('cfg.filterColFirst') });
+      } else if (isNum) {
+        valueCtrl = el('input', { type: 'number', step: 'any', value: f.value !== undefined ? f.value : '', placeholder: t('cfg.filterValuePh'), oninput: e => { f.value = e.target.value; rp(); } });
+      } else if (f.op === 'in') {
+        if (!Array.isArray(f.value)) f.value = [];
+        const sel = f.value;
+        valsBox = el('div', { class: 'filter-vals' });
+        uniqueVals(f.col).map(String).forEach(v => {
+          valsBox.append(el('label', { class: 'inline' },
+            el('input', { type: 'checkbox', ...(sel.includes(v) ? { checked: '' } : {}), onchange: e => {
+              if (e.target.checked) { if (!sel.includes(v)) sel.push(v); }
+              else { const j = sel.indexOf(v); if (j >= 0) sel.splice(j, 1); }
+              rp();
+            } }), v));
+        });
+      } else {
+        valueCtrl = select([['', t('opt.selectValue')], ...uniqueVals(f.col).map(v => [String(v), String(v)])], f.value, v => { f.value = v; rp(); });
+      }
+      fBox.append(el('div', { class: 'filter-row' },
+        select([['', t('opt.column')], ...visibleColumns()], f.col, v => {
+          f.col = v;
+          const numCol = nums.includes(v);
+          f.op = !v ? '=' : numCol ? '=' : 'in';
+          f.value = f.op === 'in' ? [] : '';
+          renderFilters(); rp();
+        }),
+        select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
+        ...(valueCtrl ? [valueCtrl] : []),
+        el('button', { class: 'small danger', onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
+      ));
+      if (valsBox) fBox.append(valsBox);
+    });
+    gFilter.querySelector('summary').textContent = tf('cfg.filterCount', { n: cfg.filters.length });
+  };
+  renderFilters();
+  gFilter.append(
+    el('div', { class: 'hint' }, t('cfg.filterHint')),
+    fBox,
+    el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '' }); renderFilters(); } }, t('cfg.addFilter')));
+
+  /* --- 축 --- */
+  const gAxis = el('details', { class: 'grp' }, el('summary', {}, t('cfg.axis')));
+  gAxis.append(
+    row(t('cfg.xLabel'), el('input', { type: 'text', value: cfg.xLabel, placeholder: cfg.x || 'auto', oninput: e => { cfg.xLabel = e.target.value; rp(); } })),
+    row(t('cfg.yLabel'), el('input', { type: 'text', value: cfg.yLabel, placeholder: cfg.y || 'auto', oninput: e => { cfg.yLabel = e.target.value; rp(); } })),
+    row(t('cfg.xScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.xScale, v => { cfg.xScale = v; rp(); })),
+    row(t('cfg.yScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.yScale, v => { cfg.yScale = v; rp(); })),
+    row(t('cfg.xRange'), el('input', { type: 'number', value: cfg.xMin, placeholder: 'min', step: 'any', oninput: e => { cfg.xMin = e.target.value; rp(); } }),
+                 el('input', { type: 'number', value: cfg.xMax, placeholder: 'max', step: 'any', oninput: e => { cfg.xMax = e.target.value; rp(); } })),
+    row(t('cfg.yRange'), el('input', { type: 'number', value: cfg.yMin, placeholder: 'min', step: 'any', oninput: e => { cfg.yMin = e.target.value; rp(); } }),
+                 el('input', { type: 'number', value: cfg.yMax, placeholder: 'max', step: 'any', oninput: e => { cfg.yMax = e.target.value; rp(); } })),
+    el('div', { class: 'hint' }, t('cfg.rangeHint')),
+    row(t('cfg.grid'), el('input', { type: 'checkbox', ...(cfg.grid ? { checked: '' } : {}), onchange: e => { cfg.grid = e.target.checked; rp(); } })),
+  );
+
+  /* --- 스타일 --- */
+  const gStyle = el('details', { class: 'grp' }, el('summary', {}, t('cfg.style')));
+  const seriesBox = el('div');
+  const renderSeries = () => {
+    seriesBox.innerHTML = '';
+    if (!allRows().length) return;
+    seriesDefs(cfg).forEach((def) => {
+      const name = def.name;
+      const st = seriesStyle(cfg, def);
+      const upd = patch => { cfg.seriesStyles[name] = { ...cfg.seriesStyles[name], ...patch }; rp(); };
+      seriesBox.append(el('div', { class: 'series-block' },
+        el('div', { class: 'series-row' },
+          el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }),
+          el('span', { class: 'sname', title: name }, name),
+        ),
+        el('div', { class: 'series-row sub' },
+          select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }),
+          el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }),
+          select(DASHES(), st.dash, v => upd({ dash: v }), { title: t('cfg.lineType') }),
+          el('input', { type: 'number', value: st.lwidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.lineWidth'), oninput: e => upd({ lwidth: Number(e.target.value) || cfg.lineWidth }) }),
+        ),
+      ));
+    });
+  };
+  renderSeries();
+  gStyle.append(
+    row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; nameSpan.textContent = cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }); rp(); } })),
+    row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
+    row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
+        el('input', { type: 'color', value: cfg.fontColor, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
+    row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside', t('opt.inside')], ['none', t('opt.hidden')]], cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
+    row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
+        el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
+        el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
+    row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
+        select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
+    row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+    el('div', { class: 'hint' }, t('cfg.styleHint')),
+    seriesBox,
+  );
+
+  /* --- 포인트 레이블 & 텍스트 마커 --- */
+  const gLabel = el('details', { class: 'grp' }, el('summary', {}, t('cfg.pointLabels')));
+  const hiddenBox = el('div');
+  const markerBox = el('div');
+  const renderLabelLists = () => {
+    hiddenBox.innerHTML = '';
+    if (cfg.hiddenLabels.length) {
+      hiddenBox.append(el('button', { class: 'small', onclick: () => { cfg.hiddenLabels = []; renderLabelLists(); rp(); } },
+        tf('cfg.restoreHiddenLabels', { n: cfg.hiddenLabels.length })));
+    }
+    markerBox.innerHTML = '';
+    if (cfg.textMarkers.length) {
+      markerBox.append(
+        el('div', { class: 'hint' }, t('cfg.textMarkerGlobal')),
+        el('div', { class: 'row' },
+          el('span', { class: 'lbl' }, t('cfg.fontLabel')),
+          el('input', { type: 'number', value: cfg.tmFontSize, min: 8, max: 40, placeholder: 'auto', title: t('cfg.tmFontSizeTitle'), oninput: e => { cfg.tmFontSize = e.target.value; rp(); } }),
+          el('input', { type: 'color', value: cfg.tmColor || cfg.fontColor, title: t('cfg.tmColorTitle'), oninput: e => { cfg.tmColor = e.target.value; rp(); } }),
+          el('label', { class: 'inline' }, el('input', { type: 'checkbox', ...(cfg.tmBg ? { checked: '' } : {}), onchange: e => { cfg.tmBg = e.target.checked; rp(); } }), t('cfg.background')),
+          el('label', { class: 'inline' }, el('input', { type: 'checkbox', ...(cfg.tmArrow ? { checked: '' } : {}), onchange: e => { cfg.tmArrow = e.target.checked; rp(); } }), t('cfg.arrow')),
+        ),
+      );
+    }
+    cfg.textMarkers.forEach((m, i) => {
+      markerBox.append(el('div', { class: 'series-row' },
+        el('input', { type: 'color', value: m.color || cfg.tmColor || cfg.fontColor, title: t('cfg.tmMarkerColorTitle'), oninput: e => { m.color = e.target.value; rp(); } }),
+        el('input', { type: 'text', value: m.text, style: 'flex:1', oninput: e => { m.text = e.target.value; rp(); } }),
+        el('button', { class: 'small danger', onclick: () => { cfg.textMarkers.splice(i, 1); renderLabelLists(); rp(); } }, '×'),
+      ));
+    });
+  };
+  renderLabelLists();
+  gLabel.append(
+    row(t('cfg.show'), el('input', { type: 'checkbox', ...(cfg.showLabels ? { checked: '' } : {}), onchange: e => { cfg.showLabels = e.target.checked; rp(); } })),
+    row(t('cfg.labelCol'), colSelect(cfg, 'labelCol', { emptyLabel: t('opt.auto') })),
+    el('div', { class: 'hint' }, t('cfg.labelHint')),
+    hiddenBox, markerBox,
+  );
+
+  /* --- 베이스라인 --- */
+  const gBase = el('details', { class: 'grp' }, el('summary', {}, tf('cfg.baselineCount', { n: cfg.baselines.length })));
+  const baseBox = el('div');
+  const renderBaseList = () => {
+    baseBox.innerHTML = '';
+    cfg.baselines.forEach((b, i) => {
+      baseBox.append(el('div', { class: 'series-row' },
+        el('span', { class: 'sname', title: `(${b.x}, ${b.y})` }, `(${b.x}, ${b.y})`),
+        select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); }),
+        el('button', { class: 'small danger', onclick: () => { cfg.baselines.splice(i, 1); renderBaseList(); rp(); } }, '×'),
+      ));
+    });
+    gBase.querySelector('summary').textContent = tf('cfg.baselineCount', { n: cfg.baselines.length });
+  };
+  renderBaseList();
+  cfg._refreshLists = () => { renderBaseList(); renderLabelLists(); };
+  gBase.append(
+    el('div', { class: 'hint' }, t('cfg.baselineHint')),
+    baseBox,
+  );
+
+  /* --- 고급 --- */
+  const gAdv = el('details', { class: 'grp' }, el('summary', {}, t('cfg.advanced')));
+  gAdv.append(
+    row(t('cfg.trend'), select([['none', t('opt.none')], ['linear', t('opt.trendLinear')], ['poly2', t('opt.trendPoly2')], ['log', t('opt.trendLog')], ['exp', t('opt.trendExp')], ['power', t('opt.trendPower')], ['movavg', t('opt.trendMovavg')]], cfg.trend, v => { cfg.trend = v; rp(); })),
+    row(t('cfg.trendStyle'), select(DASHES(), cfg.trendDash, v => { cfg.trendDash = v; rp(); }),
+        el('input', { type: 'number', value: cfg.trendWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.trendWidthTitle'), oninput: e => { cfg.trendWidth = Number(e.target.value) || 1.5; rp(); } })),
+    row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })),
+    el('div', { class: 'hint' }, t('cfg.trendHint')),
+    row('Pareto', el('input', { type: 'checkbox', ...(cfg.pareto ? { checked: '' } : {}), onchange: e => { cfg.pareto = e.target.checked; rp(); } })),
+    row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })),
+  );
+
+  panel.append(gData, gFilter, gAxis, gStyle, gLabel, gBase, gAdv);
+
+  function rebuild() { renderSeries(); }
+}
+function exportImg(cfg, format) {
+  const div = plotDivs[cfg.id];
+  if (!div || !div.data) { alert(t('err.drawChartFirst')); return; }
+  Plotly.downloadImage(div, { format, width: div.clientWidth * 1.0 || 900, height: div.clientHeight || 480, scale: format === 'png' ? 3 : 1, filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
+}
+function addChart(cfgOverride) {
+  const cfg = { ...defaultChart(), ...(cfgOverride || {}) };
+  // sensible defaults: y는 점수형(score/acc/f1), x는 비용형(token/latency/cost) 컬럼 우선
+  if (!cfg.x || !cfg.y) {
+    const nums = numericColumns();
+    const yGuess = nums.find(c => /score|acc|f1|auc|bleu|rouge|prec|recall/i.test(c));
+    const xGuess = nums.find(c => c !== yGuess && /token|budget|latency|time|cost|frame|step|size|param/i.test(c));
+    if (!cfg.x) cfg.x = xGuess || nums.find(c => c !== yGuess) || nums[0] || '';
+    if (!cfg.y) cfg.y = yGuess || nums.find(c => c !== cfg.x) || '';
+    const cats = columns().filter(c => !nums.includes(c) && c !== '_source');
+    if (!cfg.group && cats[0]) cfg.group = cats[0];
+  }
+  state.charts.push(cfg);
+  refreshCharts();
+  save();
+  return cfg;
+}
+function serializableChart(c) {
+  return Object.fromEntries(Object.entries(c).filter(([k, v]) => !k.startsWith('_') && typeof v !== 'function'));
+}
+function duplicateChart(src) {
+  const copy = JSON.parse(JSON.stringify(serializableChart(src)));
+  copy.id = state.nextId++;
+  copy.title = src.title ? src.title + t('card.copySuffix') : '';
+  state.charts.push(copy);
+  refreshCharts(); save();
+}
+function removeChart(id) {
+  state.charts = state.charts.filter(c => c.id !== id);
+  delete plotDivs[id];
+  refreshCharts(); save();
+}
+function refreshCharts() {
+  const box = document.getElementById('charts');
+  box.innerHTML = '';
+  for (const cfg of state.charts) box.append(renderChartCard(cfg));
+  document.getElementById('emptyCharts').style.display = state.charts.length ? 'none' : '';
+  for (const cfg of state.charts) renderPlot(cfg);
+}
+
+/* ================= data table ================= */
+const tableState = { search: '', sortCol: null, sortDir: 1, page: 0, pageSize: 200 };
+function renderTable() {
+  const cols = visibleColumns();
+  const table = document.getElementById('dataTable');
+  let rows = allRows();
+  const q = tableState.search.trim().toLowerCase();
+  if (q) rows = rows.filter(r => cols.some(c => r[c] !== null && r[c] !== undefined && String(r[c]).toLowerCase().includes(q)));
+  if (tableState.sortCol) {
+    const c = tableState.sortCol, d = tableState.sortDir;
+    rows = rows.slice().sort((a, b) => {
+      const va = a[c], vb = b[c];
+      if (va === null || va === undefined) return 1;
+      if (vb === null || vb === undefined) return -1;
+      if (typeof va === 'number' && typeof vb === 'number') return d * (va - vb);
+      return d * String(va).localeCompare(String(vb));
+    });
+  }
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / tableState.pageSize));
+  tableState.page = Math.min(tableState.page, pages - 1);
+  const start = tableState.page * tableState.pageSize;
+  const view = rows.slice(start, start + tableState.pageSize);
+  const allIncluded = rows.every(r => !r._excluded);
+
+  let html = `<thead><tr><th class="chk" title="${esc(t('table.allIncludeTitle'))}"><input type="checkbox" id="chkAll"${allIncluded ? ' checked' : ''}></th>` + cols.map(c =>
+    `<th data-col="${esc(c)}">${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
+  view.forEach((r, i) => {
+    html += `<tr class="${r._excluded ? 'excl' : ''}"><td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'}></td>`
+      + cols.map(c => `<td>${r[c] === null || r[c] === undefined ? '<span style="color:#c3c2b7">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
+  });
+  table.innerHTML = html + '</tbody>';
+  const rerenderCharts = () => { for (const c of state.charts) renderPlot(c); };
+  table.querySelectorAll('th[data-col]').forEach(th => th.addEventListener('click', () => {
+    const c = th.dataset.col;
+    if (tableState.sortCol === c) tableState.sortDir *= -1;
+    else { tableState.sortCol = c; tableState.sortDir = 1; }
+    renderTable();
+  }));
+  table.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => {
+    const r = view[Number(cb.dataset.i)];
+    if (cb.checked) delete r._excluded; else r._excluded = true;
+    renderTable(); rerenderCharts(); save();
+  }));
+  const chkAll = table.querySelector('#chkAll');
+  if (chkAll) chkAll.addEventListener('change', () => {
+    rows.forEach(r => { if (chkAll.checked) delete r._excluded; else r._excluded = true; });
+    renderTable(); rerenderCharts(); save();
+  });
+  const nExcl = allRows().filter(r => r._excluded).length;
+  document.getElementById('tableCount').textContent = tf('table.count', {
+    total: total.toLocaleString(), cols: cols.length, all: allRows().length.toLocaleString(),
+    excl: nExcl ? tf('table.exclSuffix', { n: nExcl }) : '',
+  });
+  const restoreBtn = document.getElementById('restoreExcl');
+  restoreBtn.hidden = nExcl === 0;
+  restoreBtn.textContent = tf('table.restoreExcl', { n: nExcl });
+  document.getElementById('pgInfo').textContent = tf('pager.info', { page: pages ? tableState.page + 1 : 0, pages });
+}
+
+/* ================= dataset chips ================= */
+function renderChips() {
+  const box = document.getElementById('datasetChips');
+  box.innerHTML = '';
+  for (const d of state.datasets) {
+    box.append(el('span', { class: 'chip' },
+      d.name, el('span', { class: 'n' }, tf('chips.rows', { n: d.rows.length })),
+      el('button', { title: t('btn.delete'), onclick: () => removeDataset(d.id) }, '×'),
+    ));
+  }
+}
+
+/* ================= session persistence ================= */
+let saveTimer = null;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      const charts = state.charts.map(serializableChart);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }));
+    } catch (e) { /* quota — 데이터가 너무 크면 자동저장 생략 */ }
+  }, 400);
+}
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
+    if (s && s.datasets) {
+      restoreSession(s);
+      if (!localStorage.getItem(STORAGE_KEY)) { save(); localStorage.removeItem(LEGACY_STORAGE_KEY); }
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function restoreSession(s) {
+  state.datasets = s.datasets || [];
+  state.charts = (s.charts || []).map(c => {
+    const m = { ...defaultChart(), ...c };
+    if (m.baseline) {   // 구버전 세션 마이그레이션: 단일 baseline → baselines 배열
+      m.baselines = [{ x: m.baseline.x, y: m.baseline.y, shade: m.baselineShade || 'none' }];
+    }
+    delete m.baseline; delete m.baselineShade;
+    return m;
+  });
+  state.nextId = s.nextId || (Math.max(0, ...state.datasets.map(d => d.id), ...state.charts.map(c => c.id)) + 1);
+  onDataChanged(false);
+  refreshCharts();
+}
+function exportSession() {
+  const charts = state.charts.map(serializableChart);
+  const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }, null, 1)], { type: 'application/json' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ================= wiring ================= */
+function onDataChanged(autoChart = true) {
+  renderChips();
+  tableState.page = 0;
+  renderTable();
+  if (autoChart && state.datasets.length && !state.charts.length) addChart();
+  else refreshCharts();
+  save();
+}
+async function loadFiles(files) {
+  for (const f of files) {
+    if (!/\.(csv|tsv|json)$/i.test(f.name)) continue;
+    try {
+      const text = await f.text();
+      addDataset(f.name.replace(/^.*\//, ''), parseAny(text, f.name));
+    } catch (e) { alert(tf('err.parseFailed', { name: f.name, msg: e.message })); }
+  }
+}
+
+const dz = document.getElementById('dropzone');
+['dragover', 'dragenter'].forEach(ev => document.body.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+['dragleave', 'dragend'].forEach(ev => document.body.addEventListener(ev, e => { if (e.target === document.body || e.relatedTarget === null) dz.classList.remove('drag'); }));
+document.body.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  if (e.dataTransfer && e.dataTransfer.files.length) loadFiles([...e.dataTransfer.files]);
+});
+document.getElementById('btnOpenFiles').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('btnOpenFolder').addEventListener('click', () => document.getElementById('folderInput').click());
+document.getElementById('fileInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
+document.getElementById('folderInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
+
+document.getElementById('btnPaste').addEventListener('click', () => document.getElementById('modalBack').classList.add('show'));
+document.getElementById('pasteCancel').addEventListener('click', () => document.getElementById('modalBack').classList.remove('show'));
+document.getElementById('pasteAdd').addEventListener('click', () => {
+  const name = document.getElementById('pasteName').value.trim() || `pasted-${state.datasets.length + 1}`;
+  const text = document.getElementById('pasteText').value;
+  try {
+    addDataset(name, parseAny(text, name));
+    document.getElementById('modalBack').classList.remove('show');
+    document.getElementById('pasteText').value = ''; document.getElementById('pasteName').value = '';
+  } catch (e) { alert(tf('err.parseFailedGeneric', { msg: e.message })); }
+});
+document.getElementById('modalBack').addEventListener('click', e => { if (e.target.id === 'modalBack') e.target.classList.remove('show'); });
+
+document.getElementById('btnAddChart').addEventListener('click', () => addChart());
+document.getElementById('btnExportSession').addEventListener('click', exportSession);
+document.getElementById('btnImportSession').addEventListener('click', () => {
+  const inp = el('input', { type: 'file', accept: '.json' });
+  inp.addEventListener('change', async () => {
+    try { restoreSession(JSON.parse(await inp.files[0].text())); save(); }
+    catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
+  });
+  inp.click();
+});
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (!confirm(t('confirm.resetAll'))) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state.datasets = []; state.charts = []; state.nextId = 1;
+  onDataChanged(false); refreshCharts();
+});
+document.getElementById('restoreExcl').addEventListener('click', () => {
+  allRows().forEach(r => { delete r._excluded; });
+  renderTable();
+  for (const c of state.charts) renderPlot(c);
+  save();
+});
+document.getElementById('tableSearch').addEventListener('input', e => { tableState.search = e.target.value; tableState.page = 0; renderTable(); });
+document.getElementById('pgPrev').addEventListener('click', () => { tableState.page = Math.max(0, tableState.page - 1); renderTable(); });
+document.getElementById('pgNext').addEventListener('click', () => { tableState.page += 1; renderTable(); });
+document.getElementById('btnLangToggle').addEventListener('click', () => {
+  LANG = LANG === 'ko' ? 'en' : 'ko';
+  localStorage.setItem(LANG_KEY, LANG);
+  applyLang();
+  refreshCharts(); renderTable(); renderChips();
+});
+
+/* visualizer.py 서버가 있으면 폴더의 csv/json을 자동 로드 */
+async function tryServerAutoload() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const res = await fetch('api/files');
+    if (!res.ok) return;
+    const files = await res.json();
+    for (const name of files) {
+      if (state.datasets.some(d => d.name === name)) continue;
+      const r = await fetch('api/file?name=' + encodeURIComponent(name));
+      if (r.ok) {
+        try { addDataset(name, parseAny(await r.text(), name)); }
+        catch (e) { console.warn('자동 로드 실패:', name, e); }
+      }
+    }
+  } catch (e) { /* 서버 없음 — 정상 */ }
+}
+
+/* ================= init ================= */
+applyLang();
+loadSaved();
+renderChips(); renderTable(); refreshCharts();
+tryServerAutoload();
+</script>
+</body>
+</html>
