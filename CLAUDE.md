@@ -5,15 +5,16 @@
 CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그리는 범용 벤치마크 시각화 도구.
 여러 사람이 각자 데이터를 가져와 쓰는 도구이므로 **입력 계약의 안정성**과 **파일 하나로 배포 가능한 단순함**이 최우선이다.
 
-## 파일 구조 (이 6개가 전부 — 파일을 늘리지 말 것)
+## 파일 구조 (이 7개가 전부 — 파일을 늘리지 말 것)
 
 | 파일 | 역할 |
 |---|---|
 | `index.html` | 메인 앱. **유일한 소스 코드** (HTML+CSS+JS 단일 파일, Plotly.js CDN) |
 | `index-offline.html` | 자동 생성물. 직접 수정 금지 — `python visualizer.py build-offline`로 재생성 |
-| `visualizer.py` | 보조 실행기: 로컬 서버(+폴더 자동 로드 API) 및 오프라인 빌더 |
+| `visualizer.py` | 보조 실행기: 로컬 서버(+폴더 자동 로드 API) 및 오프라인 빌더. CLI 출력은 영어 |
 | `example.csv` | 예시 데이터 (4 method × 6 token budget = 24행, 중복 없음, 상식적 추세 내장) — 데모·문서용. 재생성 스크립트는 커밋하지 않음 |
-| `README.md` | 사용자 문서: 사용법, 입력 계약, 에이전트용 변환 요청문 |
+| `README.md` | 사용자 문서 (한국어): 사용법, 입력 계약, 에이전트용 변환 요청문 |
+| `README.en.md` | README.md의 영어 완역 — **내용 변경 시 두 README를 항상 함께 갱신** |
 | `CLAUDE.md` | 이 파일 |
 
 ## 절대 규칙
@@ -22,7 +23,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **Plotly 버전 고정**: CDN URL(`plotly-2.35.2.min.js`)을 올리려면 전체 기능 검증 후에만.
 - **Python은 표준 라이브러리만**, 문법은 **3.8 호환** (`X | None` 타입 표기 금지 — 실제로 3.9에서 깨진 적 있음).
 - **`index.html` 수정 후에는 반드시 `python visualizer.py build-offline` 실행**해 `index-offline.html`을 재생성.
-- **입력 계약(데이터 포맷)을 바꾸면 README.md의 "데이터 포맷"과 "에이전트 요청문" 섹션도 함께 갱신** — 두 문서는 항상 동기화.
+- **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).

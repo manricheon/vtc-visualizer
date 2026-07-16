@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""VTC Visualizer — 실행기. (c) mrc
+"""VTC Visualizer — launcher. (c) mrc
 
-사용법:
-    python visualizer.py                  # 서버 실행 + 브라우저 열기
-    python visualizer.py logs/            # logs/ 안의 csv/json을 자동 로드
+Usage | 사용법:
+    python visualizer.py                  # start server + open browser
+    python visualizer.py logs/            # autoload csv/json from logs/
     python visualizer.py --port 8765
-    python visualizer.py build-offline    # Plotly 인라인 index-offline.html 생성
+    python visualizer.py build-offline    # build index-offline.html with Plotly inlined
 
-표준 라이브러리만 사용한다. HTML(index.html)은 서버 없이 더블클릭만으로도
-동작하며, 이 스크립트는 폴더 자동 로드와 오프라인 빌드를 돕는 보조 도구다.
+Standard library only. index.html also works by simply double-clicking it —
+this script is an optional helper for folder autoload and the offline build.
+(HTML은 더블클릭만으로도 동작. 이 스크립트는 폴더 자동 로드/오프라인 빌드용 보조 도구.)
 """
 import argparse
 import json
@@ -33,9 +34,9 @@ def build_offline() -> None:
     html = INDEX.read_text(encoding="utf-8")
     m = re.search(r'<script src="(https://cdn\.plot\.ly/[^"]+)"[^>]*></script>', html)
     if not m:
-        sys.exit("index.html에서 Plotly CDN 태그를 찾지 못했습니다.")
+        sys.exit("Could not find the Plotly CDN tag in index.html.")
     url = m.group(1)
-    print(f"Plotly 다운로드 중… {url}")
+    print(f"Downloading Plotly… {url}")
     with urllib.request.urlopen(url) as res:
         plotly_js = res.read().decode("utf-8")
     inline = "<script>\n" + plotly_js + "\n</script>"
@@ -43,7 +44,7 @@ def build_offline() -> None:
     out = out.replace("<title>VTC Visualizer</title>",
                       "<title>VTC Visualizer (offline)</title>", 1)
     OFFLINE.write_text(out, encoding="utf-8")
-    print(f"생성 완료: {OFFLINE} ({OFFLINE.stat().st_size / 1e6:.1f} MB) — 인터넷 없이 동작합니다.")
+    print(f"Done: {OFFLINE} ({OFFLINE.stat().st_size / 1e6:.1f} MB) — works without internet.")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -89,19 +90,19 @@ def serve(data_dir: "Optional[Path]", port: int) -> None:
     Handler.data_dir = data_dir
     server = HTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}/"
-    where = f" (데이터 폴더: {data_dir})" if data_dir else ""
-    print(f"VTC Visualizer — {url}{where}\n종료: Ctrl+C")
+    where = f" (data folder: {data_dir})" if data_dir else ""
+    print(f"VTC Visualizer — {url}{where}\nStop: Ctrl+C")
     threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n종료합니다.")
+        print("\nBye.")
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="VTC Visualizer 실행기")
+    ap = argparse.ArgumentParser(description="VTC Visualizer launcher")
     ap.add_argument("target", nargs="?", default=None,
-                    help="자동 로드할 데이터 폴더, 또는 'build-offline'")
+                    help="data folder to autoload, or 'build-offline'")
     ap.add_argument("--port", type=int, default=8000)
     args = ap.parse_args()
 
@@ -113,7 +114,7 @@ def main() -> None:
     if args.target:
         data_dir = Path(args.target).resolve()
         if not data_dir.is_dir():
-            sys.exit(f"폴더를 찾을 수 없습니다: {data_dir}")
+            sys.exit(f"Folder not found: {data_dir}")
     serve(data_dir, args.port)
 
 

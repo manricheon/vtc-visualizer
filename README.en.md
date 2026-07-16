@@ -1,0 +1,130 @@
+# VTC Visualizer
+
+**English** | [한국어](README.md)
+
+A general-purpose visualizer that turns CSV/JSON data into paper-style interactive charts, right in your browser.
+Build fully customizable benchmark comparisons — performance vs. token budget, performance vs. speed, and so on.
+All data is processed entirely in your browser and never sent anywhere.
+
+## Quick start
+
+Any of these three:
+
+1. **Double-click** — open `index.html` in a browser and drag & drop your files (needs internet: the chart library loads from a CDN)
+2. **Fully offline** — double-click `index-offline.html` (no internet needed; copy this single file anywhere)
+3. **Folder autoload** — run the server pointing at a data folder:
+
+   ```bash
+   python visualizer.py .                 # first time? try the bundled example.csv
+   python visualizer.py results/          # autoloads *.csv, *.json from results/
+   python visualizer.py                   # start empty
+   python visualizer.py results/ --port 8765
+   ```
+
+The UI is bilingual — use the **KO/EN toggle** in the top-right corner (your choice is remembered).
+
+Try dragging in the bundled `example.csv` first — 24 rows sweeping 4 methods × token budgets (500–16k, no duplicates),
+with common-sense trends baked in: accuracy rises with a saturating curve while latency and cost grow with tokens
+(e.g. X=tokens, Y=accuracy, group=method gives clean curves with no filters).
+
+## Adding data
+
+- **Drag & drop** CSV/JSON files (multiple at once)
+- **Open files… / Open folder…** buttons
+- **Paste data…** button → paste CSV/JSON text
+- When launched via `visualizer.py`, files in the given folder load automatically
+
+Files keep merging as you add them. Re-adding the same filename replaces it.
+
+## Data format (input contract)
+
+- **CSV**: first line is the header, then one row = one measurement point. (TSV also works)
+- **JSON**: an array of objects `[{"method": "ours", "tokens": 4000, "score": 0.744}, …]`
+- **No required columns.** Numeric columns automatically become axis candidates; string columns become group (color) / filter candidates.
+- Column names are free-form, and files may have different columns (merged as a union; missing cells show as `–`).
+- With two or more files loaded, the source filename appears as a `_source` column usable for grouping/filtering (hidden with a single file).
+
+Recommended shape (long-form / tidy — one measurement per row):
+
+```csv
+method,tokens,latency_s,score,dataset
+baseline,1000,1.2,0.612,MMLU
+baseline,4000,3.8,0.681,MMLU
+ours,1000,1.4,0.641,MMLU
+ours,4000,4.1,0.744,MMLU
+```
+
+## Features
+
+| Feature | How |
+|---|---|
+| Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card — multiple charts per page |
+| **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
+| Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
+| Series styling | Settings → Style: per-series color, marker symbol/size, **line style (solid/dash/dot) and width**, font, legend position |
+| Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …). Rows must match all conditions |
+| **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
+| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, per-baseline quadrant shading, removable from the settings panel |
+| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete |
+| **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
+| **Trend lines** | Settings → Advanced: linear / quadratic / log / exponential / power / moving-average fits per series (dash & width adjustable), optional **error band (±1σ/±2σ)** shading |
+| **Shape group (3rd dimension)** | Settings → Data → Shape group: color = group 1, **marker shape = group 2**. E.g. color=method, shape=frames keeps method colors while distinguishing frames by shape |
+| Text marker styling | Global font size/color/background/arrow in the Point labels group; per-marker color/size override in the click-to-edit popup |
+| Line smoothing | Settings → Style → line shape: straight/spline, solid/dash/dot |
+| **Area fill** | Settings → Style → Area fill: soft pastel band under each line in the series color |
+| Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
+| Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
+| Export | `PNG` (3× resolution) / `SVG` buttons on each card |
+| Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
+| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
+
+### Tip: seeing a third dimension
+
+With X=tokens, Y=accuracy, group (color)=method, to also see how something like `frames` behaves:
+1. Set **Shape group** to frames — color stays method, marker shape encodes frames (recommended; legend shows each combo)
+2. Set **Size column** to frames — bigger markers for bigger values (good for continuous values)
+3. Use frames as the **point label** column — the value appears next to each point
+4. **Duplicate** the chart and filter each copy to one frames value — side-by-side small multiples
+
+## Converting your data to this format (agent prompt)
+
+Whatever format your logs or experiment results are in, copy the prompt below into any LLM agent (Claude, etc.)
+together with your data file (or its path):
+
+```text
+Convert my data into a CSV or JSON file that satisfies the "input contract" below.
+
+[Input contract — VTC Visualizer]
+1. CSV (header on the first line) or a JSON array of objects. UTF-8 encoded.
+2. Long-form (tidy): one row = one measurement point. Repeat rows for repeated measurements.
+   (e.g. scores per method × token budget become rows with 3 columns: method,tokens,score)
+3. No required columns, but follow these guidelines:
+   - Put the thing being compared (method/model/config name) in one string column (e.g. "method")
+     → it becomes the color group in charts.
+   - Put each measure used as an axis (token count, time, score, …) in its own numeric column.
+     Encode units in the column name (e.g. latency_s, cost_usd).
+   - Put each condition (dataset, GPU type, …) in its own column → usable as filters.
+4. Numeric columns must contain numbers only (no unit strings, no thousands separators; leave missing values empty).
+5. Prefer lowercase_with_underscores column names. The name "_source" is reserved — do not use it.
+
+Save the result as *.csv or *.json. Ask me if any conversion rule is ambiguous.
+```
+
+If you convert often, consider writing your own conversion script targeting the same contract.
+
+## Rebuilding the offline version
+
+If you modify `index.html`, regenerate the offline build:
+
+```bash
+python visualizer.py build-offline    # → index-offline.html (~4.6MB)
+```
+
+## Requirements
+
+- A modern browser (Chrome/Edge/Safari/Firefox)
+- Python 3.8+ for `visualizer.py` (standard library only, nothing to install)
+
+---
+
+© mrc

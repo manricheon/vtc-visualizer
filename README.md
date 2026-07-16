@@ -1,5 +1,7 @@
 # VTC Visualizer
 
+[English](README.en.md) | **한국어**
+
 CSV/JSON 데이터를 브라우저에서 논문·기술문서 스타일의 인터랙티브 그래프로 그리는 범용 시각화 도구입니다.
 토큰 버짓 대비 성능, 속도 대비 성능 같은 벤치마크 비교 그래프를 자유롭게 커스텀할 수 있습니다.
 모든 데이터는 브라우저 안에서만 처리되며 외부로 전송되지 않습니다.
@@ -116,9 +118,7 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 ## English
 
-The UI is fully bilingual — click the **EN** button in the top-right corner to switch the entire interface to English
-(the choice is remembered). Quick start: open `index.html` in a browser (or `index-offline.html` for air-gapped machines,
-or `python visualizer.py <data-dir>`), then drag & drop CSV/JSON files. See the input contract above — any tidy table works.
+Full English documentation: **[README.en.md](README.en.md)**. The UI itself is bilingual — use the KO/EN toggle in the top-right corner.
 
 ## 요구 사항
 
