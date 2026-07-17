@@ -354,6 +354,23 @@ const I18N = {
     'cfg.areaFill': '영역 채우기',
     'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기',
     'cfg.styleHint': '시리즈별: 색 · 마커 모양/크기 · 선 종류/굵기',
+    'cfg.bar': '막대 옵션',
+    'cfg.barMode': '배치',
+    'opt.barGroup': '나란히 (그룹)', 'opt.barStack': '쌓기 (스택)',
+    'cfg.barOrient': '방향',
+    'opt.barVert': '세로', 'opt.barHoriz': '가로',
+    'cfg.barAgg': '집계',
+    'opt.aggNone': '없음 (행 그대로)', 'opt.aggMean': '평균', 'opt.aggSum': '합계', 'opt.aggMedian': '중앙값', 'opt.aggMin': '최소', 'opt.aggMax': '최대', 'opt.aggCount': '개수',
+    'cfg.barError': '오차 막대',
+    'opt.errStd': '±표준편차', 'opt.errSem': '±표준오차',
+    'cfg.barText': '값 표시',
+    'opt.barTextValue': '막대 끝에 값',
+    'cfg.barOpacity': '불투명도',
+    'cfg.barSort': '정렬',
+    'opt.sortAuto': '자동 (데이터 순)', 'opt.sortLabel': '이름순', 'opt.sortAsc': '값 오름차순', 'opt.sortDesc': '값 내림차순',
+    'cfg.barCatX': 'X를 카테고리로',
+    'cfg.barCatXTitle': '숫자 X 값을 등간격 카테고리로 취급 (막대가 얇아지지 않음)',
+    'cfg.barAggHint': '집계는 같은 X 값의 여러 행을 하나의 막대로 요약합니다. 오차 막대는 집계 = 평균일 때 표시됩니다.',
     'cfg.markerShapeTitle': '마커 모양',
     'cfg.markerSizeTitle': '마커 크기',
     'cfg.show': '표시',
@@ -484,6 +501,23 @@ const I18N = {
     'cfg.areaFill': 'Area fill',
     'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line',
     'cfg.styleHint': 'Per series: color · marker shape/size · line style/width',
+    'cfg.bar': 'Bar options',
+    'cfg.barMode': 'Layout',
+    'opt.barGroup': 'Side by side (group)', 'opt.barStack': 'Stacked',
+    'cfg.barOrient': 'Orientation',
+    'opt.barVert': 'Vertical', 'opt.barHoriz': 'Horizontal',
+    'cfg.barAgg': 'Aggregate',
+    'opt.aggNone': 'None (rows as-is)', 'opt.aggMean': 'Mean', 'opt.aggSum': 'Sum', 'opt.aggMedian': 'Median', 'opt.aggMin': 'Min', 'opt.aggMax': 'Max', 'opt.aggCount': 'Count',
+    'cfg.barError': 'Error bars',
+    'opt.errStd': '±std dev', 'opt.errSem': '±std error',
+    'cfg.barText': 'Value labels',
+    'opt.barTextValue': 'Value at bar end',
+    'cfg.barOpacity': 'Opacity',
+    'cfg.barSort': 'Sort',
+    'opt.sortAuto': 'Auto (data order)', 'opt.sortLabel': 'By name', 'opt.sortAsc': 'Value ascending', 'opt.sortDesc': 'Value descending',
+    'cfg.barCatX': 'X as categories',
+    'cfg.barCatXTitle': 'Treat numeric X values as evenly-spaced categories (keeps bars from getting thin)',
+    'cfg.barAggHint': 'Aggregation summarizes rows sharing the same X into one bar. Error bars appear when aggregate = mean.',
     'cfg.markerShapeTitle': 'Marker shape',
     'cfg.markerSizeTitle': 'Marker size',
     'cfg.show': 'Show',
@@ -572,6 +606,14 @@ function defaultChart() {
     lineShape: 'linear',        // linear | spline — 선 스무딩
     lineDash: 'solid',          // solid | dash | dot | dashdot — 시리즈별 오버라이드 가능
     areaFill: 'none',           // none | tozeroy — 선 아래 파스텔 영역 채우기
+    barMode: 'group',           // group | stack — 막대 배치
+    barOrient: 'v',             // v | h — 세로/가로 막대
+    barAgg: 'none',             // none | mean | sum | median | min | max | count — 같은 X의 여러 행 집계
+    barError: 'none',           // none | std | sem — barAgg=mean일 때 오차 막대
+    barText: 'none',            // none | value — 막대 끝 값 레이블
+    barOpacity: 1,              // 0.3~1
+    barSort: 'auto',            // auto | label | asc | desc — 카테고리 축 정렬
+    barCatX: false,             // 숫자 X도 카테고리로 취급 (등간격 막대 — linear 배치로 얇아지는 것 방지)
   };
 }
 
@@ -763,7 +805,29 @@ function buildTraces(cfg) {
       hovertemplate: `<b>${esc(name)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`,
     };
     if (cfg.type === 'bar') {
-      traces.push({ ...base, type: 'bar', marker: { color: st.color } });
+      const horiz = cfg.barOrient === 'h';
+      const agg = aggregateBars(pts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), cfg.barAgg);
+      const cats = cfg.barCatX ? agg.xs.map(String) : agg.xs;   // 숫자 X도 카테고리로
+      const tr = {
+        name, _g: def.g, _g2: def.g2, type: 'bar',
+        x: horiz ? agg.ys : cats, y: horiz ? cats : agg.ys,
+        ...(horiz ? { orientation: 'h' } : {}),
+        marker: { color: st.color, opacity: Number(cfg.barOpacity) || 1 },
+        hovertemplate: `<b>${esc(name)}</b><br>${esc(cfg.x)}=%{${horiz ? 'y' : 'x'}}<br>${esc(cfg.y)}=%{${horiz ? 'x' : 'y'}}<extra></extra>`,
+      };
+      if (cfg.barAgg === 'mean' && cfg.barError !== 'none') {
+        tr[horiz ? 'error_x' : 'error_y'] = {
+          type: 'data', array: cfg.barError === 'sem' ? agg.sems : agg.stds,
+          visible: true, color: CHROME.ink, thickness: 1.2, width: 4,
+        };
+      }
+      if (cfg.barText === 'value') {
+        tr.text = agg.ys.map(fmtBarVal);
+        tr.textposition = cfg.barMode === 'stack' ? 'inside' : 'outside';
+        tr.textfont = { family: cfg.fontFamily, size: Math.max(9, cfg.fontSize - 2), color: cfg.fontColor };
+        tr.cliponaxis = false;   // outside 레이블이 플롯 영역에 잘리지 않게
+      }
+      traces.push(tr);
     } else {
       const hasLine = lineMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
@@ -791,6 +855,36 @@ function buildTraces(cfg) {
   });
   if (cfg.pareto && cfg.type !== 'bar') traces.push(paretoTrace(cfg, rows));
   return traces;
+}
+/* 같은 X 값의 행들을 하나의 막대로 집계 (barAgg). mean이면 std/sem도 계산 */
+function aggregateBars(pts, kind) {
+  if (!kind || kind === 'none') return { xs: pts.map(p => p.x), ys: pts.map(p => p.y), stds: [], sems: [] };
+  const order = [], groups = new Map();
+  for (const p of pts) {
+    const k = String(p.x);
+    if (!groups.has(k)) { groups.set(k, { x: p.x, ys: [] }); order.push(k); }
+    if (typeof p.y === 'number') groups.get(k).ys.push(p.y);
+  }
+  const xs = [], ys = [], stds = [], sems = [];
+  for (const k of order) {
+    const g = groups.get(k), n = g.ys.length;
+    if (!n && kind !== 'count') continue;
+    const mean = n ? g.ys.reduce((a, b) => a + b, 0) / n : 0;
+    let v = mean;
+    if (kind === 'sum') v = g.ys.reduce((a, b) => a + b, 0);
+    else if (kind === 'median') { const s = g.ys.slice().sort((a, b) => a - b); v = n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }
+    else if (kind === 'min') v = Math.min(...g.ys);
+    else if (kind === 'max') v = Math.max(...g.ys);
+    else if (kind === 'count') v = n;
+    const sd = n > 1 ? Math.sqrt(g.ys.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (n - 1)) : 0;
+    xs.push(g.x); ys.push(v); stds.push(sd); sems.push(n ? sd / Math.sqrt(n) : 0);
+  }
+  return { xs, ys, stds, sems };
+}
+function fmtBarVal(v) {
+  if (typeof v !== 'number') return v === null || v === undefined ? '' : String(v);
+  const a = Math.abs(v);
+  return a >= 100 ? v.toFixed(0) : a >= 1 ? String(+v.toFixed(2)) : String(+v.toFixed(3));
 }
 function sizeScale(v, cfg) {
   if (typeof v !== 'number') return cfg.markerSize;
@@ -899,7 +993,7 @@ function paretoTrace(cfg, rows) {
 }
 function buildAnnotations(cfg) {
   const ann = [];
-  if (cfg.showLabels) {
+  if (cfg.showLabels && cfg.type !== 'bar') {   // 막대는 "값 표시"(barText)가 대신함
     const rows = chartRows(cfg);
     const seen = new Set();     // 동일 (x,y,텍스트) 중복 제거
     const items = [];
@@ -1002,9 +1096,13 @@ function buildLayout(cfg, gd) {
     inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', bgcolor: 'rgba(252,252,251,0.8)' },
   }[cfg.legendPos];
   const axis = (label, scale, mn, mx, col) => {
+    // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
+    const sample = chartRows(cfg).map(r => r[col]).filter(v => v !== null && v !== undefined);
+    const isCat = (sample.length > 0 && sample.some(v => typeof v !== 'number'))
+      || (cfg.type === 'bar' && cfg.barCatX && col === cfg.x);   // "X를 카테고리로" 옵션
     const a = {
       title: { text: label || col, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: cfg.fontColor } },
-      type: scale === 'log' ? 'log' : 'linear',
+      type: isCat ? 'category' : (scale === 'log' ? 'log' : 'linear'),
       showgrid: cfg.grid, gridcolor: CHROME.grid, gridwidth: 1,
       zeroline: false, linecolor: CHROME.axis, linewidth: 1,
       tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted },
@@ -1012,7 +1110,7 @@ function buildLayout(cfg, gd) {
     };
     const lo = coerce(mn), hi = coerce(mx);
     const hasLo = typeof lo === 'number', hasHi = typeof hi === 'number';
-    if (hasLo || hasHi) {   // 한쪽만 입력해도 동작 — 빈 쪽은 데이터 범위(±5%)로 채움
+    if ((hasLo || hasHi) && !isCat) {   // 한쪽만 입력해도 동작 — 빈 쪽은 데이터 범위(±5%)로 채움 (category 축은 무시)
       const vals = chartRows(cfg).map(r => r[col]).filter(v => typeof v === 'number');
       if (scale === 'log') {
         const pos = vals.filter(v => v > 0);
@@ -1029,21 +1127,30 @@ function buildLayout(cfg, gd) {
     }
     return a;
   };
+  // 가로 막대: 카테고리(X 설정)가 y축, 값(Y 설정)이 x축에 놓인다
+  const horizBar = cfg.type === 'bar' && cfg.barOrient === 'h';
+  const xaxis = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y)
+                         : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x);
+  const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x)
+                         : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y);
+  if (cfg.type === 'bar') {
+    const catOrder = { label: 'category ascending', asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
+    if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
+  }
   return {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: cfg.fontColor }, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: cfg.fontColor },
     paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
-    xaxis: axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x),
-    yaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y),
+    xaxis, yaxis,
     showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: cfg.legendPos === 'right' ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
     annotations: buildAnnotations(cfg),
     shapes: baselineShapes(cfg, gd),
-    barmode: 'group', bargap: 0.25, bargroupgap: 0.08,
-    // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일이 바뀔 때만 뷰 리셋
-    uirevision: [cfg.id, cfg.x, cfg.y, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
+    barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
+    // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
+    uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
   };
 }
 
@@ -1278,20 +1385,42 @@ function renderChartCard(cfg) {
 function buildCfgPanel(cfg, panel, nameSpan) {
   panel.innerHTML = '';
   const numCols = numericColumns();
+  const isBar = cfg.type === 'bar';
   const rp = () => { renderPlot(cfg); save(); };
+  const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
   const row = (label, ...ctrl) => el('div', { class: 'row' }, el('span', { class: 'lbl' }, label), ...ctrl);
 
   /* --- 데이터 --- */
   const gData = el('details', { class: 'grp', open: '' }, el('summary', {}, t('cfg.data')));
   gData.append(
-    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')]], cfg.type, v => { cfg.type = v; rp(); })),
+    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
     row(t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(t('cfg.group'), colSelect(cfg, 'group', { onChange: () => rebuild() })),
     row(t('cfg.group2'), colSelect(cfg, 'group2', { onChange: () => rebuild() })),
     el('div', { class: 'hint' }, t('cfg.group2Hint')),
-    row(t('cfg.size'), colSelect(cfg, 'size')),
+    ...(isBar ? [] : [row(t('cfg.size'), colSelect(cfg, 'size'))]),
   );
+
+  /* --- 막대 옵션 (type=bar일 때만) --- */
+  let gBar = null;
+  if (isBar) {
+    gBar = el('details', { class: 'grp', open: '' }, el('summary', {}, t('cfg.bar')));
+    gBar.append(
+      row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
+      row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
+      row(t('cfg.barAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['median', t('opt.aggMedian')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')], ['count', t('opt.aggCount')]], cfg.barAgg, v => { cfg.barAgg = v; rebuildPanel(); })),
+      ...(cfg.barAgg === 'mean'
+        ? [row(t('cfg.barError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.barError, v => { cfg.barError = v; rp(); }))]
+        : []),
+      row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })),
+      row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })),
+      row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
+        el('input', { type: 'checkbox', ...(cfg.barCatX ? { checked: '' } : {}), onchange: e => { cfg.barCatX = e.target.checked; rp(); } }))),
+      row(t('cfg.barOpacity'), el('input', { type: 'range', min: 0.3, max: 1, step: 0.05, value: cfg.barOpacity, oninput: e => { cfg.barOpacity = Number(e.target.value); rp(); } })),
+      el('div', { class: 'hint' }, t('cfg.barAggHint')),
+    );
+  }
 
   /* --- 필터 --- */
   const gFilter = el('details', { class: 'grp' }, el('summary', {}, tf('cfg.filterCount', { n: cfg.filters.length })));
@@ -1378,12 +1507,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }),
           el('span', { class: 'sname', title: name }, name),
         ),
-        el('div', { class: 'series-row sub' },
+        ...(isBar ? [] : [el('div', { class: 'series-row sub' },   // 막대는 색만 의미 있음
           select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }),
           el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }),
           select(DASHES(), st.dash, v => upd({ dash: v }), { title: t('cfg.lineType') }),
           el('input', { type: 'number', value: st.lwidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.lineWidth'), oninput: e => upd({ lwidth: Number(e.target.value) || cfg.lineWidth }) }),
-        ),
+        )]),
       ));
     });
   };
@@ -1394,13 +1523,15 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
     row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside', t('opt.inside')], ['none', t('opt.hidden')]], cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
-    row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
-        el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
-        el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
-    row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
-        select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
-    row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
-    el('div', { class: 'hint' }, t('cfg.styleHint')),
+    ...(isBar ? [] : [
+      row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
+          el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
+          el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
+      row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
+          select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
+      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+      el('div', { class: 'hint' }, t('cfg.styleHint')),
+    ]),
     seriesBox,
   );
 
@@ -1437,10 +1568,13 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   };
   renderLabelLists();
   gLabel.append(
-    row(t('cfg.show'), el('input', { type: 'checkbox', ...(cfg.showLabels ? { checked: '' } : {}), onchange: e => { cfg.showLabels = e.target.checked; rp(); } })),
-    row(t('cfg.labelCol'), colSelect(cfg, 'labelCol', { emptyLabel: t('opt.auto') })),
-    el('div', { class: 'hint' }, t('cfg.labelHint')),
-    hiddenBox, markerBox,
+    ...(isBar ? [] : [   // 막대의 값 표시는 "막대 옵션"에서 — 텍스트 마커 목록만 유지
+      row(t('cfg.show'), el('input', { type: 'checkbox', ...(cfg.showLabels ? { checked: '' } : {}), onchange: e => { cfg.showLabels = e.target.checked; rp(); } })),
+      row(t('cfg.labelCol'), colSelect(cfg, 'labelCol', { emptyLabel: t('opt.auto') })),
+      el('div', { class: 'hint' }, t('cfg.labelHint')),
+      hiddenBox,
+    ]),
+    markerBox,
   );
 
   /* --- 베이스라인 --- */
@@ -1476,7 +1610,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })),
   );
 
-  panel.append(gData, gFilter, gAxis, gStyle, gLabel, gBase, gAdv);
+  // 고급(추세선·Pareto)은 산점/선 전용 — 막대에서는 숨김
+  panel.append(gData, ...(gBar ? [gBar] : []), gFilter, gAxis, gStyle, gLabel, gBase, ...(isBar ? [] : [gAdv]));
 
   function rebuild() { renderSeries(); }
 }

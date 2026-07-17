@@ -72,6 +72,7 @@ ours,4000,4.1,0.744,MMLU
 | Text marker styling | Global font size/color/background/arrow in the Point labels group; per-marker color/size override in the click-to-edit popup |
 | Line smoothing | Settings → Style → line shape: straight/spline, solid/dash/dot |
 | **Area fill** | Settings → Style → Area fill: soft pastel band under each line in the series color |
+| **Bar charts** | Type → Bar: **grouped/stacked**, **vertical/horizontal**, **aggregation** of rows sharing the same X (mean · sum · median · min · max · count), **error bars (±std dev/±std error)** with mean, **value labels** at bar ends, name/value **sorting**, opacity, **treat numeric X as categories** (even spacing) — Settings → Bar options. E.g. X=method, Y=accuracy, aggregate=mean |
 | Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
 | Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
 | Export | `PNG` (3× resolution) / `SVG` buttons on each card |
