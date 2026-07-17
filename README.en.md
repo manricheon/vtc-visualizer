@@ -6,6 +6,8 @@ A general-purpose visualizer that turns CSV/JSON data into paper-style interacti
 Build fully customizable benchmark comparisons — performance vs. token budget, performance vs. speed, and so on.
 All data is processed entirely in your browser and never sent anywhere.
 
+> 📊 **Which chart, when, and how to make it land?** — see the **[Visualization Guide (GUIDE.en.md)](GUIDE.en.md)** for chart-choice criteria and per-scenario recipes.
+
 ## Quick start
 
 Any of these three:
@@ -79,13 +81,11 @@ ours,4000,4.1,0.744,MMLU
 | Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
 
-### Tip: seeing a third dimension
+### Tip: which chart, when?
 
-With X=tokens, Y=accuracy, group (color)=method, to also see how something like `frames` behaves:
-1. Set **Shape group** to frames — color stays method, marker shape encodes frames (recommended; legend shows each combo)
-2. Set **Size column** to frames — bigger markers for bigger values (good for continuous values)
-3. Use frames as the **point label** column — the value appears next to each point
-4. **Duplicate** the chart and filter each copy to one frames value — side-by-side small multiples
+Chart-choice criteria (trend → line, magnitude → bar, trade-off → scatter), per-scenario recipes (mean + error bars,
+stacked, rankings, Pareto…), third-dimension techniques, and presentation polish are collected in the
+**[Visualization Guide (GUIDE.en.md)](GUIDE.en.md)**.
 
 ## Converting your data to this format (agent prompt)
 
