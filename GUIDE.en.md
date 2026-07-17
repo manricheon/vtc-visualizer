@@ -46,6 +46,8 @@ Recipes use the UI labels verbatim. `Settings → …` refers to each chart card
 > Type=`Bar`, X axis=`method`, Y axis=`accuracy`, Group (color)=`method`
 > Bar options → Aggregate=`Mean`, Error bars=`±std dev`, Value labels=`Value at bar end`, Sort=`Value descending`
 
+![Mean accuracy per method — error bars, value labels, sorted descending](assets/guide/r1-bar-mean.png)
+
 Each method's six budget measurements collapse into one mean, and the whiskers (error bars) show how much the budget swings it.
 **How to read it**: overlapping error bars signal "this ranking could flip under other conditions."
 For seed-repeated experiments, `±std error` is the better choice — it shows confidence in the mean itself.
@@ -54,6 +56,8 @@ For seed-repeated experiments, `±std error` is the better choice — it shows c
 
 > Type=`Scatter + Line`, X axis=`tokens`, Y axis=`accuracy`, Group (color)=`method`
 > Axes → X scale=`Log` · Advanced → Trendline=`Log (a+b·ln x)`, Error band=`±1σ shading`
+
+![Budget sweep on a log X axis — per-series log trendlines with ±1σ bands](assets/guide/r2-trend.png)
 
 A doubling sweep becomes evenly spaced on a log X axis, straightening the trend.
 **How to read it**: the point where the curve flattens is where extra spend stops paying — drop a text marker there and the message is complete.
@@ -64,6 +68,8 @@ A doubling sweep becomes evenly spaced on a log X axis, straightening the trend.
 > Advanced → check Pareto, Direction=`Lower X · Higher Y is better`
 > **Click** your reference point (e.g. baseline's production setting) → `📍 Add baseline` → in the settings baseline list, shading=`Upper left`
 
+![Latency–accuracy scatter — Pareto staircase and upper-left baseline shading](assets/guide/r3-pareto.png)
+
 Only points on the Pareto staircase are rational choices; everything else is dominated.
 Points inside the baseline shading (upper-left = faster **and** more accurate) are the settings worth switching to.
 
@@ -72,6 +78,8 @@ Points inside the baseline shading (upper-left = faster **and** more accurate) a
 > Type=`Bar`, X axis=`tokens`, Y axis=`cost_usd`, Group (color)=`method`
 > Bar options → Layout=`Stacked`, check `X as categories`
 
+![Stacked cost per budget — evenly spaced thanks to X as categories](assets/guide/r4-stack.png)
+
 Total bar height = the sum; each color band = one method's share. `X as categories` is what makes
 500–16000 render as evenly spaced bars (unchecked, they sit at their true numeric positions and the left bars get needle-thin).
 
@@ -79,6 +87,8 @@ Total bar height = the sum; each color band = one method's share. `X as categori
 
 > Type=`Bar`, X axis=`method`, Y axis=`throughput_fps`, Group (color)=`method`
 > Bar options → Orientation=`Horizontal`, Aggregate=`Mean`, Sort=`Value ascending`, Value labels=`Value at bar end`
+
+![Horizontal throughput ranking — value ascending puts first place on top](assets/guide/r5-ranking.png)
 
 Horizontal bars keep long or numerous item names readable, and with sorting they read like a leaderboard.
 (Use `Value ascending` so first place ends up on top.)
@@ -92,12 +102,18 @@ With X=tokens, Y=accuracy, Group (color)=method:
 3. **Point labels** with Label column=`frames` — the value appears next to each point
 4. `Duplicate` the chart and filter each copy to one frames value — side-by-side small multiples (best once series multiply)
 
+When the secondary group has many unique values (e.g. 6 frames values → 24 combos) the legend explodes — **filter down to 2–3 contrasting values** before using the shape group:
+
+![Color=method, shape=frames (filtered to 8·64) — shape separates the budget tiers](assets/guide/r6-shape-group.png)
+
 ### ⑦ Presentation polish — turning a chart into "the slide"
 
 - **Let the title state the conclusion**: Style → Title = "Ensemble overtakes baseline from 8k tokens", not "Accuracy vs Tokens" — the axis labels already say that.
 - **Click** the key point → `💬 Add text marker` for an annotation (drag to position; style it in the Point labels group)
 - Style → Font size 15–16 (back-of-the-room test); with 2–3 series move the legend to `Inside chart` to save space
 - Export with `PNG` (3× resolution, for slides) or `SVG` (papers, vector editing)
+
+![A presentation-ready chart — the title states the conclusion and a text marker points at the saturation point](assets/guide/r7-presentation.png)
 
 ## 3. Principles for effective charts (summary)
 
