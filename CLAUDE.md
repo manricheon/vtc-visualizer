@@ -70,6 +70,9 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **테이블**: `renderTable` (검색/정렬/페이지네이션 200행, 행 앞 체크박스로 `_excluded` 토글 → 전 차트에서 제외)
 - **세션**: `save`(debounce→localStorage), `exportSession`/`restoreSession`, 키 `vtc-visualizer:session`
   (구 키 `visualizer-by-mrc:session`은 `loadSaved()`가 읽어 자동 마이그레이션)
+- **프리셋**: 차트 설정만 저장/재적용 — 키 `vtc-visualizer:presets`(세션과 분리), `chartPreset()`(id·title·포인트 종속 필드
+  textMarkers/labelOffsets/hiddenLabels 제외), `applyPreset()`({...defaultChart(), ...preset} 병합 후 refreshCharts),
+  `showPresetMenu()`(카드 `프리셋` 버튼 팝오버: 저장/적용/삭제/JSON 내보내기·가져오기)
 - **서버 연동**: `tryServerAutoload` — `api/files`/`api/file` (http로 열렸을 때만)
 
 새 차트 옵션 추가 절차: `defaultChart()`에 필드 → `buildCfgPanel`에 입력 UI → `buildTraces`/`buildLayout`에 반영 → 세션 저장은 자동.

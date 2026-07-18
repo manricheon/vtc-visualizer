@@ -127,6 +127,7 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 ## 4. Sharing with your team
 
 - **Share charts with their settings**: `Export session` (top bar) → one JSON file holds the data and every chart's configuration. The recipient restores the exact screen with `Import session`.
+- **Presets vs sessions**: a session = data + charts; a **preset = chart settings only** (the `Presets` button on each card). When the data changes but the schema stays the same — weekly experiment logs, say — a saved preset redraws the same chart on new data in one click.
 - **Converting data**: whatever your format, paste the [agent prompt](README.en.md#converting-your-data-to-this-format-agent-prompt) from the README into any LLM together with your file.
 - **Offline distribution**: copying the single `index-offline.html` file is enough — it works identically with no internet.
 

@@ -80,6 +80,7 @@ ours,4000,4.1,0.744,MMLU
 | Export | `PNG` (3× resolution) / `SVG` buttons on each card |
 | Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
+| **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
 
 ### Tip: which chart, when?
 

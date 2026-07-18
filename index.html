@@ -309,6 +309,13 @@ const I18N = {
     'card.resetView': '보기 초기화',
     'card.settings': '⚙ 설정',
     'card.duplicate': '복제',
+    'card.preset': '프리셋',
+    'pt.presetTitle': '차트 프리셋 — 클릭하면 이 차트에 적용',
+    'pt.savePreset': '💾 현재 차트를 프리셋으로 저장…',
+    'pt.presetNamePrompt': '프리셋 이름 (같은 이름은 덮어씀)',
+    'pt.noPresets': '저장된 프리셋이 없습니다.',
+    'pt.presetExport': '⬇ 내보내기', 'pt.presetImport': '⬆ 가져오기',
+    'pt.presetHint': '프리셋은 차트 설정만 저장합니다(데이터 제외). 같은 컬럼 이름을 쓰는 데이터라면 언제든 재적용할 수 있습니다.',
     'card.plotHint': '그래프 조작: 드래그 = 영역 확대 · 마우스 휠 = 줌 · 더블클릭 = 전체 보기 · 이동(팬)은 우상단 모드바의 십자 화살표 · 포인트 클릭 = 베이스라인/마커/제외 메뉴',
     'card.copySuffix': ' (복사)',
     'btn.delete': '삭제',
@@ -457,6 +464,13 @@ const I18N = {
     'card.resetView': 'Reset view',
     'card.settings': '⚙ Settings',
     'card.duplicate': 'Duplicate',
+    'card.preset': 'Presets',
+    'pt.presetTitle': 'Chart presets — click to apply to this chart',
+    'pt.savePreset': '💾 Save current chart as preset…',
+    'pt.presetNamePrompt': 'Preset name (same name overwrites)',
+    'pt.noPresets': 'No saved presets.',
+    'pt.presetExport': '⬇ Export', 'pt.presetImport': '⬆ Import',
+    'pt.presetHint': 'Presets store chart settings only (no data) — re-apply them to any data using the same column names.',
     'card.plotHint': 'Chart controls: drag = zoom to area · mouse wheel = zoom · double-click = reset view · pan via the crosshair icon in the top-right mode bar · click a point = baseline/marker/exclude menu',
     'card.copySuffix': ' (copy)',
     'btn.delete': 'Delete',
@@ -1378,6 +1392,7 @@ function renderChartCard(cfg) {
       buildCfgPanel(cfg, cfgPanel, nameSpan); save();
     } }, t('card.resetView')),
     el('button', { class: 'small', onclick: () => cfgPanel.classList.toggle('hidden') }, t('card.settings')),
+    el('button', { class: 'small', onclick: e => showPresetMenu(cfg, e) }, t('card.preset')),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'svg') }, 'SVG'),
     el('button', { class: 'small', onclick: () => duplicateChart(cfg) }, t('card.duplicate')),
@@ -1784,6 +1799,75 @@ function exportSession() {
   const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ---- 차트 프리셋: 설정만 저장 (데이터 제외) — 같은 컬럼 이름의 데이터에 재적용 ---- */
+const PRESET_KEY = 'vtc-visualizer:presets';
+function loadPresets() {
+  try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || {}; } catch (e) { return {}; }
+}
+function savePresets(p) { localStorage.setItem(PRESET_KEY, JSON.stringify(p)); }
+function chartPreset(cfg) {
+  const p = serializableChart(cfg);
+  delete p.id; delete p.title;
+  delete p.textMarkers; delete p.labelOffsets; delete p.hiddenLabels;   // 특정 데이터 점에 묶인 필드는 제외
+  return p;
+}
+function applyPreset(cfg, preset) {
+  const keep = { id: cfg.id, title: cfg.title };
+  const merged = { ...defaultChart(), ...preset, ...keep };   // 프리셋에 없는 새 필드는 기본값으로 (세션 복원과 동일 규칙)
+  for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
+  Object.assign(cfg, merged);
+  refreshCharts(); save();   // 유형이 바뀔 수 있으므로 패널 전체 재구성
+}
+function exportPresets() {
+  const blob = new Blob([JSON.stringify(loadPresets(), null, 1)], { type: 'application/json' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-presets.json' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function importPresets(then) {
+  const inp = el('input', { type: 'file', accept: '.json' });
+  inp.addEventListener('change', async () => {
+    try {
+      const j = JSON.parse(await inp.files[0].text());
+      if (!j || typeof j !== 'object' || Array.isArray(j)) throw new Error('name → preset object expected');
+      const all = loadPresets();
+      for (const [k, v] of Object.entries(j)) if (v && typeof v === 'object' && !Array.isArray(v)) all[k] = v;
+      savePresets(all);
+      if (then) then();
+    } catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
+  });
+  inp.click();
+}
+function showPresetMenu(cfg, mouseEv) {
+  popover.innerHTML = '';
+  const names = Object.keys(loadPresets()).sort((a, b) => a.localeCompare(b));
+  popover.append(
+    el('div', { class: 'pp-title' }, t('pt.presetTitle')),
+    el('button', { onclick: () => {
+      const name = (prompt(t('pt.presetNamePrompt'), cfg.title || '') || '').trim();
+      if (!name) return;
+      const all = loadPresets(); all[name] = chartPreset(cfg); savePresets(all);
+      hidePopover();
+    } }, t('pt.savePreset')),
+  );
+  if (!names.length) popover.append(el('div', { class: 'pp-note' }, t('pt.noPresets')));
+  names.forEach(n => {
+    popover.append(el('div', { class: 'pp-row' },
+      el('button', { onclick: () => { applyPreset(cfg, loadPresets()[n]); hidePopover(); } }, '▶ ' + n),
+      el('button', { class: 'danger', style: 'flex:0 0 auto', onclick: () => {
+        const all = loadPresets(); delete all[n]; savePresets(all); showPresetMenu(cfg, mouseEv);
+      } }, '×'),
+    ));
+  });
+  popover.append(
+    el('div', { class: 'pp-row' },
+      el('button', { onclick: () => { exportPresets(); hidePopover(); } }, t('pt.presetExport')),
+      el('button', { onclick: () => importPresets(() => showPresetMenu(cfg, mouseEv)) }, t('pt.presetImport')),
+    ),
+    el('div', { class: 'pp-note' }, t('pt.presetHint')),
+  );
+  placePopover(mouseEv);
 }
 
 /* ================= wiring ================= */
