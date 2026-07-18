@@ -74,7 +74,9 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 
 새 차트 옵션 추가 절차: `defaultChart()`에 필드 → `buildCfgPanel`에 입력 UI → `buildTraces`/`buildLayout`에 반영 → 세션 저장은 자동.
 
-주의: Plotly에서 로그축의 shape/annotation 좌표는 log10 값이어야 한다 — `axCoord()` 헬퍼를 거칠 것.
+주의: Plotly 로그축 좌표 규약은 **비대칭**이다 (실측 검증됨) — annotation의 x/y는 log10 값(`axCoord()` 헬퍼 사용),
+**layout.shapes의 x0/y0 등은 원시 데이터 값**(axCoord 금지). `gd._fullLayout.[xy]axis.range`는 로그축이면 log10 값이므로
+shapes 계산에 쓸 때는 `Math.pow(10, v)`로 되돌릴 것 (`baselineShapes()`의 `unlog` 참고).
 
 ## 차트 스타일 작업 시
 
