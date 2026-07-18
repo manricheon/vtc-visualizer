@@ -50,7 +50,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **데이터 모델**: `addDataset`, `allRows`(병합), `columns`, `numericColumns`, `uniqueVals`, `applyFilters`
   (필터 op: 카테고리 기본 `in` = 다중 선택 배열 값·빈 배열은 통과, 그 외 `=`,`≠`,`포함`; 숫자는 비교 연산. 값 미입력 필터는 무시)
 - **차트 설정 스키마**: `defaultChart()` — 새 옵션은 여기에 필드 추가부터.
-  주요 필드: `baselines[{x,y,shade}]`(다중), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
+  주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
   `group2`(마커 모양 2차 그룹 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),

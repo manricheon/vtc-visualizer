@@ -385,6 +385,7 @@ const I18N = {
     'cfg.arrow': '화살표',
     'cfg.tmMarkerColorTitle': '이 마커 글자 색',
     'opt.shadeNone': '음영 없음', 'opt.shadeUR': '우상단', 'opt.shadeUL': '좌상단', 'opt.shadeLR': '우하단', 'opt.shadeLL': '좌하단',
+    'opt.blBoth': '십자', 'opt.blH': '가로선만', 'opt.blV': '세로선만',
     'cfg.baselineHint': '차트에서 포인트를 클릭해 베이스라인이나 텍스트 마커를 추가하세요. 여러 개 지정 가능.',
     'cfg.trend': '추세선',
     'opt.trendLinear': '선형', 'opt.trendPoly2': '2차 다항', 'opt.trendLog': '로그 (a+b·ln x)', 'opt.trendExp': '지수', 'opt.trendPower': '거듭제곱', 'opt.trendMovavg': '이동평균',
@@ -532,6 +533,7 @@ const I18N = {
     'cfg.arrow': 'Arrow',
     'cfg.tmMarkerColorTitle': 'This marker\'s font color',
     'opt.shadeNone': 'No shading', 'opt.shadeUR': 'Upper right', 'opt.shadeUL': 'Upper left', 'opt.shadeLR': 'Lower right', 'opt.shadeLL': 'Lower left',
+    'opt.blBoth': 'Crosshair', 'opt.blH': 'Horizontal only', 'opt.blV': 'Vertical only',
     'cfg.baselineHint': 'Click a point on the chart to add a baseline or text marker. Multiple allowed.',
     'cfg.trend': 'Trendline',
     'opt.trendLinear': 'Linear', 'opt.trendPoly2': 'Quadratic', 'opt.trendLog': 'Log (a+b·ln x)', 'opt.trendExp': 'Exponential', 'opt.trendPower': 'Power', 'opt.trendMovavg': 'Moving average',
@@ -596,7 +598,7 @@ function defaultChart() {
     showLabels: false, labelCol: '',
     labelOffsets: {},           // pointKey -> {ax, ay}
     hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
-    baselines: [],              // [{x, y, shade}] — shade: none|ur|ul|lr|ll
+    baselines: [],              // [{x, y, shade, dir}] — shade: none|ur|ul|lr|ll, dir: both|h|v (기본 both)
     textMarkers: [],            // [{x, y, text, ax, ay}] — 클릭으로 추가하는 자유 주석
     pareto: false, paretoDir: 'min-x-max-y',
     trend: 'none',              // none | linear | poly2 | log | exp | power | movavg
@@ -1062,14 +1064,15 @@ function baselineShapes(cfg, gd) {
   const shapes = [];
   for (const b of cfg.baselines) {
     const bx = b.x, by = b.y;
-    shapes.push(
+    const dir = b.dir || 'both';   // both | h(가로선만 — Δ컬럼의 0선 등) | v(세로선만)
+    if (dir !== 'h') shapes.push(
       { type: 'line', xref: 'x', yref: 'paper', x0: bx, x1: bx, y0: 0, y1: 1,
-        line: { color: CHROME.muted, width: 1, dash: 'dot' } },
+        line: { color: CHROME.muted, width: 1, dash: 'dot' } });
+    if (dir !== 'v') shapes.push(
       { type: 'line', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: by, y1: by,
-        line: { color: CHROME.muted, width: 1, dash: 'dot' } },
-    );
+        line: { color: CHROME.muted, width: 1, dash: 'dot' } });
     const shade = b.shade || 'none';
-    if (shade !== 'none' && typeof b.x === 'number' && typeof b.y === 'number') {
+    if (dir === 'both' && shade !== 'none' && typeof b.x === 'number' && typeof b.y === 'number') {
       let xr = [bx, bx], yr = [by, by];
       if (gd && gd._fullLayout && gd._fullLayout.xaxis && gd._fullLayout.yaxis) {
         // _fullLayout의 range는 로그축이면 log10 값 → 원시 데이터 값으로 되돌린다
@@ -1588,9 +1591,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const renderBaseList = () => {
     baseBox.innerHTML = '';
     cfg.baselines.forEach((b, i) => {
+      const dir = b.dir || 'both';
       baseBox.append(el('div', { class: 'series-row' },
         el('span', { class: 'sname', title: `(${b.x}, ${b.y})` }, `(${b.x}, ${b.y})`),
-        select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); }),
+        select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], dir, v => { b.dir = v; renderBaseList(); rp(); }),
+        // 사분면 음영은 십자(both)일 때만 의미가 있음
+        ...(dir === 'both' ? [select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); })] : []),
         el('button', { class: 'small danger', onclick: () => { cfg.baselines.splice(i, 1); renderBaseList(); rp(); } }, '×'),
       ));
     });

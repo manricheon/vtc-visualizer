@@ -66,7 +66,7 @@ ours,4000,4.1,0.744,MMLU
 | Series styling | Settings → Style: per-series color, marker symbol/size, **line style (solid/dash/dot) and width**, font, legend position |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …). Rows must match all conditions |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
-| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, per-baseline quadrant shading, removable from the settings panel |
+| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete |
 | **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
 | **Trend lines** | Settings → Advanced: linear / quadratic / log / exponential / power / moving-average fits per series (dash & width adjustable), optional **error band (±1σ/±2σ)** shading |
