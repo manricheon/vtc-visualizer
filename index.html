@@ -171,6 +171,8 @@
   #toast button:hover { text-decoration: underline; }
 
   footer { color: var(--ink-muted); font-size: 12px; text-align: center; margin-top: 24px; }
+  h1 .ver { font-size: 12px; font-weight: 600; color: var(--ink-muted); vertical-align: 6px;
+            border: 1px solid var(--border); border-radius: 10px; padding: 1px 7px; margin-left: 2px; }
   #emptyCharts { color: var(--ink-muted); text-align: center; padding: 30px 0; }
   @media (max-width: 860px) {
     .chart-card .body { flex-direction: column; }
@@ -181,7 +183,7 @@
 <body>
 <div class="wrap">
   <header class="app">
-    <h1>VTC Visualizer</h1>
+    <h1>VTC Visualizer <span id="appVersion" class="ver"></span></h1>
     <span class="sub" data-i18n="header.sub"></span>
     <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
     <button id="btnExportSession" data-i18n="btn.exportSession"></button>
@@ -223,7 +225,7 @@
     </div>
   </section>
 
-  <footer>VTC Visualizer — <span data-i18n="footer.text"></span> © mrc</footer>
+  <footer>VTC Visualizer <span class="footer-ver"></span> — <span data-i18n="footer.text"></span> © mrc</footer>
 </div>
 
 <div id="modalBack">
@@ -245,6 +247,9 @@
  * 데이터 계약: CSV(헤더+행) 또는 JSON 객체 배열. 필수 컬럼 없음.
  * 각 파일에는 _source 컬럼(파일명)이 자동 부여된다.
  * ===================================================================== */
+
+/* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
+const APP_VERSION = 'v0.2';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -1971,6 +1976,8 @@ async function tryServerAutoload() {
 }
 
 /* ================= init ================= */
+document.getElementById('appVersion').textContent = APP_VERSION;
+document.querySelector('.footer-ver').textContent = APP_VERSION;
 applyLang();
 loadSaved();
 renderChips(); renderTable(); refreshCharts();

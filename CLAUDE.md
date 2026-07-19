@@ -29,6 +29,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
+- **버전 표기**: 릴리스마다 `index.html`의 `APP_VERSION` 상수를 올리고(헤더·푸터에 자동 표시) 같은 이름의 **git 태그**(v0.1, v0.2, …)를 main에 만든다. v0.1 = 바 차트 이전 초기 릴리스, v0.2 = 바 차트·가이드·프리셋.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
