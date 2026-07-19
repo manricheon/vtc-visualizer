@@ -297,6 +297,7 @@ const I18N = {
     'op.select': '선택', 'op.contains': '포함',
     'err.csvHeaderRows': 'CSV에 헤더와 데이터 행이 필요합니다.',
     'err.jsonArray': 'JSON은 객체 배열이어야 합니다.',
+    'err.sessionAsData': '세션 파일입니다 — 데이터가 아니라 "세션 가져오기" 버튼으로 여세요.',
     'err.noRowsInDataset': '{name}: 데이터 행이 없습니다.',
     'err.drawChartFirst': '먼저 차트를 그려주세요.',
     'err.parseFailed': '{name} 파싱 실패: {msg}',
@@ -452,6 +453,7 @@ const I18N = {
     'op.select': 'Select', 'op.contains': 'Contains',
     'err.csvHeaderRows': 'CSV needs a header row and at least one data row.',
     'err.jsonArray': 'JSON must be an array of objects.',
+    'err.sessionAsData': 'This is a session file — open it with "Import session", not as data.',
     'err.noRowsInDataset': '{name}: no data rows.',
     'err.drawChartFirst': 'Please draw a chart first.',
     'err.parseFailed': 'Failed to parse {name}: {msg}',
@@ -667,9 +669,13 @@ function coerce(v) {
   return Number.isFinite(n) && /^[\s]*[-+]?[\d.,eE+-]+[\s]*$/.test(s) ? n : s;
 }
 function parseAny(text, filename) {
-  const t = text.trim();
-  if (t.startsWith('[') || t.startsWith('{') || /\.json$/i.test(filename || '')) {
-    let j = JSON.parse(t);
+  const s = text.trim();   // 주의: 이름을 t로 지으면 i18n t()를 가림 (실제 있었던 버그)
+  if (s.startsWith('[') || s.startsWith('{') || /\.json$/i.test(filename || '')) {
+    let j = JSON.parse(s);
+    // 세션 파일을 데이터로 오인하지 않기 — "세션 가져오기"로 안내
+    if (j && !Array.isArray(j) && Array.isArray(j.datasets) && Array.isArray(j.charts)) {
+      throw new Error(t('err.sessionAsData'));
+    }
     if (!Array.isArray(j)) {
       const arr = Object.values(j).find(v => Array.isArray(v));
       if (arr) j = arr; else throw new Error(t('err.jsonArray'));
@@ -1454,14 +1460,14 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     cfg.filters.forEach((f, i) => {
       const isNum = f.col && nums.includes(f.col);
       const ops = !f.col ? [['=', '=']]
-        : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤']]
+        : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['in', t('op.select')]]
         : [['in', t('op.select')], ['=', '='], ['≠', '≠'], ['포함', t('op.contains')]];
       if (!ops.some(o => o[0] === f.op)) { f.op = ops[0][0]; f.value = f.op === 'in' ? [] : ''; }
-      // 카테고리 컬럼은 다중 선택 체크박스(기본) 또는 고유값 드롭다운, 숫자 컬럼은 숫자 입력
+      // 다중 선택(in)은 컬럼 타입 무관 체크박스, 그 외 카테고리는 고유값 드롭다운, 숫자는 숫자 입력
       let valueCtrl = null, valsBox = null;
       if (!f.col) {
         valueCtrl = el('input', { type: 'text', disabled: '', placeholder: t('cfg.filterColFirst') });
-      } else if (isNum) {
+      } else if (isNum && f.op !== 'in') {
         valueCtrl = el('input', { type: 'number', step: 'any', value: f.value !== undefined ? f.value : '', placeholder: t('cfg.filterValuePh'), oninput: e => { f.value = e.target.value; rp(); } });
       } else if (f.op === 'in') {
         if (!Array.isArray(f.value)) f.value = [];

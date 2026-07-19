@@ -64,7 +64,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, marker symbol/size, **line style (solid/dash/dot) and width**, font, legend position |
-| Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …). Rows must match all conditions |
+| Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values** (e.g. only tokens 1000 & 4000). Rows must match all conditions |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete |

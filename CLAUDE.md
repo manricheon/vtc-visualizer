@@ -46,9 +46,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 
 - **팔레트/스타일 상수** (`PALETTE`, `SYMBOLS`, `CHROME`, `FONTS`): dataviz 스킬의 검증된 카테고리 팔레트(라이트 서피스).
   순서가 색약 안전성 장치이므로 **순서를 바꾸거나 색을 추가하려면 dataviz 스킬을 로드해 validator로 검증**할 것.
-- **파싱**: `parseCSV` / `parseAny` / `coerce`(숫자 자동 변환)
+- **파싱**: `parseCSV` / `parseAny` / `coerce`(숫자 자동 변환). `parseAny`는 세션 스키마(JSON에 datasets+charts 배열)를
+  감지해 전용 에러를 던짐 — 자동 로드는 이를 skip, 수동 입력은 "세션 가져오기" 안내. 함수 내 지역변수를 `t`로 짓지 말 것(i18n `t()` 가림).
 - **데이터 모델**: `addDataset`, `allRows`(병합), `columns`, `numericColumns`, `uniqueVals`, `applyFilters`
-  (필터 op: 카테고리 기본 `in` = 다중 선택 배열 값·빈 배열은 통과, 그 외 `=`,`≠`,`포함`; 숫자는 비교 연산. 값 미입력 필터는 무시)
+  (필터 op: `in` = 다중 선택 체크박스 — 카테고리는 기본, 숫자도 선택 가능·빈 배열은 통과; 그 외 카테고리 `=`,`≠`,`포함`, 숫자 비교 연산. 값 미입력 필터는 무시)
 - **차트 설정 스키마**: `defaultChart()` — 새 옵션은 여기에 필드 추가부터.
   주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
   `group2`(마커 모양 2차 그룹 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
