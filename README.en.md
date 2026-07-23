@@ -12,11 +12,11 @@ All data is processed entirely in your browser and never sent anywhere.
 
 Every setting re-renders the chart live — hop between scatter, line and bar, and drop a trendline on top:
 
-![Live editing: scatter → trendline → bar chart](assets/readme/hero.gif)
+![Live editing: scatter → trendline → bar chart](assets/readme/hero-v2.gif)
 
 | Bar charts (mean · sort · horizontal · error bars) | Highlight by dimming (focus + context) | Small multiples (facet) |
 |:---:|:---:|:---:|
-| ![bar charts](assets/readme/bars.gif) | ![dim filter](assets/readme/dim-filter.gif) | ![facet](assets/readme/facet.gif) |
+| ![bar charts](assets/readme/bars-v2.gif) | ![dim filter](assets/readme/dim-filter-v2.gif) | ![facet](assets/readme/facet-v2.gif) |
 
 ## Quick start
 
