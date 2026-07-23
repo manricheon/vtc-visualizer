@@ -99,8 +99,9 @@ With X=tokens, Y=accuracy, Group (color)=method:
 
 1. **Shape group**=`frames` — color stays method, marker shape encodes frames (recommended; legend shows each combo)
 2. **Size column**=`frames` — bigger markers for bigger values (good for continuous values)
-3. **Point labels** with Label column=`frames` — the value appears next to each point
-4. `Duplicate` the chart and filter each copy to one frames value — side-by-side small multiples (best once series multiply)
+3. **Continuous color**=`frames` — a light→dark gradient by value, with a colorbar. **Note: clear Group (color) to "(None)" first** — it can't run alongside group color. Best for a continuous numeric third dimension (not a few categories)
+4. **Point labels** with Label column=`frames` — the value appears next to each point
+5. **Facet**=`frames` — Settings → Data → Facet: a small chart per frames value, auto-arranged in a grid (no more repeated duplicate+filter)
 
 When the secondary group has many unique values (e.g. 6 frames values → 24 combos) the legend explodes — **filter down to 2–3 contrasting values** before using the shape group:
 
@@ -114,6 +115,15 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 - Export with `PNG` (3× resolution, for slides) or `SVG` (papers, vector editing)
 
 ![A presentation-ready chart — the title states the conclusion and a text marker points at the saturation point](assets/guide/r7-presentation.png)
+
+### ⑧ Build "vs reference" values in the tool — computed columns
+
+Want to see how each setting does **against a reference** (e.g. accuracy difference vs baseline/dense) but the data has no such column? You don't need to regenerate the data — make it on the spot with **computed columns** (the "Computed columns" panel below the data input):
+
+- **Binary op**: new column = A [−, +, ×, ÷] B (e.g. `used_tokens ÷ input_tokens` = actual usage ratio)
+- **Delta vs reference**: **difference** or **retention %** vs the reference row with the same match keys (e.g. value=`accuracy`, reference = rows where `method`=`baseline`, match=`tokens` → "how many pt above baseline at the same tokens")
+
+The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. If you don't need it, just collapse the panel — no effect on the view.
 
 ## 3. Principles for effective charts (summary)
 
