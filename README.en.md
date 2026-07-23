@@ -8,6 +8,16 @@ All data is processed entirely in your browser and never sent anywhere.
 
 > 📊 **Which chart, when, and how to make it land?** — see the **[Visualization Guide (GUIDE.en.md)](GUIDE.en.md)** for chart-choice criteria and per-scenario recipes.
 
+## Preview
+
+Every setting re-renders the chart live — hop between scatter, line and bar, and drop a trendline on top:
+
+![Live editing: scatter → trendline → bar chart](assets/readme/hero.gif)
+
+| Bar charts (group·stack·horizontal) | Highlight by dimming (focus + context) | Small multiples (facet) |
+|:---:|:---:|:---:|
+| ![bar charts](assets/readme/bars.gif) | ![dim filter](assets/readme/dim-filter.gif) | ![facet](assets/readme/facet.gif) |
+
 ## Quick start
 
 Any of these three:

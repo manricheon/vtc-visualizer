@@ -18,6 +18,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 | `GUIDE.md` | 시각화 가이드 (한국어): 차트 선택 기준·시나리오별 레시피·전달 원칙·팀 공유 — 기능 문서가 아니라 "언제/어떻게" 문서 |
 | `GUIDE.en.md` | GUIDE.md의 영어 완역 — **내용 변경 시 두 GUIDE를 항상 함께 갱신**. 레시피의 UI 라벨은 I18N 사전의 실제 문자열(ko/en)과 일치시킬 것 |
 | `assets/guide/*.png` | 가이드 레시피별 예시 캡처(r1~r7, 헤드리스 Chrome으로 `.plot` 요소만 2x 크롭) — 레시피 설정이나 차트 렌더링이 바뀌면 재캡처. 재생성 스크립트는 커밋하지 않음 |
+| `assets/readme/*.gif` | README 상단 미리보기 GIF(hero·bars·dim-filter·facet, 헤드리스로 상태 시퀀스 캡처→gif-encoder-2 인코딩, 각 2MB 이하). UI 크게 바뀌면 재생성. 스크립트는 커밋 안 함 |
 | `CLAUDE.md` | 이 파일 |
 
 ## 절대 규칙
