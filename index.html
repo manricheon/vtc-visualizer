@@ -206,6 +206,7 @@
       </div>
     </div>
     <div id="datasetChips"></div>
+    <details id="derivedPanel" class="grp" hidden></details>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" multiple hidden>
     <input type="file" id="folderInput" webkitdirectory multiple hidden>
   </section>
@@ -254,7 +255,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.4';
+const APP_VERSION = 'v0.5';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -430,6 +431,14 @@ const I18N = {
     'cfg.ptAgg': '점 집계', 'cfg.ptError': '오차막대', 'cfg.ptBand': '오차 밴드',
     'cfg.ptAggHint': '같은 X의 여러 점(예: seed 반복)을 평균 등으로 요약. 오차막대/밴드는 표준편차(σ)·표준오차(SE) 기준.',
     'opt.aggMedianShort': '중앙값',
+    'cfg.facet': '분할 (작은 다중 차트)', 'cfg.facetColsPh': '열',
+    'cfg.facetHint': '선택한 컬럼의 값마다 작은 차트로 나눠 그립니다. 분할 시 베이스라인·텍스트 마커·포인트 레이블은 표시되지 않습니다.',
+    'cfg.derivedCount': '계산 컬럼 ({n})',
+    'cfg.derivedName': '새 컬럼 이름', 'cfg.derivedNameTaken': '이미 있는 이름이거나 사용할 수 없는 이름입니다.',
+    'cfg.derivedHint': '기존 컬럼으로 새 컬럼을 계산합니다 (원본 파일은 안 바뀜 · 세션에 저장). 차트 축·필터로 바로 사용 가능.',
+    'cfg.derivedValue': '값', 'cfg.derivedRefIs': '기준 =', 'cfg.derivedMatch': '매칭', 'cfg.derivedAdd': '＋ 계산 컬럼 추가',
+    'opt.derivedBinary': '이항 연산 (A∘B)', 'opt.derivedRef': '기준 대비 델타',
+    'opt.derivedDelta': '차이(−)', 'opt.derivedRetention': '유지율(%)',
     'toast.undo': '실행 취소',
     'pt.addTextMarker': '💬 텍스트 마커 추가',
     'pt.textPlaceholder': '표시할 텍스트',
@@ -596,6 +605,14 @@ const I18N = {
     'cfg.ptAgg': 'Point aggregate', 'cfg.ptError': 'Error bars', 'cfg.ptBand': 'Error band',
     'cfg.ptAggHint': 'Summarize points sharing the same X (e.g. seed repeats) by mean, etc. Error bars/band use std dev (σ) / std error (SE).',
     'opt.aggMedianShort': 'Median',
+    'cfg.facet': 'Facet (small multiples)', 'cfg.facetColsPh': 'cols',
+    'cfg.facetHint': 'Splits into a small chart per value of the chosen column. Baselines, text markers and point labels are hidden while faceting.',
+    'cfg.derivedCount': 'Computed columns ({n})',
+    'cfg.derivedName': 'new column name', 'cfg.derivedNameTaken': 'That name is taken or not allowed.',
+    'cfg.derivedHint': 'Compute a new column from existing ones (the source file is untouched · saved in the session). Usable directly as an axis or filter.',
+    'cfg.derivedValue': 'value', 'cfg.derivedRefIs': 'reference =', 'cfg.derivedMatch': 'match', 'cfg.derivedAdd': '＋ Add computed column',
+    'opt.derivedBinary': 'Binary op (A∘B)', 'opt.derivedRef': 'Delta vs reference',
+    'opt.derivedDelta': 'Difference (−)', 'opt.derivedRetention': 'Retention (%)',
     'toast.undo': 'Undo',
     'pt.addTextMarker': '💬 Add text marker',
     'pt.textPlaceholder': 'Text to display',
@@ -625,8 +642,38 @@ function applyLang() {
 const state = {
   datasets: [],   // {id, name, rows:[{col:val}]}
   charts: [],     // [chartConfig]
+  derived: [],    // 계산 컬럼 정의 [{name, kind, ...}] — 입력 파일이 아니라 뷰 계층(세션 상태)
   nextId: 1,
 };
+/* 계산 컬럼: 정의대로 각 행에 파생 값을 주입 (기존 파생값은 먼저 제거해 재계산) */
+function roundv(x) { return typeof x === 'number' ? Math.round(x * 1e6) / 1e6 : x; }
+let derivedApplied = [];   // 직전에 주입한 파생 컬럼명 — 삭제·변경 시 잔여 컬럼까지 제거
+function applyDerived() {
+  const toClear = new Set([...derivedApplied, ...state.derived.map(d => d.name)]);
+  for (const d of state.datasets) for (const r of d.rows) for (const n of toClear) delete r[n];
+  const rows = state.datasets.flatMap(d => d.rows);
+  for (const def of state.derived) {
+    if (def.kind === 'binary') {
+      const op = def.op;
+      for (const r of rows) {
+        const a = r[def.a], b = r[def.b];
+        r[def.name] = (typeof a === 'number' && typeof b === 'number')
+          ? roundv(op === '-' ? a - b : op === '+' ? a + b : op === '*' ? a * b : op === '/' ? (b ? a / b : null) : op === 'ratio' ? (b ? a / b * 100 : null) : null)
+          : null;
+      }
+    } else if (def.kind === 'refdelta') {
+      const ref = new Map();
+      const key = r => (def.keys || []).map(k => String(r[k])).join('|');
+      for (const r of rows) if (String(r[def.refCol]) === String(def.refVal)) ref.set(key(r), r);
+      for (const r of rows) {
+        const base = ref.get(key(r)), v = r[def.valueCol], bv = base ? base[def.valueCol] : null;
+        r[def.name] = (typeof v === 'number' && typeof bv === 'number')
+          ? roundv(def.mode === 'retention' ? (bv ? v / bv * 100 : null) : v - bv) : null;
+      }
+    }
+  }
+  derivedApplied = state.derived.map(d => d.name);
+}
 
 function defaultChart() {
   return {
@@ -661,6 +708,8 @@ function defaultChart() {
     ptAgg: 'none',              // none | mean | median | min | max — 같은 X 점 집계(선/산점)
     ptError: 'none',            // none | std | sem — ptAgg=mean/median일 때 오차막대
     ptBand: 'none',             // none | 1 | 2 — 집계 ±kσ 음영 밴드
+    facetBy: '',                // 컬럼 → 값별 작은 다중 차트(subplot 격자)
+    facetCols: 0,               // 0=자동(√n), 그 외 열 수
     barMode: 'group',           // group | stack — 막대 배치
     barOrient: 'v',             // v | h — 세로/가로 막대
     barAgg: 'none',             // none | mean | sum | median | min | max | count — 같은 X의 여러 행 집계
@@ -845,9 +894,29 @@ function pointKey(series, x, y) { return `${series}|${x}|${y}`; }
 function logv(v) { return Math.log10(v); }
 function axCoord(v, scale) { return (scale === 'log' && typeof v === 'number') ? logv(v) : v; }
 
+/* facet(작은 다중 차트) 대상 값 목록 — chartRows에 실제 존재하는 값만, 상한 16 */
+function facetValues(cfg) {
+  if (!cfg.facetBy) return [];
+  const present = new Set(chartRows(cfg).map(r => String(r[cfg.facetBy])));
+  return uniqueVals(cfg.facetBy).map(String).filter(v => present.has(v)).slice(0, 16);
+}
 function buildTraces(cfg) {
-  const rows = chartRows(cfg);
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
+  if (!cfg.facetBy) return buildFacetTraces(cfg, chartRows(cfg), lineMode);
+  // facet: 값별 subplot에 같은 시리즈를 배정 (색·정의 공유), 범례는 첫 subplot만
+  const vals = facetValues(cfg), all = chartRows(cfg), out = [];
+  vals.forEach((v, i) => {
+    const sub = all.filter(r => String(r[cfg.facetBy]) === v);
+    const sfx = i === 0 ? '' : String(i + 1);
+    buildFacetTraces(cfg, sub, lineMode).forEach(tr => {
+      tr.xaxis = 'x' + sfx; tr.yaxis = 'y' + sfx;
+      if (i !== 0) tr.showlegend = false;
+      out.push(tr);
+    });
+  });
+  return out;
+}
+function buildFacetTraces(cfg, rows, lineMode) {
   const traces = [];
   seriesDefs(cfg).forEach(def => {
     let pts = rows.filter(def.match);
@@ -1235,6 +1304,37 @@ function buildLayout(cfg, gd) {
     const catOrder = { label: 'category ascending', asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
     if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
   }
+  // facet(작은 다중 차트): 값별 subplot 격자. 베이스라인·텍스트마커·포인트레이블은 좌표 모호로 비활성
+  if (cfg.facetBy) {
+    const vals = facetValues(cfg), n = vals.length || 1;
+    const cols = cfg.facetCols > 0 ? cfg.facetCols : Math.min(n, Math.max(1, Math.ceil(Math.sqrt(n))));
+    const rowsN = Math.ceil(n / cols);
+    const lay = {
+      title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: cfg.fontColor }, x: 0.5 } : undefined,
+      font: { family: cfg.fontFamily, size: cfg.fontSize, color: cfg.fontColor },
+      paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
+      grid: { rows: rowsN, columns: cols, pattern: 'independent', roworder: 'top to bottom' },
+      showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
+      legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
+      margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: (cfg.title ? 52 : 30) + 6, b: 52 },
+      barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
+      uirevision: [cfg.id, cfg.type, cfg.facetBy, cfg.facetCols, cfg.x, cfg.y, cfg.xScale, cfg.yScale].join('|'),
+    };
+    const anns = [];
+    vals.forEach((v, i) => {
+      const sfx = i === 0 ? '' : String(i + 1);
+      const rowIdx = Math.floor(i / cols), colIdx = i % cols;
+      const xa = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y) : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x);
+      const ya = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x) : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y);
+      if (rowIdx !== rowsN - 1) xa.title = undefined;   // 가장자리에만 축 제목
+      if (colIdx !== 0) ya.title = undefined;
+      lay['xaxis' + sfx] = xa; lay['yaxis' + sfx] = ya;
+      anns.push({ text: `${cfg.facetBy} = ${v}`, xref: 'x' + sfx + ' domain', yref: 'y' + sfx + ' domain', x: 0.5, y: 1, yanchor: 'bottom',
+        showarrow: false, font: { family: cfg.fontFamily, size: cfg.fontSize, color: cfg.fontColor } });
+    });
+    lay.annotations = anns;
+    return lay;
+  }
   return {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: cfg.fontColor }, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: cfg.fontColor },
@@ -1519,6 +1619,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...numericColumns().map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })),
       ...(cfg.colorBy ? [el('div', { class: 'hint' }, t('cfg.colorByHint'))] : []),
     ]),
+    row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
+        el('input', { type: 'number', value: cfg.facetCols || '', min: 1, max: 8, placeholder: t('cfg.facetColsPh'), title: t('cfg.facetColsPh'), style: 'width:56px', oninput: e => { cfg.facetCols = Number(e.target.value) || 0; rp(); } })),
+    ...(cfg.facetBy ? [el('div', { class: 'hint' }, t('cfg.facetHint'))] : []),
   );
 
   /* --- 막대 옵션 (type=bar일 때만) --- */
@@ -1865,6 +1968,61 @@ function renderChips() {
     ));
   }
 }
+/* 계산 컬럼 패널 — 이항 연산 / 기준 대비 델타 */
+function renderDerived() {
+  const panel = document.getElementById('derivedPanel');
+  if (!panel) return;
+  panel.hidden = !state.datasets.length;
+  if (!state.datasets.length) { panel.innerHTML = ''; return; }
+  const nums = numericColumns(), cols = visibleColumns();
+  const commit = () => { applyDerived(); renderDerived(); renderTable(); for (const c of state.charts) renderPlot(c); save(); };
+  panel.innerHTML = '';
+  panel.append(el('summary', {}, tf('cfg.derivedCount', { n: state.derived.length })));
+  // 기존 정의 목록
+  state.derived.forEach((d, i) => {
+    const desc = d.kind === 'binary' ? `${d.name} = ${d.a} ${({ '-': '−', '+': '+', '*': '×', '/': '÷', ratio: '÷×100%' })[d.op]} ${d.b}`
+      : `${d.name} = ${d.valueCol} ${d.mode === 'retention' ? '÷' : '−'} (${d.refCol}=${d.refVal}${(d.keys || []).length ? ', ' + d.keys.join('·') : ''})`;
+    panel.append(el('div', { class: 'series-row' },
+      el('span', { class: 'sname', title: desc }, desc),
+      el('button', { class: 'small danger', onclick: () => { state.derived.splice(i, 1); commit(); } }, '×'),
+    ));
+  });
+  // 추가 폼
+  const nameInp = el('input', { type: 'text', placeholder: t('cfg.derivedName'), style: 'width:120px' });
+  const kindSel = select([['binary', t('opt.derivedBinary')], ['refdelta', t('opt.derivedRef')]], 'binary', () => renderForm());
+  const formBox = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:4px' });
+  const numOpts = nums.map(c => [c, c]);
+  const renderForm = () => {
+    formBox.innerHTML = '';
+    if (kindSel.value === 'binary') {
+      const a = select(numOpts, nums[0], () => {}), op = select([['-', '−'], ['+', '+'], ['*', '×'], ['/', '÷'], ['ratio', '÷×100%']], '-', () => {}), b = select(numOpts, nums[1] || nums[0], () => {});
+      formBox._get = () => ({ kind: 'binary', a: a.value, op: op.value, b: b.value });
+      formBox.append(a, op, b);
+    } else {
+      const val = select(numOpts, nums[0], () => {}), refCol = select(cols.map(c => [c, c]), cols[0], () => refreshVals()), refVal = select([], '', () => {});
+      const mode = select([['delta', t('opt.derivedDelta')], ['retention', t('opt.derivedRetention')]], 'delta', () => {});
+      const keysBox = el('span', { style: 'display:inline-flex;gap:6px;flex-wrap:wrap' });
+      cols.forEach(c => keysBox.append(el('label', { class: 'inline' }, el('input', { type: 'checkbox', 'data-k': c }), c)));
+      const refreshVals = () => { refVal.innerHTML = ''; uniqueVals(refCol.value).forEach(v => refVal.append(el('option', { value: String(v) }, String(v)))); };
+      refreshVals();
+      formBox._get = () => ({ kind: 'refdelta', valueCol: val.value, refCol: refCol.value, refVal: refVal.value, mode: mode.value,
+        keys: [...keysBox.querySelectorAll('input:checked')].map(cb => cb.getAttribute('data-k')) });
+      formBox.append(t('cfg.derivedValue') + ':', val, mode, el('span', {}, t('cfg.derivedRefIs')), refCol, refVal, el('span', {}, t('cfg.derivedMatch')), keysBox);
+    }
+  };
+  renderForm();
+  panel.append(el('div', { class: 'hint' }, t('cfg.derivedHint')),
+    el('div', { class: 'series-row' }, nameInp, kindSel),
+    formBox,
+    el('button', { class: 'small', onclick: () => {
+      const name = nameInp.value.trim();
+      if (!name) return alert(t('cfg.derivedName'));
+      if (name.startsWith('_') || visibleColumns().includes(name) || state.derived.some(d => d.name === name)) return alert(t('cfg.derivedNameTaken'));
+      state.derived.push({ name, ...formBox._get() });
+      commit();
+    } }, t('cfg.derivedAdd')),
+  );
+}
 
 /* ================= session persistence ================= */
 let saveTimer = null;
@@ -1873,7 +2031,7 @@ function save() {
   saveTimer = setTimeout(() => {
     try {
       const charts = state.charts.map(serializableChart);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId }));
     } catch (e) { /* quota — 데이터가 너무 크면 자동저장 생략 */ }
   }, 400);
 }
@@ -1890,6 +2048,7 @@ function loadSaved() {
 }
 function restoreSession(s) {
   state.datasets = s.datasets || [];
+  state.derived = s.derived || [];
   state.charts = (s.charts || []).map(c => {
     const m = { ...defaultChart(), ...c };
     if (m.baseline) {   // 구버전 세션 마이그레이션: 단일 baseline → baselines 배열
@@ -1904,7 +2063,7 @@ function restoreSession(s) {
 }
 function exportSession() {
   const charts = state.charts.map(serializableChart);
-  const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }, null, 1)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId }, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
 }
@@ -2022,7 +2181,9 @@ function showPresetMenu(cfg, mouseEv) {
 
 /* ================= wiring ================= */
 function onDataChanged(autoChart = true) {
+  applyDerived();   // 계산 컬럼 재적용 (데이터·정의 변경 반영)
   renderChips();
+  renderDerived();
   tableState.page = 0;
   renderTable();
   if (autoChart && state.datasets.length && !state.charts.length) addChart();
@@ -2127,7 +2288,7 @@ document.getElementById('appVersion').textContent = APP_VERSION;
 document.querySelector('.footer-ver').textContent = APP_VERSION;
 applyLang();
 loadSaved();
-renderChips(); renderTable(); refreshCharts();
+renderChips(); renderDerived(); renderTable(); refreshCharts();
 tryServerAutoload();
 </script>
 </body>

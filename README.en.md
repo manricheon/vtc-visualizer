@@ -78,6 +78,8 @@ ours,4000,4.1,0.744,MMLU
 | **Bar charts** | Type → Bar: **grouped/stacked**, **vertical/horizontal**, **aggregation** of rows sharing the same X (mean · sum · median · min · max · count), **error bars (±std dev/±std error)** with mean, **value labels** at bar ends, name/value **sorting**, opacity, **treat numeric X as categories** (even spacing) — Settings → Bar options. E.g. X=method, Y=accuracy, aggregate=mean |
 | Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
 | Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
+| **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
+| **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
@@ -134,6 +136,10 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.5 — small multiples & computed columns
+- **Facet (small multiples)**: split into a grid by column value — small multiples without repeated duplicate+filter.
+- **Computed columns**: derive columns in-tool (binary ops, delta/retention vs a reference); source file untouched, saved in the session.
 
 ### v0.4 — analysis & reporting
 - **Continuous color**: color by a numeric column as a gradient (colorbar).
