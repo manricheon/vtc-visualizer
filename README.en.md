@@ -14,7 +14,7 @@ Every setting re-renders the chart live — hop between scatter, line and bar, a
 
 ![Live editing: scatter → trendline → bar chart](assets/readme/hero.gif)
 
-| Bar charts (group·stack·horizontal) | Highlight by dimming (focus + context) | Small multiples (facet) |
+| Bar charts (mean · sort · horizontal · error bars) | Highlight by dimming (focus + context) | Small multiples (facet) |
 |:---:|:---:|:---:|
 | ![bar charts](assets/readme/bars.gif) | ![dim filter](assets/readme/dim-filter.gif) | ![facet](assets/readme/facet.gif) |
 
