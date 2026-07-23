@@ -57,6 +57,8 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),
   `lineShape`(linear|spline), `lineDash`(전역 선 종류, 시리즈별 `seriesStyles[name].dash`/`lwidth`로 오버라이드),
+  `seriesLabels{원본시리즈명:표시명}`(범례·hover 표시만 덮어씀 — 내부 키(스타일·추세·`__fillbase`/`__trendband`)는 `def.name` 원본 유지, buildTraces의 `dname`),
+  `legendPos`(right|top|inside-tl|inside-tr|inside-bl|inside-br|none — 구 `inside`는 좌상단으로 매핑),
   `areaFill`(none|tozeroy — 실제 구현은 데이터 최소값 바닥의 `__fillbase` 보조 trace + `tonexty` 파스텔 밴드; 축이 0으로 늘어나지 않게 하기 위함),
   막대 전용 `barMode`(group|stack)/`barOrient`(v|h — 가로면 buildTraces·buildLayout에서 x/y 스왑)/`barAgg`(none|mean|sum|median|min|max|count — `aggregateBars()`가 같은 X의 행을 하나의 막대로 요약)/`barError`(none|std|sem — barAgg=mean일 때만 error_x/y)/`barText`(none|value — 막대 끝 값, 포인트 레이블 annotation은 bar에서 비활성)/`barOpacity`/`barSort`(auto|label|asc|desc → 카테고리 축 categoryorder)/`barCatX`(숫자 X를 카테고리 축으로 — buildLayout `axis()`의 isCat 판정. 문자열 컬럼은 어느 유형이든 자동 category 축).
   bar 전용 UI는 `buildCfgPanel`의 "막대 옵션" 그룹(type=bar일 때만, 유형 변경 시 패널 전체 재구성 `rebuildPanel`), bar에서는 선/마커/추세선/Pareto/포인트 레이블 UI 숨김

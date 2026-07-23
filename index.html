@@ -105,6 +105,7 @@
   .filter-vals label.inline { font-size: 12px; gap: 4px; }
   .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
   .series-row .sname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .series-row .slabel { flex: 1; min-width: 0; font-size: 12px; }
   .series-row select { width: 92px; flex: none; }
   .series-row input[type="number"] { width: 52px; }
   .series-block { margin: 6px 0; padding-bottom: 4px; border-bottom: 1px dashed var(--grid); }
@@ -249,7 +250,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.2';
+const APP_VERSION = 'v0.3';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -360,13 +361,15 @@ const I18N = {
     'cfg.fontColorTitle': '글자 색',
     'cfg.legend': '범례',
     'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
+    'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
+    'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
     'cfg.markerSize': '마커 크기',
     'cfg.lineWidth': '선 굵기',
     'cfg.lineType': '선 종류',
     'opt.straightLine': '직선', 'opt.spline': '곡선(스무딩)',
     'cfg.areaFill': '영역 채우기',
     'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기',
-    'cfg.styleHint': '시리즈별: 색 · 마커 모양/크기 · 선 종류/굵기',
+    'cfg.styleHint': '시리즈별: 색 · 범례 이름 · 마커 모양/크기 · 선 종류/굵기',
     'cfg.bar': '막대 옵션',
     'cfg.barMode': '배치',
     'opt.barGroup': '나란히 (그룹)', 'opt.barStack': '쌓기 (스택)',
@@ -516,13 +519,15 @@ const I18N = {
     'cfg.fontColorTitle': 'Font color',
     'cfg.legend': 'Legend',
     'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
+    'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
+    'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
     'cfg.markerSize': 'Marker size',
     'cfg.lineWidth': 'Line width',
     'cfg.lineType': 'Line style',
     'opt.straightLine': 'Straight', 'opt.spline': 'Curved (spline)',
     'cfg.areaFill': 'Area fill',
     'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line',
-    'cfg.styleHint': 'Per series: color · marker shape/size · line style/width',
+    'cfg.styleHint': 'Per series: color · legend name · marker shape/size · line style/width',
     'cfg.bar': 'Bar options',
     'cfg.barMode': 'Layout',
     'opt.barGroup': 'Side by side (group)', 'opt.barStack': 'Stacked',
@@ -616,6 +621,7 @@ function defaultChart() {
     legendPos: 'right',         // right | top | inside | none
     markerSize: 9, lineWidth: 2,
     seriesStyles: {},           // name -> {color, symbol, msize}
+    seriesLabels: {},           // 원본 시리즈명 -> 범례 표시용 커스텀 이름 (비우면 원본)
     showLabels: false, labelCol: '',
     labelOffsets: {},           // pointKey -> {ax, ay}
     hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
@@ -823,24 +829,25 @@ function buildTraces(cfg) {
     if (cfg.type !== 'bar' && cfg.type !== 'scatter') {
       pts = pts.slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
     }
-    const name = def.name;
+    const name = def.name;   // 내부 식별자(스타일·추세·숨김레이블 키·보조 trace명) — 절대 바꾸지 않음
+    const dname = (cfg.seriesLabels && cfg.seriesLabels[name]) || name;   // 범례·hover 표시용
     const st = seriesStyle(cfg, def);
     const labels = pts.map(r => cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]));
     const base = {
-      name, x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y]),
+      name: dname, x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y]),
       customdata: labels, _g: def.g, _g2: def.g2,
-      hovertemplate: `<b>${esc(name)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`,
+      hovertemplate: `<b>${esc(dname)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`,
     };
     if (cfg.type === 'bar') {
       const horiz = cfg.barOrient === 'h';
       const agg = aggregateBars(pts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), cfg.barAgg);
       const cats = cfg.barCatX ? agg.xs.map(String) : agg.xs;   // 숫자 X도 카테고리로
       const tr = {
-        name, _g: def.g, _g2: def.g2, type: 'bar',
+        name: dname, _g: def.g, _g2: def.g2, type: 'bar',
         x: horiz ? agg.ys : cats, y: horiz ? cats : agg.ys,
         ...(horiz ? { orientation: 'h' } : {}),
         marker: { color: st.color, opacity: Number(cfg.barOpacity) || 1 },
-        hovertemplate: `<b>${esc(name)}</b><br>${esc(cfg.x)}=%{${horiz ? 'y' : 'x'}}<br>${esc(cfg.y)}=%{${horiz ? 'x' : 'y'}}<extra></extra>`,
+        hovertemplate: `<b>${esc(dname)}</b><br>${esc(cfg.x)}=%{${horiz ? 'y' : 'x'}}<br>${esc(cfg.y)}=%{${horiz ? 'x' : 'y'}}<extra></extra>`,
       };
       if (cfg.barAgg === 'mean' && cfg.barError !== 'none') {
         tr[horiz ? 'error_x' : 'error_y'] = {
@@ -1123,10 +1130,16 @@ function baselineShapes(cfg, gd) {
   return shapes;
 }
 function buildLayout(cfg, gd) {
+  const insideBg = 'rgba(252,252,251,0.8)';
   const legend = {
     right: { orientation: 'v', x: 1.02, y: 1, xanchor: 'left' },
     top: { orientation: 'h', x: 0, y: 1.12, xanchor: 'left' },
-    inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', bgcolor: 'rgba(252,252,251,0.8)' },
+    // 차트 안 사분면
+    'inside-tl': { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: insideBg },
+    'inside-tr': { orientation: 'v', x: 0.98, y: 0.98, xanchor: 'right', yanchor: 'top', bgcolor: insideBg },
+    'inside-bl': { orientation: 'v', x: 0.02, y: 0.02, xanchor: 'left', yanchor: 'bottom', bgcolor: insideBg },
+    'inside-br': { orientation: 'v', x: 0.98, y: 0.02, xanchor: 'right', yanchor: 'bottom', bgcolor: insideBg },
+    inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: insideBg },  // 구 세션 호환(좌상단)
   }[cfg.legendPos];
   const axis = (label, scale, mn, mx, col) => {
     // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
@@ -1177,7 +1190,7 @@ function buildLayout(cfg, gd) {
     xaxis, yaxis,
     showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
-    margin: { l: 64, r: cfg.legendPos === 'right' ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
+    margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
     annotations: buildAnnotations(cfg),
     shapes: baselineShapes(cfg, gd),
@@ -1536,10 +1549,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       const name = def.name;
       const st = seriesStyle(cfg, def);
       const upd = patch => { cfg.seriesStyles[name] = { ...cfg.seriesStyles[name], ...patch }; rp(); };
+      const labelInput = el('input', { type: 'text', class: 'slabel', value: cfg.seriesLabels[name] || '', placeholder: name, title: t('cfg.seriesLabelTitle'),
+        oninput: e => { const v = e.target.value.trim(); if (v) cfg.seriesLabels[name] = v; else delete cfg.seriesLabels[name]; rp(); } });
       seriesBox.append(el('div', { class: 'series-block' },
         el('div', { class: 'series-row' },
           el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }),
-          el('span', { class: 'sname', title: name }, name),
+          labelInput,
         ),
         ...(isBar ? [] : [el('div', { class: 'series-row sub' },   // 막대는 색만 의미 있음
           select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }),
@@ -1556,7 +1571,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
     row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
-    row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside', t('opt.inside')], ['none', t('opt.hidden')]], cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
+    row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside-tl', t('opt.insideTL')], ['inside-tr', t('opt.insideTR')], ['inside-bl', t('opt.insideBL')], ['inside-br', t('opt.insideBR')], ['none', t('opt.hidden')]], cfg.legendPos === 'inside' ? 'inside-tl' : cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
     ...(isBar ? [] : [
       row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
           el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),

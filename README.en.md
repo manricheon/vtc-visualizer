@@ -63,7 +63,8 @@ ours,4000,4.1,0.744,MMLU
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card — multiple charts per page |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
-| Series styling | Settings → Style: per-series color, marker symbol/size, **line style (solid/dash/dot) and width**, font, legend position |
+| Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, font |
+| Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values** (e.g. only tokens 1000 & 4000). Rows must match all conditions |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
