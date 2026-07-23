@@ -29,7 +29,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전 표기**: 릴리스마다 `index.html`의 `APP_VERSION` 상수를 올리고(헤더·푸터에 자동 표시) 같은 이름의 **git 태그**(v0.1, v0.2, …)를 main에 만든다. v0.1 = 바 차트 이전 초기 릴리스, v0.2 = 바 차트·가이드·프리셋.
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -59,6 +59,9 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `lineShape`(linear|spline), `lineDash`(전역 선 종류, 시리즈별 `seriesStyles[name].dash`/`lwidth`로 오버라이드),
   `seriesLabels{원본시리즈명:표시명}`(범례·hover 표시만 덮어씀 — 내부 키(스타일·추세·`__fillbase`/`__trendband`)는 `def.name` 원본 유지, buildTraces의 `dname`),
   `legendPos`(right|top|inside-tl|inside-tr|inside-bl|inside-br|none — 구 `inside`는 좌상단으로 매핑),
+  `colorBy`(숫자 컬럼 연속 색상 — group 없을 때만, 단일 trace `marker.color`+`SEQ_SCALE` 컬러바; group 있으면 무시),
+  `ptAgg`(none|mean|median|min|max — 같은 X 점 집계, `aggregateBars` 재사용)/`ptError`(none|std|sem → `error_y`)/`ptBand`(none|1|2 → `__ptband` 음영),
+  행 플래그 `_muted`(제외 아님 — 옅은 회색 배경화 focus+context; buildTraces에서 muted/일반 조각 분리, `__muted` trace는 저불투명 회색·범례/추세 제외, 레이블도 생략),
   `areaFill`(none|tozeroy — 실제 구현은 데이터 최소값 바닥의 `__fillbase` 보조 trace + `tonexty` 파스텔 밴드; 축이 0으로 늘어나지 않게 하기 위함),
   막대 전용 `barMode`(group|stack)/`barOrient`(v|h — 가로면 buildTraces·buildLayout에서 x/y 스왑)/`barAgg`(none|mean|sum|median|min|max|count — `aggregateBars()`가 같은 X의 행을 하나의 막대로 요약)/`barError`(none|std|sem — barAgg=mean일 때만 error_x/y)/`barText`(none|value — 막대 끝 값, 포인트 레이블 annotation은 bar에서 비활성)/`barOpacity`/`barSort`(auto|label|asc|desc → 카테고리 축 categoryorder)/`barCatX`(숫자 X를 카테고리 축으로 — buildLayout `axis()`의 isCat 판정. 문자열 컬럼은 어느 유형이든 자동 category 축).
   bar 전용 UI는 `buildCfgPanel`의 "막대 옵션" 그룹(type=bar일 때만, 유형 변경 시 패널 전체 재구성 `rebuildPanel`), bar에서는 선/마커/추세선/Pareto/포인트 레이블 UI 숨김

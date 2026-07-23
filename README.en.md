@@ -78,7 +78,10 @@ ours,4000,4.1,0.744,MMLU
 | **Bar charts** | Type → Bar: **grouped/stacked**, **vertical/horizontal**, **aggregation** of rows sharing the same X (mean · sum · median · min · max · count), **error bars (±std dev/±std error)** with mean, **value labels** at bar ends, name/value **sorting**, opacity, **treat numeric X as categories** (even spacing) — Settings → Bar options. E.g. X=method, Y=accuracy, aggregate=mean |
 | Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
 | Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
-| Export | `PNG` (3× resolution) / `SVG` buttons on each card |
+| **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
+| **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
+| **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
+| Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top bar, `Export CSV` (current filtered data) in the table |
 | Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
@@ -127,6 +130,29 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 - A modern browser (Chrome/Edge/Safari/Firefox)
 - Python 3.8+ for `visualizer.py` (standard library only, nothing to install)
+
+## Changelog
+
+The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.4 — analysis & reporting
+- **Continuous color**: color by a numeric column as a gradient (colorbar).
+- **Point aggregate · error bars · band**: summarize repeated measurements at the same X by mean, etc. (line/scatter).
+- **Focus / de-emphasize (focus + context)**: fade points into the background instead of excluding them, to spotlight what matters.
+- **Export**: all charts as one PNG; current filtered data as CSV.
+
+### v0.3 — legend improvements
+- Legend placement inside the chart by **corner** (top-left/top-right/bottom-left/bottom-right).
+- **Editable legend names** (display only; internal identifiers unchanged).
+
+### v0.2 — bar charts, guide, presets
+- **Bar charts**: grouped/stacked, horizontal, aggregation (mean, etc.), error bars, value labels, sorting.
+- **Visualization guide** (GUIDE.md/en) with example captures.
+- **Chart presets**: save chart settings only → re-apply to new data.
+- Baseline direction (crosshair/h/v), log-axis baseline placement fix, numeric multi-select filters, session-file-as-data guard, version badge.
+
+### v0.1 — initial release
+- Scatter/line/scatter+line, log axes, axis ranges, series styling, filters, baselines (quadrant shading), text markers, point labels, trendlines & error bands, Pareto, shape group, area fill, sessions, PNG/SVG, KO/EN, offline build, English docs.
 
 ---
 

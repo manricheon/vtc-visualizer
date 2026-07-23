@@ -159,6 +159,7 @@
   /* ===== data table: include/exclude ===== */
   table.data th.chk, table.data td.chk { width: 30px; text-align: center; padding: 5px 6px; cursor: default; }
   table.data tr.excl td:not(.chk) { opacity: 0.4; }
+  table.data tr.muted td:not(.chk) { opacity: 0.55; font-style: italic; }
 
   /* ===== toast ===== */
   #toast {
@@ -189,6 +190,7 @@
     <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
     <button id="btnExportSession" data-i18n="btn.exportSession"></button>
     <button id="btnImportSession" data-i18n="btn.importSession"></button>
+    <button id="btnExportAll" data-i18n="btn.exportAll"></button>
     <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
     <button id="btnLangToggle" class="ghost"></button>
   </header>
@@ -217,6 +219,8 @@
       <input type="search" id="tableSearch" data-i18n-ph="table.searchPh">
       <span class="count" id="tableCount"></span>
       <button class="small" id="restoreExcl" hidden data-i18n="table.restoreExcl"></button>
+      <button class="small" id="restoreMuted" hidden data-i18n="table.restoreMuted"></button>
+      <button class="small" id="btnExportCsv" data-i18n="btn.exportCsv"></button>
     </div>
     <div id="tableWrap"><table class="data" id="dataTable"></table></div>
     <div id="pager">
@@ -250,10 +254,12 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.3';
+const APP_VERSION = 'v0.4';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
+/* 연속 색상용 단일-hue 시퀀셜(밝음→어두움, PALETTE[0] 계열) — dataviz 시퀀셜 규칙 준수 */
+const SEQ_SCALE = [[0, '#eaf2fb'], [0.35, '#9cc4ee'], [0.7, '#3d84d6'], [1, '#12467f']];
 const SYMBOLS = ['circle', 'square', 'diamond', 'triangle-up', 'cross', 'x', 'star', 'triangle-down'];
 const CHROME = {
   surface: '#fcfcfb', ink: '#0b0b0b', ink2: '#52514e', muted: '#898781',
@@ -416,6 +422,14 @@ const I18N = {
     'pt.addBaseline': '📍 베이스라인 추가',
     'pt.excludePoint': '🚫 이 포인트 제외',
     'toast.excluded': '{n}개 포인트가 그래프에서 제외되었습니다.',
+    'toast.muted': '{n}개 포인트를 흐리게(배경) 처리했습니다.',
+    'pt.mute': '🔅 흐리게 (강조 안 함)', 'pt.unmute': '🔆 흐림 해제',
+    'table.restoreMuted': '흐림 {n}행 모두 해제',
+    'btn.exportCsv': 'CSV 내보내기', 'btn.exportAll': '모든 차트 PNG',
+    'cfg.colorBy': '연속 색상(컬럼)', 'cfg.colorByHint': '숫자 컬럼 값을 색 그라데이션으로 (그룹 색과 상호배타 · 산점/선 전용)',
+    'cfg.ptAgg': '점 집계', 'cfg.ptError': '오차막대', 'cfg.ptBand': '오차 밴드',
+    'cfg.ptAggHint': '같은 X의 여러 점(예: seed 반복)을 평균 등으로 요약. 오차막대/밴드는 표준편차(σ)·표준오차(SE) 기준.',
+    'opt.aggMedianShort': '중앙값',
     'toast.undo': '실행 취소',
     'pt.addTextMarker': '💬 텍스트 마커 추가',
     'pt.textPlaceholder': '표시할 텍스트',
@@ -574,6 +588,14 @@ const I18N = {
     'pt.addBaseline': '📍 Add baseline',
     'pt.excludePoint': '🚫 Exclude this point',
     'toast.excluded': '{n} point(s) excluded from the chart.',
+    'toast.muted': '{n} point(s) de-emphasized (background).',
+    'pt.mute': '🔅 De-emphasize (fade)', 'pt.unmute': '🔆 Un-fade',
+    'table.restoreMuted': 'Un-fade all {n} rows',
+    'btn.exportCsv': 'Export CSV', 'btn.exportAll': 'All charts PNG',
+    'cfg.colorBy': 'Continuous color (column)', 'cfg.colorByHint': 'Color by a numeric column as a gradient (mutually exclusive with group color · scatter/line only)',
+    'cfg.ptAgg': 'Point aggregate', 'cfg.ptError': 'Error bars', 'cfg.ptBand': 'Error band',
+    'cfg.ptAggHint': 'Summarize points sharing the same X (e.g. seed repeats) by mean, etc. Error bars/band use std dev (σ) / std error (SE).',
+    'opt.aggMedianShort': 'Median',
     'toast.undo': 'Undo',
     'pt.addTextMarker': '💬 Add text marker',
     'pt.textPlaceholder': 'Text to display',
@@ -635,6 +657,10 @@ function defaultChart() {
     lineShape: 'linear',        // linear | spline — 선 스무딩
     lineDash: 'solid',          // solid | dash | dot | dashdot — 시리즈별 오버라이드 가능
     areaFill: 'none',           // none | tozeroy — 선 아래 파스텔 영역 채우기
+    colorBy: '',                // 숫자 컬럼 → 연속 색상(컬러맵). group과 상호배타, 산점/선 전용
+    ptAgg: 'none',              // none | mean | median | min | max — 같은 X 점 집계(선/산점)
+    ptError: 'none',            // none | std | sem — ptAgg=mean/median일 때 오차막대
+    ptBand: 'none',             // none | 1 | 2 — 집계 ±kσ 음영 밴드
     barMode: 'group',           // group | stack — 막대 배치
     barOrient: 'v',             // v | h — 세로/가로 막대
     barAgg: 'none',             // none | mean | sum | median | min | max | count — 같은 X의 여러 행 집계
@@ -832,12 +858,8 @@ function buildTraces(cfg) {
     const name = def.name;   // 내부 식별자(스타일·추세·숨김레이블 키·보조 trace명) — 절대 바꾸지 않음
     const dname = (cfg.seriesLabels && cfg.seriesLabels[name]) || name;   // 범례·hover 표시용
     const st = seriesStyle(cfg, def);
-    const labels = pts.map(r => cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]));
-    const base = {
-      name: dname, x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y]),
-      customdata: labels, _g: def.g, _g2: def.g2,
-      hovertemplate: `<b>${esc(dname)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`,
-    };
+    const labelfn = r => cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]);
+    const hoverT = `<b>${esc(dname)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`;
     if (cfg.type === 'bar') {
       const horiz = cfg.barOrient === 'h';
       const agg = aggregateBars(pts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), cfg.barAgg);
@@ -865,25 +887,54 @@ function buildTraces(cfg) {
     } else {
       const hasLine = lineMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
-      if (useFill) {
-        // 축이 0까지 늘어나지 않도록 데이터 최소값을 바닥으로 하는 파스텔 밴드
-        const allY = rows.map(r => r[cfg.y]).filter(v => typeof v === 'number');
-        const floor = allY.length ? Math.min(...allY) : 0;
+      const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumns().includes(cfg.colorBy);
+      const npts = pts.filter(r => !r._muted);   // 강조(일반)
+      const mpts = pts.filter(r => r._muted);    // 흐리게(배경 맥락) — focus+context
+      // 흐리게 조각: 옅은 회색·저불투명도, 범례·추세 제외 (점·hover는 유지)
+      if (mpts.length) {
         traces.push({
-          x: base.x, y: base.x.map(() => floor), type: 'scatter', mode: 'lines',
-          line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip',
-          name: `${name} __fillbase`,
+          name: `${name} __muted`, x: mpts.map(r => r[cfg.x]), y: mpts.map(r => r[cfg.y]),
+          type: 'scatter', mode: lineMode, showlegend: false, opacity: 0.28,
+          marker: { color: CHROME.muted, symbol: st.symbol, size: cfg.size ? mpts.map(r => sizeScale(r[cfg.size], cfg)) : Math.max(4, st.msize - 2) },
+          line: { color: CHROME.muted, width: 1, shape: cfg.lineShape },
+          customdata: mpts.map(labelfn), hovertemplate: hoverT,
         });
       }
+      if (!npts.length) return;   // 전부 흐리게면 강조 trace 생략
+      // 집계 모드: 같은 X 점을 평균/중앙값 등으로 요약 (+오차막대/밴드)
+      let mx, my, errs = null;
+      if (cfg.ptAgg !== 'none') {
+        const agg = aggregateBars(npts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), cfg.ptAgg);
+        mx = agg.xs; my = agg.ys;
+        errs = cfg.ptError === 'sem' ? agg.sems : agg.stds;   // 오차막대/밴드 공통 (표시는 각 옵션이 결정)
+      } else {
+        mx = npts.map(r => r[cfg.x]); my = npts.map(r => r[cfg.y]);
+      }
+      if (useFill) {   // 축이 0까지 늘어나지 않도록 데이터 최소값 바닥의 파스텔 밴드
+        const allY = rows.map(r => r[cfg.y]).filter(v => typeof v === 'number');
+        const floor = allY.length ? Math.min(...allY) : 0;
+        traces.push({ x: mx, y: mx.map(() => floor), type: 'scatter', mode: 'lines',
+          line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip', name: `${name} __fillbase` });
+      }
+      if (cfg.ptAgg !== 'none' && cfg.ptBand !== 'none' && hasLine && errs) {   // ±kσ 음영 밴드
+        const k = Number(cfg.ptBand);
+        traces.push({ name: `${name} __ptband`, x: mx, y: my.map((v, i) => v - k * errs[i]), type: 'scatter', mode: 'lines', line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip' });
+        traces.push({ name: `${name} __ptband`, x: mx, y: my.map((v, i) => v + k * errs[i]), type: 'scatter', mode: 'lines', line: { width: 0, shape: cfg.lineShape }, fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.12), showlegend: false, hoverinfo: 'skip' });
+      }
+      const marker = useColorBy
+        ? { color: npts.map(r => r[cfg.colorBy]), colorscale: SEQ_SCALE, showscale: true,
+            colorbar: { title: { text: cfg.colorBy, side: 'right' }, thickness: 12, len: 0.92, outlinewidth: 0, tickfont: { size: cfg.fontSize - 2 } },
+            symbol: st.symbol, size: cfg.size ? npts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize, line: { width: 1.5, color: CHROME.surface } }
+        : { color: st.color, symbol: st.symbol, size: (cfg.ptAgg === 'none' && cfg.size) ? npts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize, line: { width: 1.5, color: CHROME.surface } };
       traces.push({
-        ...base, type: 'scatter', mode: lineMode,
-        marker: { color: st.color, symbol: st.symbol, size: cfg.size ? pts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize,
-                  line: { width: 1.5, color: CHROME.surface } },
-        line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
+        name: dname, _g: def.g, _g2: def.g2, type: 'scatter', mode: lineMode,
+        x: mx, y: my, customdata: cfg.ptAgg === 'none' ? npts.map(labelfn) : mx, hovertemplate: hoverT,
+        marker, line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
         ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
+        ...(cfg.ptAgg !== 'none' && cfg.ptError !== 'none' ? { error_y: { type: 'data', array: errs, visible: true, color: st.color, thickness: 1.2, width: 4 } } : {}),
       });
       if (cfg.trend !== 'none') {
-        traces.push(...trendTraces(cfg, name, pts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), st.color));
+        traces.push(...trendTraces(cfg, name, npts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), st.color));
       }
     }
   });
@@ -1035,6 +1086,7 @@ function buildAnnotations(cfg) {
       const name = def.name;
       const pts = rows.filter(def.match);
       for (const r of pts) {
+        if (r._muted) continue;   // 흐리게 처리된 점은 레이블도 배경 처리(생략)
         const text = cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]);
         if (text === null || text === undefined) continue;
         const dedup = `${r[cfg.x]}|${r[cfg.y]}|${text}`;
@@ -1309,6 +1361,22 @@ function showPointPopover(c, gd, p, mouseEv) {
     }, t('pt.excludePoint')),
     el('button', {
       onclick: () => {
+        const g = p.data && p.data._g, g2 = p.data && p.data._g2;
+        const match = r => r[c.x] === p.x && r[c.y] === p.y
+          && (g == null || String(r[c.group]) === g) && (g2 == null || String(r[c.group2]) === g2);
+        const already = allRows().some(r => match(r) && r._muted);
+        const hit = [];
+        for (const r of allRows()) if (match(r) && !r._excluded) { if (already) delete r._muted; else r._muted = true; hit.push(r); }
+        hidePopover();
+        if (hit.length) {
+          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); save(); };
+          refresh();
+          if (!already) showToast(tf('toast.muted', { n: hit.length }), t('toast.undo'), () => { hit.forEach(r => delete r._muted); refresh(); });
+        }
+      },
+    }, allRows().some(r => r[c.x] === p.x && r[c.y] === p.y && r._muted) ? t('pt.unmute') : t('pt.mute')),
+    el('button', {
+      onclick: () => {
         popover.innerHTML = '';
         const inp = el('input', { type: 'text', placeholder: t('pt.textPlaceholder') });
         const add = () => {
@@ -1446,7 +1514,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.group'), colSelect(cfg, 'group', { onChange: () => rebuild() })),
     row(t('cfg.group2'), colSelect(cfg, 'group2', { onChange: () => rebuild() })),
     el('div', { class: 'hint' }, t('cfg.group2Hint')),
-    ...(isBar ? [] : [row(t('cfg.size'), colSelect(cfg, 'size'))]),
+    ...(isBar ? [] : [
+      row(t('cfg.size'), colSelect(cfg, 'size')),
+      row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...numericColumns().map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })),
+      ...(cfg.colorBy ? [el('div', { class: 'hint' }, t('cfg.colorByHint'))] : []),
+    ]),
   );
 
   /* --- 막대 옵션 (type=bar일 때만) --- */
@@ -1658,6 +1730,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         el('input', { type: 'number', value: cfg.trendWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.trendWidthTitle'), oninput: e => { cfg.trendWidth = Number(e.target.value) || 1.5; rp(); } })),
     row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })),
     el('div', { class: 'hint' }, t('cfg.trendHint')),
+    row(t('cfg.ptAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.ptAgg, v => { cfg.ptAgg = v; rebuildPanel(); })),
+    ...(cfg.ptAgg !== 'none' ? [
+      row(t('cfg.ptError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.ptError, v => { cfg.ptError = v; rp(); })),
+      row(t('cfg.ptBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.ptBand, v => { cfg.ptBand = v; rp(); })),
+      el('div', { class: 'hint' }, t('cfg.ptAggHint')),
+    ] : []),
     row('Pareto', el('input', { type: 'checkbox', ...(cfg.pareto ? { checked: '' } : {}), onchange: e => { cfg.pareto = e.target.checked; rp(); } })),
     row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })),
   );
@@ -1740,7 +1818,7 @@ function renderTable() {
   let html = `<thead><tr><th class="chk" title="${esc(t('table.allIncludeTitle'))}"><input type="checkbox" id="chkAll"${allIncluded ? ' checked' : ''}></th>` + cols.map(c =>
     `<th data-col="${esc(c)}">${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
   view.forEach((r, i) => {
-    html += `<tr class="${r._excluded ? 'excl' : ''}"><td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'}></td>`
+    html += `<tr class="${r._excluded ? 'excl' : ''}${r._muted ? ' muted' : ''}"><td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'}></td>`
       + cols.map(c => `<td>${r[c] === null || r[c] === undefined ? '<span style="color:#c3c2b7">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
   });
   table.innerHTML = html + '</tbody>';
@@ -1769,6 +1847,10 @@ function renderTable() {
   const restoreBtn = document.getElementById('restoreExcl');
   restoreBtn.hidden = nExcl === 0;
   restoreBtn.textContent = tf('table.restoreExcl', { n: nExcl });
+  const nMuted = allRows().filter(r => r._muted).length;
+  const mutedBtn = document.getElementById('restoreMuted');
+  mutedBtn.hidden = nMuted === 0;
+  mutedBtn.textContent = tf('table.restoreMuted', { n: nMuted });
   document.getElementById('pgInfo').textContent = tf('pager.info', { page: pages ? tableState.page + 1 : 0, pages });
 }
 
@@ -1825,6 +1907,48 @@ function exportSession() {
   const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, nextId: state.nextId }, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
+}
+/* ---- 현재 표(검색 반영, 제외 행 제거)를 CSV로 ---- */
+function toCSV(rows, cols) {
+  const cell = v => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  return [cols.join(','), ...rows.map(r => cols.map(c => cell(r[c])).join(','))].join('\n');
+}
+function exportTableCsv() {
+  const cols = visibleColumns();
+  const q = tableState.search.trim().toLowerCase();
+  let rows = allRows().filter(r => !r._excluded);   // 그래프에 실제 쓰이는 데이터
+  if (q) rows = rows.filter(r => cols.some(c => r[c] !== null && r[c] !== undefined && String(r[c]).toLowerCase().includes(q)));
+  const blob = new Blob(['﻿' + toCSV(rows, cols)], { type: 'text/csv;charset=utf-8' });   // BOM: Excel 한글
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-data.csv' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+/* ---- 모든 차트를 한 장 PNG로 세로 합성 ---- */
+async function exportAllCharts() {
+  const cfgs = state.charts.filter(c => plotDivs[c.id] && plotDivs[c.id].data);
+  if (!cfgs.length) { alert(t('err.drawChartFirst')); return; }
+  const imgs = [];
+  for (const c of cfgs) {
+    const gd = plotDivs[c.id];
+    const url = await Plotly.toImage(gd, { format: 'png', scale: 2, width: gd.clientWidth || 900, height: gd.clientHeight || 460 });
+    const im = new Image(); im.src = url;
+    await new Promise(res => { im.onload = res; });
+    imgs.push(im);
+  }
+  const pad = 24, W = Math.max(...imgs.map(i => i.width));
+  const H = imgs.reduce((s, i) => s + i.height, 0) + pad * (imgs.length + 1);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  let y = pad;
+  for (const im of imgs) { ctx.drawImage(im, Math.round((W - im.width) / 2), y); y += im.height + pad; }
+  cv.toBlob(b => {
+    const a = el('a', { href: URL.createObjectURL(b), download: 'vtc-visualizer-all-charts.png' });
+    a.click(); URL.revokeObjectURL(a.href);
+  }, 'image/png');
 }
 
 /* ---- 차트 프리셋: 설정만 저장 (데이터 제외) — 같은 컬럼 이름의 데이터에 재적용 ---- */
@@ -1962,6 +2086,14 @@ document.getElementById('restoreExcl').addEventListener('click', () => {
   for (const c of state.charts) renderPlot(c);
   save();
 });
+document.getElementById('restoreMuted').addEventListener('click', () => {
+  allRows().forEach(r => { delete r._muted; });
+  renderTable();
+  for (const c of state.charts) renderPlot(c);
+  save();
+});
+document.getElementById('btnExportCsv').addEventListener('click', exportTableCsv);
+document.getElementById('btnExportAll').addEventListener('click', exportAllCharts);
 document.getElementById('tableSearch').addEventListener('input', e => { tableState.search = e.target.value; tableState.page = 0; renderTable(); });
 document.getElementById('pgPrev').addEventListener('click', () => { tableState.page = Math.max(0, tableState.page - 1); renderTable(); });
 document.getElementById('pgNext').addEventListener('click', () => { tableState.page += 1; renderTable(); });
