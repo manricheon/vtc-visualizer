@@ -29,7 +29,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼.
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -49,8 +49,9 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   순서가 색약 안전성 장치이므로 **순서를 바꾸거나 색을 추가하려면 dataviz 스킬을 로드해 validator로 검증**할 것.
 - **파싱**: `parseCSV` / `parseAny` / `coerce`(숫자 자동 변환). `parseAny`는 세션 스키마(JSON에 datasets+charts 배열)를
   감지해 전용 에러를 던짐 — 자동 로드는 이를 skip, 수동 입력은 "세션 가져오기" 안내. 함수 내 지역변수를 `t`로 짓지 말 것(i18n `t()` 가림).
-- **데이터 모델**: `addDataset`, `allRows`(병합), `columns`, `numericColumns`, `uniqueVals`, `applyFilters`
-  (필터 op: `in` = 다중 선택 체크박스 — 카테고리는 기본, 숫자도 선택 가능·빈 배열은 통과; 그 외 카테고리 `=`,`≠`,`포함`, 숫자 비교 연산. 값 미입력 필터는 무시)
+- **데이터 모델**: `addDataset`, `allRows`(병합), `columns`, `numericColumns`, `uniqueVals`, `matchFilter`(단일 필터), `applyFilters`(제외 모드만 행 제거), `isDimmed`/`isMutedRow`
+  (필터 op: `in` = 다중 선택 체크박스 — 카테고리는 기본, 숫자도 선택 가능·빈 배열은 통과; 그 외 카테고리 `=`,`≠`,`포함`, 숫자 비교 연산. 값 미입력 필터는 무시.
+  필터 `mode`: `exclude`(기본, 조건 밖 제거) | `dim`(조건 밖 행을 `_muted`처럼 옅게 배경 처리 — buildTraces가 `isMutedRow`로 판정))
 - **차트 설정 스키마**: `defaultChart()` — 새 옵션은 여기에 필드 추가부터.
   주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
   `group2`(마커 모양 2차 그룹 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),

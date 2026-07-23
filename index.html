@@ -255,7 +255,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.5';
+const APP_VERSION = 'v0.6';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -351,7 +351,9 @@ const I18N = {
     'opt.noneParen': '(없음)', 'opt.select': '(선택)', 'opt.column': '(컬럼)', 'opt.selectValue': '(값 선택)', 'opt.auto': '(자동)',
     'cfg.filterColFirst': '← 컬럼 먼저',
     'cfg.filterValuePh': '값',
-    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다. 예: method = ensemble, tokens ≥ 2000',
+    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다. 예: method = ensemble, tokens ≥ 2000. 방식을 "흐리게"로 바꾸면 제외 대신 옅게 표시(강조)합니다.',
+    'opt.filterExclude': '제외', 'opt.filterDim': '흐리게',
+    'cfg.filterModeTitle': '제외 = 조건 밖 행 제거 · 흐리게 = 조건 밖 행을 옅게 배경 처리',
     'cfg.addFilter': '＋ 필터 추가',
     'cfg.xLabel': 'X 레이블',
     'cfg.yLabel': 'Y 레이블',
@@ -525,7 +527,9 @@ const I18N = {
     'opt.noneParen': '(None)', 'opt.select': '(select)', 'opt.column': '(column)', 'opt.selectValue': '(select value)', 'opt.auto': '(auto)',
     'cfg.filterColFirst': '← pick a column first',
     'cfg.filterValuePh': 'value',
-    'cfg.filterHint': 'Only rows matching all conditions are plotted. e.g. method = ensemble, tokens ≥ 2000',
+    'cfg.filterHint': 'Only rows matching all conditions are plotted. e.g. method = ensemble, tokens ≥ 2000. Switch the mode to "Dim" to fade (highlight) instead of removing.',
+    'opt.filterExclude': 'Exclude', 'opt.filterDim': 'Dim',
+    'cfg.filterModeTitle': 'Exclude = drop non-matching rows · Dim = fade non-matching rows into the background',
     'cfg.addFilter': '＋ Add filter',
     'cfg.xLabel': 'X label',
     'cfg.yLabel': 'Y label',
@@ -824,28 +828,37 @@ function uniqueVals(col) {
   for (const r of allRows()) { const v = r[col]; if (v !== null && v !== undefined) s.add(v); }
   return [...s].sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b)));
 }
-function applyFilters(rows, filters) {
-  return rows.filter(r => filters.every(f => {
-    if (!f.col) return true;
-    if (f.value === '' || f.value === null || f.value === undefined) return true;   // 값 미입력 필터는 무시 (차트가 갑자기 비지 않게)
-    const v = r[f.col];
-    if (v === null || v === undefined) return false;
-    if (f.op === 'in') {   // 다중 선택: 빈 배열이면 통과(미완성 필터)
-      return !Array.isArray(f.value) || f.value.length === 0 || f.value.map(String).includes(String(v));
-    }
-    const t = coerce(f.value);
-    switch (f.op) {
-      case '=': return String(v) === String(t);
-      case '≠': return String(v) !== String(t);
-      case '>': return typeof v === 'number' && v > Number(t);
-      case '<': return typeof v === 'number' && v < Number(t);
-      case '≥': return typeof v === 'number' && v >= Number(t);
-      case '≤': return typeof v === 'number' && v <= Number(t);
-      case '포함': return String(v).includes(String(f.value));
-      default: return true;
-    }
-  }));
+/* 단일 필터 매칭 — 컬럼 미선택·값 미입력은 통과(true)로 취급 */
+function matchFilter(f, r) {
+  if (!f.col) return true;
+  if (f.value === '' || f.value === null || f.value === undefined) return true;
+  const v = r[f.col];
+  if (v === null || v === undefined) return false;
+  if (f.op === 'in') {   // 다중 선택: 빈 배열이면 통과(미완성 필터)
+    return !Array.isArray(f.value) || f.value.length === 0 || f.value.map(String).includes(String(v));
+  }
+  const tv = coerce(f.value);
+  switch (f.op) {
+    case '=': return String(v) === String(tv);
+    case '≠': return String(v) !== String(tv);
+    case '>': return typeof v === 'number' && v > Number(tv);
+    case '<': return typeof v === 'number' && v < Number(tv);
+    case '≥': return typeof v === 'number' && v >= Number(tv);
+    case '≤': return typeof v === 'number' && v <= Number(tv);
+    case '포함': return String(v).includes(String(f.value));
+    default: return true;
+  }
 }
+function applyFilters(rows, filters) {
+  // 제외 모드 필터만 행을 제거한다 (흐리게 모드는 행을 남김 — 렌더 단계에서 옅게 표시)
+  const excl = filters.filter(f => f.mode !== 'dim');
+  return rows.filter(r => excl.every(f => matchFilter(f, r)));
+}
+/* 흐리게(강조 안 함) 판정: 흐리게 모드 필터에 하나라도 안 맞으면 배경 처리 */
+function isDimmed(cfg, r) {
+  return (cfg.filters || []).some(f => f.mode === 'dim' && !matchFilter(f, r));
+}
+function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 
 /* ================= chart rendering ================= */
 const plotDivs = {};   // chartId -> div
@@ -957,8 +970,8 @@ function buildFacetTraces(cfg, rows, lineMode) {
       const hasLine = lineMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
       const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumns().includes(cfg.colorBy);
-      const npts = pts.filter(r => !r._muted);   // 강조(일반)
-      const mpts = pts.filter(r => r._muted);    // 흐리게(배경 맥락) — focus+context
+      const npts = pts.filter(r => !isMutedRow(cfg, r));   // 강조(일반)
+      const mpts = pts.filter(r => isMutedRow(cfg, r));    // 흐리게(배경 맥락) — 클릭 흐리게 + 흐리게 필터
       // 흐리게 조각: 옅은 회색·저불투명도, 범례·추세 제외 (점·hover는 유지)
       if (mpts.length) {
         traces.push({
@@ -1155,7 +1168,7 @@ function buildAnnotations(cfg) {
       const name = def.name;
       const pts = rows.filter(def.match);
       for (const r of pts) {
-        if (r._muted) continue;   // 흐리게 처리된 점은 레이블도 배경 처리(생략)
+        if (isMutedRow(cfg, r)) continue;   // 흐리게 처리된 점은 레이블도 배경 처리(생략)
         const text = cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]);
         if (text === null || text === undefined) continue;
         const dedup = `${r[cfg.x]}|${r[cfg.y]}|${text}`;
@@ -1687,6 +1700,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         }),
         select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
         ...(valueCtrl ? [valueCtrl] : []),
+        select([['exclude', t('opt.filterExclude')], ['dim', t('opt.filterDim')]], f.mode || 'exclude', v => { f.mode = v; rp(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
         el('button', { class: 'small danger', onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
       ));
       if (valsBox) fBox.append(valsBox);
@@ -1697,7 +1711,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gFilter.append(
     el('div', { class: 'hint' }, t('cfg.filterHint')),
     fBox,
-    el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '' }); renderFilters(); } }, t('cfg.addFilter')));
+    el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '', mode: 'exclude' }); renderFilters(); } }, t('cfg.addFilter')));
 
   /* --- 축 --- */
   const gAxis = el('details', { class: 'grp' }, el('summary', {}, t('cfg.axis')));
