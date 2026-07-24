@@ -74,6 +74,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, font |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side) |
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
@@ -146,6 +147,9 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.7 — chart size & layout
+- **Per-chart height slider** (280–820px) and **full / half width**. Set two charts to half width to place them side by side, like a mini dashboard.
 
 ### v0.6.1 — bug fix
 - Adding/removing a computed column now **updates the axis/group dropdowns of open chart settings immediately** (previously you had to reopen the panel).

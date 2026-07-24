@@ -76,7 +76,10 @@
   .chip button:hover { color: var(--danger); }
 
   /* ===== chart cards ===== */
-  .chart-card { padding: 0; overflow: hidden; }
+  #charts { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .chart-card { padding: 0; overflow: hidden; margin-bottom: 0; flex: 1 1 100%; }
+  .chart-card.half { flex-basis: calc(50% - 8px); }
+  @media (max-width: 860px) { .chart-card.half { flex-basis: 100%; } }
   .chart-card .head {
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
     border-bottom: 1px solid var(--border); background: var(--surface-1);
@@ -255,7 +258,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.6.1';
+const APP_VERSION = 'v0.7';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -369,6 +372,8 @@ const I18N = {
     'cfg.fontSize': '글자 크기',
     'cfg.fontColorTitle': '글자 색',
     'cfg.legend': '범례',
+    'cfg.chartSize': '차트 크기', 'cfg.chartHeightTitle': '차트 높이(px)',
+    'opt.widthFull': '전체 폭', 'opt.widthHalf': '절반 폭(나란히)',
     'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
     'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
     'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
@@ -545,6 +550,8 @@ const I18N = {
     'cfg.fontSize': 'Font size',
     'cfg.fontColorTitle': 'Font color',
     'cfg.legend': 'Legend',
+    'cfg.chartSize': 'Chart size', 'cfg.chartHeightTitle': 'Chart height (px)',
+    'opt.widthFull': 'Full width', 'opt.widthHalf': 'Half width (side by side)',
     'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
     'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
     'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
@@ -722,6 +729,8 @@ function defaultChart() {
     barOpacity: 1,              // 0.3~1
     barSort: 'auto',            // auto | label | asc | desc — 카테고리 축 정렬
     barCatX: false,             // 숫자 X도 카테고리로 취급 (등간격 막대 — linear 배치로 얇아지는 것 방지)
+    plotHeight: 460,            // 플롯 높이(px)
+    cardWidth: 'full',          // full | half — 절반이면 두 차트 나란히
   };
 }
 
@@ -1580,12 +1589,12 @@ function colSelect(cfg, key, opts) {
 }
 
 function renderChartCard(cfg) {
-  const card = el('section', { class: 'card chart-card', 'data-chart': cfg.id });
+  const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : ''), 'data-chart': cfg.id });
 
   const chartNo = state.charts.indexOf(cfg) + 1;
   const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
   const cfgPanel = el('div', { class: 'cfg' });
-  const plotDiv = el('div', { class: 'plot' });
+  const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
 
   const head = el('div', { class: 'head' },
@@ -1608,6 +1617,19 @@ function renderChartCard(cfg) {
   card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
     el('div', { class: 'plot-hint' }, t('card.plotHint')));
   return card;
+}
+/* 차트 크기·폭 변경을 카드 재생성 없이 반영하고 Plotly 리사이즈 (폭 변경 시 이웃 차트도 재배치되므로 전부 리사이즈) */
+function applyChartSize(cfg) {
+  const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
+  if (card) {
+    card.classList.toggle('half', cfg.cardWidth === 'half');
+    const plot = plotDivs[cfg.id];
+    if (plot) { plot.style.minHeight = plot.style.height = (cfg.plotHeight || 460) + 'px'; }
+  }
+  requestAnimationFrame(() => {
+    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data) Plotly.Plots.resize(gd); }
+  });
+  save();
 }
 
 function buildCfgPanel(cfg, panel, nameSpan) {
@@ -1761,6 +1783,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
     row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside-tl', t('opt.insideTL')], ['inside-tr', t('opt.insideTR')], ['inside-bl', t('opt.insideBL')], ['inside-br', t('opt.insideBR')], ['none', t('opt.hidden')]], cfg.legendPos === 'inside' ? 'inside-tl' : cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
+    row(t('cfg.chartSize'),
+      el('input', { type: 'range', min: 280, max: 820, step: 20, value: cfg.plotHeight || 460, title: t('cfg.chartHeightTitle'), oninput: e => { cfg.plotHeight = Number(e.target.value) || 460; applyChartSize(cfg); } }),
+      select([['full', t('opt.widthFull')], ['half', t('opt.widthHalf')]], cfg.cardWidth || 'full', v => { cfg.cardWidth = v; applyChartSize(cfg); })),
     ...(isBar ? [] : [
       row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
           el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
