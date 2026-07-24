@@ -71,6 +71,7 @@ ours,4000,4.1,0.744,MMLU
 | Feature | How |
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card — multiple charts per page |
+| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired comparison per category) |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, font |
@@ -148,6 +149,10 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.10 — heatmap & dumbbell charts
+- **Heatmap**: a grid over two discrete axes colored by a value (e.g. X=frames, Y=gazing_ratio, color=accuracy) — a 2D sweep at a glance.
+- **Dumbbell (paired)**: two conditions per category (e.g. pretrained/tuned) as dots joined by a line — the difference reads directly.
 
 ### v0.9 — page width
 - A **width toggle** in the top bar (Normal 1280px / Wide 1660px / Full = fill the screen). Shrinks side margins on wide monitors for bigger charts. Remembered.
