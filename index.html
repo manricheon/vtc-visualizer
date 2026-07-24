@@ -255,7 +255,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.6';
+const APP_VERSION = 'v0.6.1';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 const PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
@@ -1906,6 +1906,15 @@ function refreshCharts() {
   document.getElementById('emptyCharts').style.display = state.charts.length ? 'none' : '';
   for (const cfg of state.charts) renderPlot(cfg);
 }
+/* 카드를 재생성하지 않고 각 설정 패널만 다시 구성 — 컬럼 목록 변경(계산 컬럼 등) 반영, 열림/접힘 상태 보존 */
+function refreshCfgPanels() {
+  for (const cfg of state.charts) {
+    const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
+    if (!card) continue;
+    const panel = card.querySelector('.cfg'), nameSpan = card.querySelector('.head .name');
+    if (panel && nameSpan) buildCfgPanel(cfg, panel, nameSpan);
+  }
+}
 
 /* ================= data table ================= */
 const tableState = { search: '', sortCol: null, sortDir: 1, page: 0, pageSize: 200 };
@@ -1989,7 +1998,7 @@ function renderDerived() {
   panel.hidden = !state.datasets.length;
   if (!state.datasets.length) { panel.innerHTML = ''; return; }
   const nums = numericColumns(), cols = visibleColumns();
-  const commit = () => { applyDerived(); renderDerived(); renderTable(); for (const c of state.charts) renderPlot(c); save(); };
+  const commit = () => { applyDerived(); renderDerived(); renderTable(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c); save(); };
   panel.innerHTML = '';
   panel.append(el('summary', {}, tf('cfg.derivedCount', { n: state.derived.length })));
   // 기존 정의 목록
