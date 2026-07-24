@@ -42,6 +42,8 @@
     font-family: var(--font); font-size: 14px; line-height: 1.5;
   }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 20px 60px; }
+  :root[data-width="wide"] .wrap { max-width: 1660px; }
+  :root[data-width="full"] .wrap { max-width: none; }
 
   header.app {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -209,6 +211,7 @@
     <button id="btnImportSession" data-i18n="btn.importSession"></button>
     <button id="btnExportAll" data-i18n="btn.exportAll"></button>
     <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
+    <button id="btnWidth" class="ghost" title=""></button>
     <button id="btnTheme" class="ghost" title=""></button>
     <button id="btnLangToggle" class="ghost"></button>
   </header>
@@ -273,7 +276,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.8';
+const APP_VERSION = 'v0.9';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 /* 카테고리 팔레트 — 라이트는 dataviz 검증본. 다크는 같은 hue 유지하되 다크 서피스에서
@@ -328,6 +331,22 @@ function toggleTheme() {
   localStorage.setItem(THEME_KEY, THEME);
   applyTheme();
 }
+/* ===== 페이지 폭(좌우) ===== */
+const WIDTH_KEY = 'vtc-visualizer:width';
+const WIDTHS = ['normal', 'wide', 'full'];
+let WIDTH = WIDTHS.includes(localStorage.getItem(WIDTH_KEY)) ? localStorage.getItem(WIDTH_KEY) : 'normal';
+function applyWidth() {
+  if (WIDTH === 'normal') document.documentElement.removeAttribute('data-width');
+  else document.documentElement.setAttribute('data-width', WIDTH);
+  const b = document.getElementById('btnWidth');
+  if (b) b.textContent = tf('width.label', { mode: t('width.' + WIDTH) });
+  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data) Plotly.Plots.resize(gd); } });
+}
+function cycleWidth() {
+  WIDTH = WIDTHS[(WIDTHS.indexOf(WIDTH) + 1) % WIDTHS.length];
+  localStorage.setItem(WIDTH_KEY, WIDTH);
+  applyWidth();
+}
 const I18N = {
   ko: {
     'header.sub': 'CSV/JSON 벤치마크·성능 비교 인터랙티브 시각화',
@@ -355,6 +374,7 @@ const I18N = {
     'footer.text': '데이터는 브라우저 안에서만 처리되며 외부로 전송되지 않습니다.',
     'lang.toggle': 'EN',
     'theme.toggle': '라이트/다크 전환',
+    'width.label': '폭: {mode}', 'width.normal': '기본', 'width.wide': '넓게', 'width.full': '최대',
     all: '전체',
     'dash.solid': '실선', 'dash.dash': '파선', 'dash.dot': '점선', 'dash.dashdot': '파선+점',
     'op.select': '선택', 'op.contains': '포함',
@@ -534,6 +554,7 @@ const I18N = {
     'footer.text': 'Data is processed entirely in your browser and never sent anywhere.',
     'lang.toggle': '한국어',
     'theme.toggle': 'Toggle light/dark',
+    'width.label': 'Width: {mode}', 'width.normal': 'Normal', 'width.wide': 'Wide', 'width.full': 'Full',
     all: 'All',
     'dash.solid': 'Solid', 'dash.dash': 'Dash', 'dash.dot': 'Dot', 'dash.dashdot': 'Dash-dot',
     'op.select': 'Select', 'op.contains': 'Contains',
@@ -2361,8 +2382,10 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   applyLang();
   refreshCharts(); renderTable(); renderChips();
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
+  applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
 });
 document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+document.getElementById('btnWidth').addEventListener('click', cycleWidth);
 if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (THEME === 'auto') applyTheme(); });
 
 /* visualizer.py 서버가 있으면 폴더의 csv/json을 자동 로드 */
@@ -2388,6 +2411,7 @@ document.getElementById('appVersion').textContent = APP_VERSION;
 document.querySelector('.footer-ver').textContent = APP_VERSION;
 applyLang();
 applyTheme();   // CHROME·PALETTE·SEQ를 테마에 맞춰 설정 (첫 렌더 전)
+applyWidth();
 loadSaved();
 renderChips(); renderDerived(); renderTable(); refreshCharts();
 tryServerAutoload();
