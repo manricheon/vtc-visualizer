@@ -78,6 +78,7 @@ ours,4000,4.1,0.744,MMLU
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
+| **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete |
 | **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
@@ -147,6 +148,9 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.8 — dark mode
+- **Light/dark theme** toggle (top-right 🌙/☀️). Follows the OS setting on first run; your choice is then remembered. Chart surface, axes and palette are tuned for dark (not a naive invert).
 
 ### v0.7 — chart size & layout
 - **Per-chart height slider** (280–820px) and **full / half width**. Set two charts to half width to place them side by side, like a mini dashboard.
