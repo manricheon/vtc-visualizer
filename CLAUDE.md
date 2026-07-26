@@ -100,7 +100,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   거짓 발견 방지 규칙(수정 시 반드시 유지): 정의상 같은 컬럼(비율/차이 CV<`defCV`, 또는 |r|≥`rDup`)은 `alias`로 대표 하나에 접고,
   pooled 상관이 그룹별 중앙값과 어긋나면(`simpsonGap`) 수치 대신 `simpson` 경고, 그룹 간 우열이 블록마다 뒤집히면 평균 대신 `cross`,
   이상치는 (모든 설계 노브가 같은) 셀 내부 또는 국소 추세 잔차에서만 판정하고 자동 제외 금지. **p값·"유의" 표현 금지** — 원단위 차이 + 방향 일관성 + `anBootMean()`(백분위 부트스트랩, **리샘플링 단위 = 블록**, `anRng` 결정적 난수라 재실행해도 같은 구간, 구간이 0을 포함하면 발견 자체를 내보내지 않음)으로 대체. UI 문구는 "신뢰구간"이 아니라 "부트스트랩 구간".
-  성능: 프로파일은 전체 행, 스캔은 `maxRows` 초과 시 결정적 stride 표본. 근거 차트는 `addChart(override)`로 **새 차트만** 추가(기존 cfg 수정 금지).
+  성능: 프로파일은 전체 행, 스캔은 `maxRows` 초과 시 결정적 stride 표본. 근거 차트는 `runInsightChart()` — `anFindChart()`로 같은 (type,x,y,group) 차트가 있으면 그리로 스크롤, 없으면 `addChart(override)`로 **새 차트만** 추가(기존 cfg 수정 금지). UI: 티어가 바뀔 때마다 `.ins-tier`로 검증 안내(`an.verify0/1/2`), 차트가 있는 항목은 `anChartSpec()`이 설정을 `.ins-spec` 회색 줄로 표기.
 - **서버 연동**: `tryServerAutoload` — `api/files`/`api/file` (http로 열렸을 때만)
 
 새 차트 옵션 추가 절차: `defaultChart()`에 필드 → `buildCfgPanel`에 입력 UI → `buildTraces`/`buildLayout`에 반영 → 세션 저장은 자동.

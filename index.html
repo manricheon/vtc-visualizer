@@ -154,7 +154,10 @@
   #anTableWrap { overflow: auto; max-height: 360px; border: 1px solid var(--grid); border-radius: 8px; }
   #anTableWrap table.data th { cursor: default; }
   #anTableWrap table.data th:hover { color: var(--ink-2); }
-  .ins-row { display: flex; gap: 8px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--grid); }
+  .ins-row { display: flex; gap: 8px; align-items: baseline; padding: 7px 0 7px 12px; border-bottom: 1px solid var(--grid); }
+  .ins-tier { display: flex; gap: 8px; align-items: baseline; margin: 12px 0 2px; font-size: 11.5px; color: var(--ink-muted); }
+  .ins-tier:first-of-type { margin-top: 4px; }
+  .ins-spec { font-size: 11px; color: var(--ink-muted); font-variant-numeric: tabular-nums; margin-top: 3px; }
   .ins-row:last-of-type { border-bottom: none; }
   .ins-row .ins-text { flex: 1; font-size: 12.5px; line-height: 1.5; }
   .ins-badge { flex: none; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--hover); color: var(--ink-2); }
@@ -569,6 +572,12 @@ const I18N = {
     'an.less': '접기',
     'an.chartBtn': '＋ 차트',
     'an.chartAdded': '근거 차트를 추가했습니다.',
+    'an.verify0': '표에서 바로 확인되는 사실입니다 — 하단 표에서 해당 컬럼을 검색·정렬해 보고, 데이터를 고치는 것이 먼저입니다.',
+    'an.verify1': '두 계산이 서로 어긋난다는 보고입니다 — 오른쪽 버튼으로 그룹을 나눈 차트를 띄우면 1분 안에 직접 확인됩니다.',
+    'an.verify2': '임계값을 넘은 후보입니다 — 아래 회색 줄이 그 차트 설정이니, 차트로 눈으로 확인한 뒤에만 문장으로 옮기세요.',
+    'an.chartGo': '차트 보기',
+    'an.chartBtnTitle': '이 항목의 근거 차트로 이동 (없으면 새로 만듭니다)',
+    'an.chartFound': '같은 설정의 차트가 이미 있어 그리로 이동했습니다.',
     'an.tier0': '데이터',
     'an.tier1': '주의',
     'an.tier2': '발견',
@@ -804,6 +813,12 @@ const I18N = {
     'an.less': 'Show less',
     'an.chartBtn': '＋ Chart',
     'an.chartAdded': 'Added a chart for this finding.',
+    'an.verify0': 'Facts you can confirm directly — search or sort the column in the table below, then fix the data before reading anything further.',
+    'an.verify1': 'A disagreement between two computations — the button on the right opens the split-by-group chart, so you can confirm it in a minute.',
+    'an.verify2': 'Candidates that cleared a threshold — the grey line under each is its chart recipe; confirm it visually before writing it up.',
+    'an.chartGo': 'Go to chart',
+    'an.chartBtnTitle': 'Open the chart backing this finding (created if it does not exist yet)',
+    'an.chartFound': 'A chart with the same setup already existed — jumped to it.',
     'an.tier0': 'Data',
     'an.tier1': 'Caution',
     'an.tier2': 'Finding',
@@ -2797,12 +2812,27 @@ function anChartTitle(ins) {
   }
   return tf('an.ct.rel', { a: p.a, b: p.b });
 }
+const AN_TYPE_KEY = { scatter: 'opt.scatter', line: 'opt.line', 'scatter+line': 'opt.scatterLine',
+  bar: 'opt.bar', heatmap: 'opt.heatmap', dumbbell: 'opt.dumbbell' };
+/* 인사이트가 어떤 차트 설정에 대응하는지 한 줄로 — 기존 차트와 대조하거나 손으로 재현할 때의 좌표 */
+function anChartSpec(ov) {
+  const parts = [t(AN_TYPE_KEY[ov.type] || ov.type), `X=${ov.x}`, `Y=${ov.y}`];
+  if (ov.group) parts.push(`${t('cfg.group')}=${ov.group}`);
+  if (ov.barAgg && ov.barAgg !== 'none') parts.push(`${t('cfg.barAgg')}=${t('opt.aggMean')}`);
+  return parts.join(' · ');
+}
+/* 같은 축·그룹의 차트가 이미 있으면 새로 만들지 않고 그리로 보낸다 (중복 카드 방지 + 대조가 목적) */
+function anFindChart(ov) {
+  return state.charts.find(c => c.type === ov.type && c.x === ov.x && c.y === ov.y
+    && (c.group || '') === (ov.group || '')) || null;
+}
 function runInsightChart(ins) {
   if (!ins.chart) return;
-  const cfg = addChart({ ...ins.chart, title: anChartTitle(ins) });
+  const found = anFindChart(ins.chart);
+  const cfg = found || addChart({ ...ins.chart, title: anChartTitle(ins) });
   const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
   if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  showToast(t('an.chartAdded'));
+  showToast(t(found ? 'an.chartFound' : 'an.chartAdded'));
 }
 
 /* ---- 패널 ---- */
@@ -2848,11 +2878,20 @@ function renderAnalysis() {
   const gIns = el('details', { class: 'grp', open: '' }, el('summary', {}, tf('an.insights', { n: insights.length })));
   if (!insights.length) gIns.append(el('div', { class: 'hint' }, t('an.none')));
   const shown = anShowAll ? insights : insights.slice(0, AN.maxShown);
+  let lastTier = -1;
   for (const i of shown) {
+    if (i.tier !== lastTier) {   // 티어가 바뀔 때마다 "이 등급은 어떻게 확인하는가" 한 줄
+      lastTier = i.tier;
+      gIns.append(el('div', { class: 'ins-tier' },
+        el('span', { class: 'ins-badge t' + i.tier }, t('an.tier' + i.tier)),
+        el('span', {}, t('an.verify' + i.tier))));
+    }
+    const text = el('span', { class: 'ins-text' }, anInsText(i));
+    if (i.chart) text.append(el('div', { class: 'ins-spec' }, anChartSpec(i.chart)));
     gIns.append(el('div', { class: 'ins-row' },
-      el('span', { class: 'ins-badge t' + i.tier }, t('an.tier' + i.tier)),
-      el('span', { class: 'ins-text' }, anInsText(i)),
-      ...(i.chart ? [el('button', { class: 'small', onclick: () => runInsightChart(i) }, t('an.chartBtn'))] : []),
+      text,
+      ...(i.chart ? [el('button', { class: 'small', title: t('an.chartBtnTitle'),
+        onclick: () => runInsightChart(i) }, t(anFindChart(i.chart) ? 'an.chartGo' : 'an.chartBtn'))] : []),
     ));
   }
   if (insights.length > AN.maxShown) {

@@ -161,6 +161,8 @@ Just received a dataset and unsure what to plot first? Press `Analyze` in the he
   These are what stop you from writing a wrong one-line summary.
 - **Finding** (grey) — correlations, group differences, saturation points, outliers.
 
+Each tier carries a one-line note on how to check it. The order of how objectively verifiable they are is **Data → Caution → Finding**: data items are counts you can confirm in the table, caution items report a disagreement between two computations that one chart can refute, and findings involve threshold judgements, so they come last. That is why each finding prints **its chart recipe (type · X · Y · group) in grey**, and `＋ Chart` opens exactly that chart — if one with the same setup is already open, the button becomes `Go to chart` and jumps there instead of duplicating it.
+
 #### How to read the findings (and what not to claim)
 
 - **Correlation is not causation.** "A and B move together" does not mean A produces B. Do not convert these into causal claims in a paper or report.
