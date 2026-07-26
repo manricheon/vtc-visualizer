@@ -170,6 +170,10 @@ Just received a dataset and unsure what to plot first? Press `Analyze` in the he
 - **p-values are deliberately absent.** Benchmark rows are not independent (a budget sweep for one method is a connected series) and the
   number of repeats is arbitrary, so significance tests read more generously than the data supports. Instead you get the **raw difference plus
   direction consistency across conditions** (e.g. "6 of 6 conditions agree") — a more useful signal for whether a finding will reproduce.
+  Group differences also carry a **bootstrap interval (95%)**: how much the difference would move had the measured conditions been drawn
+  again. Findings whose interval spans zero are not reported at all. Read it as spread, not as a significance verdict — "difference 103,
+  interval 28 to 198" means the direction is clear but the size depends heavily on the condition, while "difference 10, interval 9.98 to
+  10.02" means it barely varies at all.
 - **Outliers are flagged, never removed.** They may be measurement errors or real behaviour, so inspect the value and exclude it yourself
   with the table checkbox if you decide to.
 - **Finding nothing is also a result.** It means nothing cleared the thresholds, and relationships dug up by lowering them rarely reproduce.

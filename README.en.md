@@ -159,7 +159,7 @@ The version shows next to the title (top-right) and in the footer, matching the 
 - **Suppressing false findings is the core of it**: columns that are definitionally the same (e.g. cost = latency × 5e-4) collapse into one
   representative, design knobs are never correlated against each other, and a pooled correlation that disagrees with the per-group ones is
   reported as a warning instead of a number. Outliers are judged by MAD within repeated cells or on local trend residuals, and never auto-removed.
-- **No p-values and no "significant"** — reliability is shown as the raw difference plus direction consistency across conditions (e.g. 6 of 6 agree).
+- **No p-values and no "significant"** — reliability is shown as the raw difference, direction consistency across conditions (e.g. 6 of 6 agree) and a **bootstrap interval (95%)**. Resampling happens over measured conditions (blocks), not rows, because benchmark rows are not independent; a deterministic RNG keeps the interval identical for identical data. Findings whose interval spans zero are not reported.
 - Results are never stored in the session and are discarded when the data changes. All finding sentences exist in both KO and EN.
 
 ### v0.10 — heatmap & dumbbell charts
