@@ -5,6 +5,7 @@ Usage | 사용법:
     python visualizer.py                  # start server + open browser
     python visualizer.py logs/            # autoload csv/json from logs/
     python visualizer.py --port 8765
+    python visualizer.py logs/ --offline  # same, but serve the offline build (no CDN)
     python visualizer.py build-offline    # build index-offline.html with Plotly inlined
 
 Standard library only. index.html also works by simply double-clicking it —
@@ -49,6 +50,7 @@ def build_offline() -> None:
 
 class Handler(BaseHTTPRequestHandler):
     data_dir = None  # type: Optional[Path]
+    use_offline = False
 
     def _send(self, code: int, body: bytes, ctype: str) -> None:
         self.send_response(code)
@@ -62,7 +64,9 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         if path in ("/", "/index.html"):
-            self._send(200, INDEX.read_bytes(), "text/html; charset=utf-8")
+            # --offline이면 인라인 빌드를 서빙 — 폴더 자동 로드와 오프라인을 함께 쓸 수 있다
+            page = OFFLINE if (self.use_offline and OFFLINE.exists()) else INDEX
+            self._send(200, page.read_bytes(), "text/html; charset=utf-8")
         elif path == "/api/files":
             files = []
             if self.data_dir:
@@ -86,11 +90,15 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def serve(data_dir: "Optional[Path]", port: int) -> None:
+def serve(data_dir: "Optional[Path]", port: int, offline: bool = False) -> None:
     Handler.data_dir = data_dir
+    Handler.use_offline = offline
+    if offline and not OFFLINE.exists():
+        sys.exit("index-offline.html not found. Run: python visualizer.py build-offline")
     server = HTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}/"
     where = f" (data folder: {data_dir})" if data_dir else ""
+    where += " [offline build]" if offline else ""
     print(f"VTC Visualizer — {url}{where}\nStop: Ctrl+C")
     threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
@@ -104,6 +112,8 @@ def main() -> None:
     ap.add_argument("target", nargs="?", default=None,
                     help="data folder to autoload, or 'build-offline'")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--offline", action="store_true",
+                    help="serve index-offline.html (no CDN) instead of index.html")
     args = ap.parse_args()
 
     if args.target == "build-offline":
@@ -115,7 +125,7 @@ def main() -> None:
         data_dir = Path(args.target).resolve()
         if not data_dir.is_dir():
             sys.exit(f"Folder not found: {data_dir}")
-    serve(data_dir, args.port)
+    serve(data_dir, args.port, args.offline)
 
 
 if __name__ == "__main__":

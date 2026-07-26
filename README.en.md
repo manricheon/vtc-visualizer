@@ -72,7 +72,9 @@ ours,4000,4.1,0.744,MMLU
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
 | **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
-| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired comparison per category) |
+| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) |
+| **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
+| **Option search** | Type an option name in the search box above the settings panel to filter it down |
 | **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
@@ -153,6 +155,23 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.14 — refresh, distributions, second axis, safety
+**Hand work survives a data refresh**
+- Reloading the same file **carries over excluded/faded rows and label positions**. Rows are matched by their condition columns (method, tokens…), so updated values still map to the same row. Previously this had to be redone every week.
+
+**New charts and axes**
+- **Histogram · box plot** for the spread of repeated measurements; a group overlays one distribution per level.
+- **Second Y axis (right)** for two metrics on different scales (accuracy vs latency), drawn with a dotted line and × markers.
+- **Tick formats**: percent, thousands, scientific, fixed decimals.
+- **Trendline fit readout**: R², slope and n in the corner of the chart (can be turned off in Settings → Advanced).
+
+**Safety and housekeeping**
+- Deleting a dataset now asks first and can be undone; applying a preset can be undone.
+- **Option search** in the settings panel: type "legend" or "log" and only matching options remain.
+- **One file to share**: presets and view settings (language, theme, width) travel inside the session. Presets with the same name are kept, and view settings apply only where the recipient has not chosen one yet.
+- `python visualizer.py logs/ --offline` serves the **offline build with folder autoload**, which used to be mutually exclusive.
+- Analysis: group comparisons state how many levels were compared, Simpson warnings split into "reversed" and "diluted" wordings, and large-data sampling moved from systematic to deterministic random.
 
 ### v0.13.1 — deleting computed columns
 - Deleting a computed column now **lists the charts and other computed columns that use it and asks first** — the action cannot be undone.

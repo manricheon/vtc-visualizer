@@ -107,6 +107,7 @@
     padding: 10px 12px; overflow-y: auto; max-height: 640px; font-size: 13px;
   }
   .chart-card .cfg.hidden { display: none; }
+  .cfg-search { width: 100%; margin: 0 0 8px; font-size: 12.5px; }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
   .chart-card .plot-hint { padding: 5px 12px; font-size: 11px; color: var(--ink-muted); border-top: 1px solid var(--grid); }
@@ -305,7 +306,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.13.1';
+const APP_VERSION = 'v0.14';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -574,6 +575,17 @@ const I18N = {
     'cfg.renderMode': '렌더링',
     'cfg.renderModeTitle': '점이 5천 개를 넘으면 자동으로 WebGL로 그립니다 (SVG 내보내기는 자동으로 벡터로 되돌림)',
     'opt.renderAuto': '자동', 'opt.renderSvg': '고품질 (SVG)', 'opt.renderGl': '고속 (WebGL)',
+    'cfg.xTick': 'X 눈금 표기', 'cfg.yTick': 'Y 눈금 표기',
+    'opt.tickAuto': '자동', 'opt.tickPercent': '퍼센트 (67%)', 'opt.tickThousands': '천단위 (12,345)',
+    'opt.tickSci': '지수 (1.2e+4)', 'opt.tickInt': '정수 (12)',
+    'cfg.trendStat': '적합도 표시', 'cfg.trendStatTitle': '추세선의 R²·기울기를 차트 구석에 표시합니다',
+    'cfg.trendSlope': '기울기', 'opt.trendStatOn': '표시', 'opt.trendStatOff': '숨김',
+    'cfg.y2': '보조 Y축(오른쪽)', 'cfg.y2Title': '스케일이 다른 두 지표를 한 차트에 — 점선·× 마커로 구분해 오른쪽 축에 그립니다',
+    'opt.histogram': '히스토그램', 'opt.box': '박스플롯',
+    'cfg.histBins': '구간 수', 'cfg.histBinsPh': '자동',
+    'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
+    'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
+    'cfg.searchPh': '옵션 검색 (예: 로그, 정렬, 범례)',
     'cfg.caption': '캡션',
     'cfg.captionPh': '이 그림이 말하는 것 (리포트에 함께 나갑니다)',
     'an.copyInsights': '인사이트 복사',
@@ -588,6 +600,11 @@ const I18N = {
     'confirm.derivedCharts': '차트: {list}',
     'confirm.derivedDeps': '이 컬럼을 입력으로 쓰는 계산 컬럼: {list}',
     'confirm.derivedProceed': '삭제하면 해당 차트의 축·필터 설정도 함께 지워지고, 이 컬럼을 쓰던 계산 컬럼은 값이 비게 됩니다. 계속할까요?',
+    'confirm.removeDataset': '{name} ({rows}행)을 지웁니다. 이 데이터를 쓰는 차트 {charts}개는 빈 상태가 됩니다. 계속할까요?',
+    'toast.datasetRemoved': '{name}을(를) 지웠습니다.',
+    'toast.marksKept': '갱신된 데이터에서 제외·흐리게 표시 {n}행을 그대로 이어받았습니다.',
+    'toast.presetsImported': '세션에 딸린 프리셋 {n}개를 추가했습니다.',
+    'toast.presetApplied': '프리셋을 적용했습니다 (이전 설정은 덮어썼습니다).',
     'toast.derivedCleared': '{name} 삭제 — 차트 {n}개의 축·필터 설정을 함께 정리했습니다.',
     'toast.reportPartial': '리포트를 저장했습니다 (차트 {n}장). 이미지 생성 실패: {list}',
     'report.notDrawn': '(이 차트는 아직 그려지지 않아 이미지가 없습니다)',
@@ -665,10 +682,13 @@ const I18N = {
     'an.ins.dupcol': '{a} · {b} — 모든 행에서 관계가 일정합니다 ({rel}). 같은 값을 단위만 바꿔 담은 컬럼으로 보고 이후 분석에서는 {a} 하나만 씁니다.',
     'an.ins.dupdesign': '{a} · {b} — 두 설계값이 1:1로 대응합니다(같은 조합을 가리킵니다). 이후 분석에서는 {a} 하나를 조건으로 씁니다.',
     'an.ins.dupinfo': '{a} · {b} — 거의 같은 정보를 담고 있습니다 ({rel}). 중복 지표로 보고 이후 분석에서는 {a} 하나만 씁니다.',
+    'an.groupScope': '비교한 레벨 {k}개 (측정이 부족한 {skipped}개는 제외)',
+    'an.groupScopeAll': '{k}개 레벨 전부 비교',
+    'an.ins.simpsonGap': '{a} · {b} — 전체를 합치면 r={rp}인데 {g}별로 나누면 {k}개 그룹이 r={lo}~{hi}로 훨씬 뚜렷합니다. 합친 수치가 그룹 간 차이에 가려진 것으로 보이니 {g}별로 나눠 보세요.',
     'an.ins.simpson': '{a} · {b} — 전체를 합치면 r={rp}이지만, {g}별로 나누면 {k}개 그룹이 모두 r={lo}~{hi}입니다. 합친 수치는 {g} 간 차이 때문에 뒤집힌 것으로 보이니 {g}별로 나눠 보세요.',
     'an.ins.cross': '{c} — {a} vs {b}의 우열이 {d}에 따라 뒤바뀝니다 ({d}={loList} → {a} 우세, {d}={hiList} → {b} 우세 · 같은 조건끼리 짝지은 {n}쌍). 하나의 평균 차이로 요약하지 마세요.',
     'an.ins.corr': '{a} · {b} — {dir} ({stat} = {v}, n={n}). 이 데이터에서 관측된 관련성이며 인과는 아닙니다.',
-    'an.ins.group': '{c} — {g}={best}에서 가장 높고 {g}={worst}에서 가장 낮습니다 (평균 {m1} vs {m2}, 차이 {diff} · {rel}%). 같은 조건끼리 짝지은 차이는 {lo}~{hi}이고 {cn}개 조건 중 {ck}개에서 방향이 같으며, 조건을 다시 뽑아 계산한 부트스트랩 구간(95%)은 {bootLo}~{bootHi}입니다.',
+    'an.ins.group': '{c} — {g}={best}에서 가장 높고 {g}={worst}에서 가장 낮습니다 (평균 {m1} vs {m2}, 차이 {diff} · {rel}%). 같은 조건끼리 짝지은 차이는 {lo}~{hi}이고 {cn}개 조건 중 {ck}개에서 방향이 같으며, 조건을 다시 뽑아 계산한 부트스트랩 구간(95%)은 {bootLo}~{bootHi}입니다. ({scope})',
     'an.ins.satur': '{y} — {g}에서 전체 변화량의 {pct}%가 {x} {x0}→{x1} 구간에 나타나고 나머지 {rest}%만 그 뒤에 나타납니다. 측정된 {k}개 지점 안에서의 설명이며 그 밖은 알 수 없습니다.',
     'an.ins.saturMulti': '{y} — {x} {x0}→{x1} 구간에서 전체 변화량의 대부분({pctLo}~{pctHi}%)이 일어나고 그 뒤 구간의 몫은 작습니다 ({g} {total}개 중 {n}개에서 같은 양상). 측정된 {k}개 지점 안에서의 설명이며 그 밖은 알 수 없습니다.',
     'an.ins.outlier': '{col} — {scope}의 값 {val}이 이웃 값들과 떨어져 있습니다 (수정 z={z}). 측정 오류인지 실제 변동인지 확인한 뒤 직접 제외하세요.',
@@ -868,6 +888,17 @@ const I18N = {
     'cfg.renderMode': 'Rendering',
     'cfg.renderModeTitle': 'Above 5,000 points the chart switches to WebGL automatically (SVG export temporarily switches back to vector)',
     'opt.renderAuto': 'Auto', 'opt.renderSvg': 'High quality (SVG)', 'opt.renderGl': 'Fast (WebGL)',
+    'cfg.xTick': 'X tick format', 'cfg.yTick': 'Y tick format',
+    'opt.tickAuto': 'Auto', 'opt.tickPercent': 'Percent (67%)', 'opt.tickThousands': 'Thousands (12,345)',
+    'opt.tickSci': 'Scientific (1.2e+4)', 'opt.tickInt': 'Integer (12)',
+    'cfg.trendStat': 'Fit readout', 'cfg.trendStatTitle': 'Show the trendline R² and slope in the corner of the chart',
+    'cfg.trendSlope': 'slope', 'opt.trendStatOn': 'Show', 'opt.trendStatOff': 'Hide',
+    'cfg.y2': 'Second Y axis (right)', 'cfg.y2Title': 'Two metrics on different scales in one chart — drawn on the right axis with a dotted line and × markers',
+    'opt.histogram': 'Histogram', 'opt.box': 'Box plot',
+    'cfg.histBins': 'Bins', 'cfg.histBinsPh': 'auto',
+    'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
+    'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
+    'cfg.searchPh': 'Find an option (log, sort, legend…)',
     'cfg.caption': 'Caption',
     'cfg.captionPh': 'What this figure says (goes into the report)',
     'an.copyInsights': 'Copy findings',
@@ -882,6 +913,11 @@ const I18N = {
     'confirm.derivedCharts': 'Charts: {list}',
     'confirm.derivedDeps': 'Computed columns that read it: {list}',
     'confirm.derivedProceed': 'Deleting it also clears those charts\' axis and filter settings, and computed columns built on it will come out empty. Continue?',
+    'confirm.removeDataset': 'Delete {name} ({rows} rows)? The {charts} chart(s) built on it will come out empty. Continue?',
+    'toast.datasetRemoved': 'Deleted {name}.',
+    'toast.marksKept': 'Carried {n} excluded/faded row mark(s) over to the refreshed data.',
+    'toast.presetsImported': 'Added {n} preset(s) bundled with the session.',
+    'toast.presetApplied': 'Preset applied (the previous settings were replaced).',
     'toast.derivedCleared': 'Deleted {name} — also cleared axis/filter settings on {n} chart(s).',
     'toast.reportPartial': 'Report saved ({n} charts). Image export failed for: {list}',
     'report.notDrawn': '(this chart has not been drawn yet, so there is no image)',
@@ -959,10 +995,13 @@ const I18N = {
     'an.ins.dupcol': '{a} · {b} — the relation holds in every row ({rel}), so one is a rescaling of the other. Only {a} is used in the rest of the analysis.',
     'an.ins.dupdesign': '{a} · {b} — the two design values map one-to-one (they mark the same combinations). Only {a} is used as the condition in the rest of the analysis.',
     'an.ins.dupinfo': '{a} · {b} — these carry almost the same information ({rel}). Treated as duplicate metrics; only {a} is used in the rest of the analysis.',
+    'an.groupScope': '{k} levels compared ({skipped} left out for too few measurements)',
+    'an.groupScopeAll': 'all {k} levels compared',
+    'an.ins.simpsonGap': '{a} · {b} — pooled they give r={rp}, but split by {g} all {k} groups give a much stronger r={lo} to {hi}. The pooled figure looks diluted by differences between {g} levels, so use the per-{g} view.',
     'an.ins.simpson': '{a} · {b} — pooled across all rows they give r={rp}, but split by {g} all {k} groups give r={lo} to {hi}. The pooled figure appears reversed by differences between {g} levels, so use the per-{g} view.',
     'an.ins.cross': '{c} — which of {a} and {b} is higher flips with {d} ({d}={loList} → {a} leads; {d}={hiList} → {b} leads · {n} matched pairs). Do not summarise this as a single mean difference.',
     'an.ins.corr': '{a} · {b} — {dir} ({stat} = {v}, n={n}). An association observed in this data, not a cause.',
-    'an.ins.group': '{c} — highest at {g}={best}, lowest at {g}={worst} (mean {m1} vs {m2}, difference {diff} · {rel}%). Paired differences range {lo} to {hi}, {ck} of {cn} conditions agree in direction, and resampling the conditions gives a bootstrap interval (95%) of {bootLo} to {bootHi}.',
+    'an.ins.group': '{c} — highest at {g}={best}, lowest at {g}={worst} (mean {m1} vs {m2}, difference {diff} · {rel}%). Paired differences range {lo} to {hi}, {ck} of {cn} conditions agree in direction, and resampling the conditions gives a bootstrap interval (95%) of {bootLo} to {bootHi}. ({scope})',
     'an.ins.satur': '{y} — for {g}, {pct}% of the total change occurs between {x} {x0} and {x1}, leaving only {rest}% after that. This describes the {k} measured points only and says nothing beyond them.',
     'an.ins.saturMulti': '{y} — most of the total change ({pctLo}–{pctHi}% depending on the group) happens between {x} {x0} and {x1}, with little left after that ({n} of {total} {g} levels behave this way). This describes the {k} measured points only.',
     'an.ins.outlier': '{col} — the value {val} in {scope} sits apart from its neighbours (modified z={z}). Inspect whether it is a measurement error or real variability before excluding it yourself.',
@@ -1062,12 +1101,15 @@ function applyDerived() {
 function defaultChart() {
   return {
     id: state.nextId++,
-    type: 'scatter',            // scatter | line | scatter+line | bar
+    type: 'scatter',            // scatter | line | scatter+line | bar | heatmap | dumbbell | histogram | box
+    histBins: 0, boxPoints: 'outliers',   // 히스토그램 구간 수(0=자동), 박스 점 표시(all|outliers|none)
     x: '', y: '', group: '', group2: '', size: '',   // group=색상, group2=마커 모양 (2차 그룹)
     filters: [],                // {col, op, value}
     title: '',
     xLabel: '', yLabel: '',
     xScale: 'linear', yScale: 'linear',
+    y2: '',                     // 보조 Y축(오른쪽) 컬럼 — 스케일이 다른 두 지표를 한 그림에
+    xTick: '', yTick: '',       // '' | percent | thousands | sci | 0/1/2/3(소수 자릿수) — 축 눈금 표기
     xMin: '', xMax: '', yMin: '', yMax: '',
     grid: true,
     fontFamily: FONTS[0], fontSize: 13, fontColor: '',   // '' = 테마 잉크 자동(다크/라이트 따라감)
@@ -1083,6 +1125,7 @@ function defaultChart() {
     baselines: [],              // [{x, y, shade, dir}] — shade: none|ur|ul|lr|ll, dir: both|h|v (기본 both)
     textMarkers: [],            // [{x, y, text, ax, ay}] — 클릭으로 추가하는 자유 주석
     pareto: false, paretoDir: 'min-x-max-y',
+    trendStat: 'auto',          // auto | none — 추세선 적합도(R²·기울기) 배지 표시
     trend: 'none',              // none | linear | poly2 | log | exp | power | movavg
     trendDash: 'dash', trendWidth: 1.5,
     trendBand: 'none',          // none | 1 | 2 — 추세선 잔차 ±kσ 음영 밴드
@@ -1169,6 +1212,35 @@ function parseAny(text, filename) {
 
 /* ================= data model ================= */
 let sourceWarned = false;
+/* 같은 파일을 다시 넣으면 행 배열이 통째로 교체돼 손으로 한 큐레이션(_excluded/_muted)과
+   레이블 위치가 전부 사라졌다. "구조를 나타내는 컬럼"(문자열 + 값이 몇 개뿐인 숫자)의 조합을
+   행의 정체성으로 보고, 같은 정체성의 행에 되붙인다. 값이 갱신돼도 조건이 같으면 살아남는다. */
+let rowKeyColsCache = null;
+function rowKeyCols() {
+  if (rowKeyColsCache && rowKeyColsCache.ver === dataVer) return rowKeyColsCache.cols;
+  const rows = allRows(), out = [];
+  for (const c of columns()) {
+    if (c === '_source') { out.push(c); continue; }
+    const vals = new Set();
+    let numeric = 0, seen = 0;
+    for (const r of rows) {
+      const v = r[c];
+      if (v === null || v === undefined) continue;
+      seen++;
+      if (typeof v === 'number') numeric++;
+      if (vals.size <= 40) vals.add(v);
+    }
+    if (!seen) continue;
+    const isText = numeric / seen < 0.5;
+    /* 숫자는 "값이 몇 개뿐"일 때만 조건으로 본다 — 행 수 대비로 판단해야 한다.
+       측정값(행마다 다른 값)이 키에 들어가면 갱신 때 전부 어긋난다. */
+    const fewLevels = vals.size <= Math.max(2, Math.min(24, Math.floor(rows.length / 3)));
+    if (isText || fewLevels) out.push(c);
+  }
+  rowKeyColsCache = { ver: dataVer, cols: out };
+  return out;
+}
+function rowKey(r, cols) { return (cols || rowKeyCols()).map(c => String(r[c])).join('\u0001'); }
 function addDataset(name, rows) {
   if (!rows.length) { alert(tf('err.noRowsInDataset', { name })); return; }
   if (!sourceWarned && rows.some(r => r._source !== undefined)) {   // _source는 예약어 — 덮어쓰되 침묵하지는 않는다
@@ -1177,15 +1249,48 @@ function addDataset(name, rows) {
   }
   rows.forEach(r => { r._source = name; });
   const existing = state.datasets.find(d => d.name === name);
-  if (existing) existing.rows = rows;
+  if (existing) {
+    const cols = rowKeyCols();
+    const marks = new Map();   // 갱신 전에 손으로 표시한 것을 행 정체성으로 기억해 둔다
+    for (const r of existing.rows) {
+      if (r._excluded || r._muted) marks.set(rowKey(r, cols), { ex: !!r._excluded, mu: !!r._muted });
+    }
+    existing.rows = rows;
+    if (marks.size) {
+      let back = 0;
+      for (const r of rows) {
+        const m = marks.get(rowKey(r, cols));
+        if (!m) continue;
+        if (m.ex) r._excluded = true;
+        if (m.mu) r._muted = true;
+        back++;
+      }
+      if (back) setTimeout(() => showToast(tf('toast.marksKept', { n: back })), 60);
+    }
+  }
   else state.datasets.push({ id: state.nextId++, name, rows });
   invalidateDataCaches();
   onDataChanged();
 }
+function askRemoveDataset(id) {   // 확인은 사용자가 누르는 자리에서만 — 모델 함수는 그대로 쓸 수 있어야 한다
+  const ds = state.datasets.find(d => d.id === id);
+  if (!ds) return;
+  if (!confirm(tf('confirm.removeDataset', { name: ds.name, rows: ds.rows.length.toLocaleString(), charts: state.charts.length }))) return;
+  removeDataset(id);
+}
 function removeDataset(id) {
-  state.datasets = state.datasets.filter(d => d.id !== id);
+  const i = state.datasets.findIndex(d => d.id === id);
+  if (i < 0) return;
+  const ds = state.datasets[i];
+  state.datasets.splice(i, 1);
   invalidateDataCaches();
   onDataChanged();
+  showToast(tf('toast.datasetRemoved', { name: ds.name }), t('toast.undo'), () => {
+    state.datasets.splice(Math.min(i, state.datasets.length), 0, ds);
+    invalidateDataCaches();
+    onDataChanged(false);
+  });
+  return;
 }
 function allRows() { return state.datasets.flatMap(d => d.rows); }
 /* 컬럼 목록·숫자 판정·고유값은 매 호출마다 전 행을 훑는다. 설정 패널 하나를 그리는 데 수십 번 불리므로
@@ -1308,6 +1413,14 @@ function chartRows(cfg) {
   return rows.filter(r => r[cfg.x] !== null && r[cfg.x] !== undefined && r[cfg.y] !== null && r[cfg.y] !== undefined);
 }
 function pointKey(series, x, y) { return `${series}|${x}|${y}`; }
+/* 값이 바뀌면 값 기반 키는 어긋난다 — 조건 컬럼 조합(행 정체성)으로 만든 키를 함께 쓴다 */
+function pointKeyRow(series, r) { return `${series}#${rowKey(r)}`; }
+function labelSetting(map, series, r, x, y) {
+  const rk = pointKeyRow(series, r);
+  if (map && Object.prototype.hasOwnProperty.call(map, rk)) return { key: rk, val: map[rk] };
+  const vk = pointKey(series, x, y);
+  return { key: rk, val: map ? map[vk] : undefined, legacy: vk };
+}
 function logv(v) { return Math.log10(v); }
 function axCoord(v, scale) { return (scale === 'log' && typeof v === 'number') ? logv(v) : v; }
 
@@ -1318,6 +1431,7 @@ function facetValues(cfg) {
   return uniqueVals(cfg.facetBy).map(String).filter(v => present.has(v)).slice(0, 16);
 }
 function buildTraces(cfg) {
+  if (cfg.type === 'histogram' || cfg.type === 'box') return buildDistribution(cfg, cfg.type);
   if (cfg.type === 'heatmap') return buildHeatmap(cfg);
   if (cfg.type === 'dumbbell') return buildDumbbell(cfg);
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
@@ -1439,6 +1553,22 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       }
     }
   });
+  if (cfg.y2 && cfg.y2 !== cfg.y && cfg.type !== 'bar' && !cfg.facetBy) {   // 보조 축: 같은 X 위에 다른 스케일의 지표
+    seriesDefs(cfg).forEach(def => {
+      const pts = rows.filter(def.match).filter(r => typeof r[cfg.y2] === 'number')
+        .slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
+      if (!pts.length) return;
+      const st = seriesStyle(cfg, def);
+      traces.push({
+        name: `${(cfg.seriesLabels && cfg.seriesLabels[def.name]) || def.name} · ${cfg.y2}`,
+        type: gl ? 'scattergl' : 'scatter', mode: lineMode.includes('lines') ? 'lines+markers' : 'markers',
+        x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y2]), yaxis: 'y2',
+        marker: { color: st.color, symbol: 'x', size: Math.max(5, (st.msize || 9) - 2), opacity: 0.85 },
+        line: { color: st.color, width: Math.max(1, (st.lwidth || 2) - 0.5), dash: 'dot', shape: cfg.lineShape },
+        hovertemplate: `<b>${esc(def.name)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y2)}=%{y}<extra></extra>`,
+      });
+    });
+  }
   if (cfg.pareto && cfg.type !== 'bar') traces.push(paretoTrace(cfg, rows));
   return traces;
 }
@@ -1520,6 +1650,17 @@ function poly2fit(pts) {   // y = c0 + c1·x + c2·x²  (3×3 정규방정식, C
     det3(s0,s1,t0, s1,s2,t1, s2,s3,t2) / D,
   ];
 }
+/* 적합도 표기: R²와 기울기. cfg.trendStat이 'none'이면 계산은 하되 표시하지 않는다 */
+function trendFitText(stat) {
+  if (!stat || stat.r2 === null) return '';
+  const parts = [`R² = ${stat.r2.toFixed(3)}`];
+  if (stat.slope !== null && Number.isFinite(stat.slope)) {   // 기울기는 단위가 작을 수 있다 (7e-6이 0으로 보이면 안 된다)
+    const sl = Math.abs(stat.slope) >= 0.01 || stat.slope === 0 ? fmtBarVal(stat.slope) : stat.slope.toExponential(1);
+    parts.push(`${t('cfg.trendSlope')} ${sl}`);
+  }
+  parts.push(`n = ${stat.n}`);
+  return parts.join(' · ');
+}
 function trendTraces(cfg, name, pts, color) {
   const kind = cfg.trend;
   let P = pts.filter(p => typeof p.x === 'number' && typeof p.y === 'number');
@@ -1561,6 +1702,13 @@ function trendTraces(cfg, name, pts, color) {
       xs.push(x); ys.push(predict(x));
     }
   }
+  /* 잔차 RMSE는 이미 밴드용으로 구해 두고 버려졌다 — 적합도(R²)와 기울기를 함께 내보낸다 */
+  const my = P.reduce((a, p) => a + p.y, 0) / P.length;
+  const ssTot = P.reduce((a, p) => a + (p.y - my) ** 2, 0);
+  const r2 = ssTot > 0 ? Math.max(0, 1 - (sigma * sigma * P.length) / ssTot) : null;
+  const slope = (xs.length > 1 && xs[xs.length - 1] !== xs[0])
+    ? (ys[ys.length - 1] - ys[0]) / (xs[xs.length - 1] - xs[0]) : null;
+  const stat = { r2, slope, n: P.length };
   const out = [];
   const k = cfg.trendBand === '1' ? 1 : cfg.trendBand === '2' ? 2 : 0;
   if (k && sigma > 0) {   // 잔차 ±kσ 음영 밴드
@@ -1568,15 +1716,53 @@ function trendTraces(cfg, name, pts, color) {
     out.push({ ...bandBase, y: ys.map(v => v - k * sigma), line: { width: 0 } });
     out.push({ ...bandBase, y: ys.map(v => v + k * sigma), line: { width: 0 }, fill: 'tonexty', fillcolor: hexToRgba(color, 0.08) });
   }
+  const fitTxt = trendFitText(stat);
   out.push({
     name: `${name} 추세`, type: 'scatter', mode: 'lines', x: xs, y: ys,
     line: { color, width: cfg.trendWidth || 1.5, dash: cfg.trendDash || 'dash' },
-    showlegend: false, hoverinfo: 'skip',
+    showlegend: false, _fit: stat,
+    hoverinfo: fitTxt ? 'text' : 'skip',
+    ...(fitTxt ? { hovertext: `${esc(name)} · ${fitTxt}` } : {}),
   });
   return out;
 }
 
 /* 히트맵: X·Y 이산 축의 격자에 heatZ 값(집계)을 색으로 */
+/* 분포: 히스토그램(값의 퍼짐)과 박스(사분위·수염). 반복 측정의 흩어짐을 보는 용도라 값 컬럼 하나(cfg.y)만 쓴다. */
+function buildDistribution(cfg, kind) {
+  const col = cfg.y || cfg.x;
+  if (!col) return [];
+  const kept = applyFilters(allRows().filter(r => !r._excluded), cfg.filters).filter(r => typeof r[col] === 'number');
+  if (!kept.length) return [];
+  const defs = cfg.group ? seriesDefs(cfg)
+    : [{ name: t('all'), colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
+  const out = [];
+  defs.forEach(def => {
+    const pts = kept.filter(def.match);
+    if (!pts.length) return;
+    const st = seriesStyle(cfg, def);
+    const vals = pts.map(r => r[col]);
+    const dname = (cfg.seriesLabels && cfg.seriesLabels[def.name]) || def.name;
+    if (kind === 'histogram') {
+      const tr = { type: 'histogram', name: dname, x: vals,
+        marker: { color: hexToRgba(st.color, cfg.barOpacity || 0.75), line: { width: 1, color: st.color } },
+        hovertemplate: `<b>${esc(dname)}</b><br>${esc(col)}=%{x}<br>n=%{y}<extra></extra>` };
+      const nb = Number(cfg.histBins) || 0;
+      if (nb > 1) {
+        let mn = Infinity, mx = -Infinity;
+        for (const v of vals) { if (v < mn) mn = v; if (v > mx) mx = v; }
+        if (mx > mn) tr.xbins = { start: mn, end: mx, size: (mx - mn) / nb };
+      }
+      out.push(tr);
+    } else {
+      out.push({ type: 'box', name: dname, y: vals, marker: { color: st.color }, line: { color: st.color },
+        fillcolor: hexToRgba(st.color, 0.18),
+        boxpoints: cfg.boxPoints === 'none' ? false : (cfg.boxPoints || 'outliers'),
+        jitter: 0.4, pointpos: 0, hovertemplate: `<b>${esc(dname)}</b><br>${esc(col)}=%{y}<extra></extra>` });
+    }
+  });
+  return out;
+}
 function buildHeatmap(cfg) {
   const zcol = cfg.heatZ;
   if (!cfg.x || !cfg.y || !zcol) return [];
@@ -1645,6 +1831,23 @@ function paretoTrace(cfg, rows) {
     hoverinfo: 'skip', showlegend: true,
   };
 }
+/* 추세선 적합도를 차트 구석에 배지로 — 계산은 이미 하고 있었고 화면에만 없었다 */
+function trendFitAnnotations(cfg, traces) {
+  if (cfg.trend === 'none' || cfg.trendStat === 'none' || cfg.facetBy) return [];
+  const fits = (traces || []).filter(tr => tr._fit && tr._fit.r2 !== null);
+  if (!fits.length) return [];
+  const lines = fits.slice(0, 6).map(tr => {
+    const nm = String(tr.name || '').replace(/ 추세$/, '');
+    return (fits.length > 1 ? `${esc(nm)}: ` : '') + trendFitText(tr._fit);
+  });
+  return [{
+    x: 0.99, y: 0.02, xref: 'paper', yref: 'paper', xanchor: 'right', yanchor: 'bottom',
+    text: lines.join('<br>'), showarrow: false, align: 'right',
+    font: { family: cfg.fontFamily, size: Math.max(9, (cfg.fontSize || 13) - 3), color: CHROME.muted },
+    bgcolor: hexToRgba(CHROME.surface === '#fcfcfb' ? '#ffffff' : '#000000', 0.55),
+    bordercolor: CHROME.grid, borderwidth: 1, borderpad: 4,
+  }];
+}
 function buildAnnotations(cfg) {
   const ann = [];
   if (cfg.showLabels && cfg.type !== 'bar') {   // 막대는 "값 표시"(barText)가 대신함
@@ -1661,9 +1864,9 @@ function buildAnnotations(cfg) {
         const dedup = `${r[cfg.x]}|${r[cfg.y]}|${text}`;
         if (seen.has(dedup)) continue;
         seen.add(dedup);
-        const key = pointKey(name, r[cfg.x], r[cfg.y]);
-        if (cfg.hiddenLabels.includes(key)) continue;
-        items.push({ x: axCoord(r[cfg.x], cfg.xScale), y: axCoord(r[cfg.y], cfg.yScale), text: String(text), key });
+        const key = pointKeyRow(name, r), legacy = pointKey(name, r[cfg.x], r[cfg.y]);
+        if (cfg.hiddenLabels.includes(key) || cfg.hiddenLabels.includes(legacy)) continue;
+        items.push({ x: axCoord(r[cfg.x], cfg.xScale), y: axCoord(r[cfg.y], cfg.yScale), text: String(text), key, legacy });
       }
     });
     // 그리디 겹침 회피: 축좌표 → 근사 픽셀 변환 후 가까운 레이블은 위로 밀어냄
@@ -1677,7 +1880,7 @@ function buildAnnotations(cfg) {
     const py = v => (typeof v === 'number' && ymx > ymn) ? (1 - (v - ymn) / (ymx - ymn)) * H : 0;
     const placed = [];
     for (const it of items) {
-      const userOff = cfg.labelOffsets[it.key];
+      const userOff = cfg.labelOffsets[it.key] || (it.legacy ? cfg.labelOffsets[it.legacy] : undefined);   // 예전 값 기반 키도 계속 읽는다
       let off = userOff ? { ...userOff } : { ax: 0, ay: -14 };
       if (!userOff) {   // 사용자가 직접 드래그한 레이블은 건드리지 않음
         const ix = px(it.x), iy = py(it.y);
@@ -1750,7 +1953,18 @@ function baselineShapes(cfg, gd) {
   }
   return shapes;
 }
-function buildLayout(cfg, gd) {
+function hasY2(cfg) { return !!(cfg.y2 && cfg.y2 !== cfg.y && cfg.type !== 'bar' && !cfg.facetBy); }
+function y2Layout(cfg) {
+  if (!hasY2(cfg)) return {};
+  return { yaxis2: {
+    title: { text: cfg.y2, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: inkOf(cfg) } },
+    overlaying: 'y', side: 'right', showgrid: false, zeroline: false,
+    linecolor: CHROME.axis, linewidth: 1,
+    tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted },
+    ticks: 'outside', tickcolor: CHROME.axis, automargin: true,
+  } };
+}
+function buildLayout(cfg, gd, traces) {
   const insideBg = CHROME.overlay;
   const legend = {
     right: { orientation: 'v', x: 1.02, y: 1, xanchor: 'left' },
@@ -1762,7 +1976,8 @@ function buildLayout(cfg, gd) {
     'inside-br': { orientation: 'v', x: 0.98, y: 0.02, xanchor: 'right', yanchor: 'bottom', bgcolor: insideBg },
     inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: insideBg },  // 구 세션 호환(좌상단)
   }[cfg.legendPos];
-  const axis = (label, scale, mn, mx, col) => {
+  const TICK_FMT = { percent: '.0%', thousands: ',d', sci: '.1e', '0': 'd', '1': '.1f', '2': '.2f', '3': '.3f' };
+  const axis = (label, scale, mn, mx, col, tick) => {
     // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
     const sample = chartRows(cfg).map(r => r[col]).filter(v => v !== null && v !== undefined);
     const isCat = (sample.length > 0 && sample.some(v => typeof v !== 'number'))
@@ -1775,6 +1990,7 @@ function buildLayout(cfg, gd) {
       tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted },
       ticks: 'outside', tickcolor: CHROME.axis, mirror: false, automargin: true,
     };
+    if (tick && TICK_FMT[tick]) a.tickformat = TICK_FMT[tick];
     const lo = coerce(mn), hi = coerce(mx);
     const hasLo = typeof lo === 'number', hasHi = typeof hi === 'number';
     if ((hasLo || hasHi) && !isCat) {   // 한쪽만 입력해도 동작 — 빈 쪽은 데이터 범위(±5%)로 채움 (category 축은 무시)
@@ -1799,25 +2015,37 @@ function buildLayout(cfg, gd) {
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg) },
     paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
     margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
+    ...y2Layout(cfg),
     hovermode: 'closest',
   };
   const catAxis = (label, col) => ({ title: { text: label || col, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: inkOf(cfg) } },
     type: 'category', showgrid: false, linecolor: CHROME.axis, linewidth: 1, tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted }, ticks: 'outside', tickcolor: CHROME.axis, automargin: true });
+  if (cfg.type === 'histogram' || cfg.type === 'box') {
+    const dcol = cfg.y || cfg.x;
+    const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick);
+    if (cfg.type === 'histogram') {
+      const cnt = axis(cfg.xLabel || 'n', 'linear', '', '', '', '');
+      return { ...baseLayout, xaxis: { ...valAxis, title: { ...valAxis.title, text: cfg.xLabel || dcol } },
+        yaxis: { ...cnt, title: { ...cnt.title, text: 'n' } }, barmode: 'overlay', bargap: 0.04 };
+    }
+    const catAx = axis('', 'linear', '', '', '', '');
+    return { ...baseLayout, xaxis: { ...catAx, type: 'category', showgrid: false }, yaxis: valAxis };
+  }
   if (cfg.type === 'heatmap') {   // X·Y 이산 축 + 컬러바(마진 여유), 범례 없음
     return { ...baseLayout, xaxis: catAxis(cfg.xLabel, cfg.x), yaxis: catAxis(cfg.yLabel, cfg.y), showlegend: false,
       margin: { ...baseLayout.margin, r: 80 }, uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.heatZ].join('|') };
   }
   if (cfg.type === 'dumbbell') {   // 값 축(X=cfg.y) + 카테고리 축(Y=cfg.x, 가로)
-    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y), yaxis: catAxis(cfg.xLabel, cfg.x),
+    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick), yaxis: catAxis(cfg.xLabel, cfg.x),
       showlegend: cfg.legendPos !== 'none', legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.group].join('|') };
   }
   // 가로 막대: 카테고리(X 설정)가 y축, 값(Y 설정)이 x축에 놓인다
   const horizBar = cfg.type === 'bar' && cfg.barOrient === 'h';
-  const xaxis = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y)
-                         : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x);
-  const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x)
-                         : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y);
+  const xaxis = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick)
+                         : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick);
+  const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick)
+                         : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick);
   if (cfg.type === 'bar') {
     const catOrder = { label: 'category ascending', asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
     if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
@@ -1842,8 +2070,8 @@ function buildLayout(cfg, gd) {
     vals.forEach((v, i) => {
       const sfx = i === 0 ? '' : String(i + 1);
       const rowIdx = Math.floor(i / cols), colIdx = i % cols;
-      const xa = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y) : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x);
-      const ya = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x) : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y);
+      const xa = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick) : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick);
+      const ya = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick) : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick);
       if (rowIdx !== rowsN - 1) xa.title = undefined;   // 가장자리에만 축 제목
       if (colIdx !== 0) ya.title = undefined;
       lay['xaxis' + sfx] = xa; lay['yaxis' + sfx] = ya;
@@ -1857,16 +2085,16 @@ function buildLayout(cfg, gd) {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg)}, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
     paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
-    xaxis, yaxis,
+    xaxis, yaxis, ...y2Layout(cfg),
     showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
-    margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
+    margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
-    annotations: buildAnnotations(cfg),
+    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces)],
     shapes: baselineShapes(cfg, gd),
     barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
-    uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
+    uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.y2, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
   };
 }
 
@@ -1882,7 +2110,8 @@ function renderPlot(cfg) {
   const gd = div;
   if (!gd.data) gd.innerHTML = '';   // placeholder 텍스트만 제거 — 기존 플롯 DOM은 Plotly.react가 관리
   gd._vizRendering = true;
-  Plotly.react(gd, buildTraces(cfg), buildLayout(cfg, gd._fullLayout ? gd : null), {
+  const traces = buildTraces(cfg);
+  Plotly.react(gd, traces, buildLayout(cfg, gd._fullLayout ? gd : null, traces), {
     responsive: true, displaylogo: false,
     scrollZoom: true, displayModeBar: true,
     edits: { annotationTail: true },
@@ -2145,6 +2374,34 @@ function applyChartSize(cfg) {
 }
 
 /* details 그룹 접힘 상태를 차트별로 기억한다 (`_` 접두사라 세션에는 저장되지 않는다) */
+/* 설정 그룹이 8개라 옵션 하나 찾기가 번거롭다 — 라벨로 걸러 보여준다 */
+function cfgSearchBox(panel) {
+  const inp = el('input', { type: 'search', class: 'cfg-search', 'data-i18n-ph': 'cfg.searchPh', placeholder: t('cfg.searchPh') });
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    panel.querySelectorAll('details.grp').forEach(g => {
+      if (!q) {
+        g.hidden = false;
+        g.querySelectorAll('.row').forEach(r => { r.hidden = false; });
+        if (g._preSearchOpen !== undefined) { g.open = g._preSearchOpen; delete g._preSearchOpen; }
+        return;
+      }
+      if (g._preSearchOpen === undefined) g._preSearchOpen = g.open;
+      let hit = 0;
+      g.querySelectorAll('.row').forEach(r => {
+        const lbl = r.querySelector('.lbl');
+        const match = (lbl ? lbl.textContent : r.textContent).toLowerCase().includes(q);
+        r.hidden = !match;
+        if (match) hit++;
+      });
+      const inTitle = g.querySelector('summary').textContent.toLowerCase().includes(q);
+      g.hidden = !hit && !inTitle;
+      g.open = hit > 0 || inTitle;
+      if (inTitle && !hit) g.querySelectorAll('.row').forEach(r => { r.hidden = false; });
+    });
+  });
+  return inp;
+}
 function restoreGroupState(cfg, panel) {
   cfg._open = cfg._open || {};
   panel.querySelectorAll('details.grp[data-g]').forEach(d => {
@@ -2158,6 +2415,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const numCols = numericColumns();
   const isBar = cfg.type === 'bar';
   const isHeat = cfg.type === 'heatmap', isDumbbell = cfg.type === 'dumbbell';
+  const isDist = cfg.type === 'histogram' || cfg.type === 'box';
   const rp = () => { renderPlot(cfg); save(); };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
   const row = (label, ...ctrl) => el('div', { class: 'row' }, el('span', { class: 'lbl' }, label), ...ctrl);
@@ -2165,9 +2423,18 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   /* --- 데이터 --- */
   const gData = el('details', { class: 'grp', open: '', 'data-g': 'data' }, el('summary', {}, t('cfg.data')));
   gData.append(
-    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
+    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
+    ...(!isBar && !isHeat && !isDumbbell && !isDist ? [
+      row(t('cfg.y2'), select([['', t('opt.noneParen')], ...numericColumns().filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rp(); }, { title: t('cfg.y2Title') })),
+    ] : []),
+    ...(isDist ? [
+      el('div', { class: 'hint' }, t('cfg.distHint')),
+      ...(cfg.type === 'histogram'
+        ? [row(t('cfg.histBins'), el('input', { type: 'number', min: '2', max: '100', placeholder: t('cfg.histBinsPh'), value: cfg.histBins || '', oninput: e => { cfg.histBins = Number(e.target.value) || 0; rp(); } }))]
+        : [row(t('cfg.boxPoints'), select([['outliers', t('opt.boxOutliers')], ['all', t('opt.boxAll')], ['none', t('opt.boxNone')]], cfg.boxPoints || 'outliers', v => { cfg.boxPoints = v; rp(); }))]),
+    ] : []),
     // 히트맵: 색 값 컬럼 + 집계 + 셀 값
     ...(isHeat ? [
       row(t('cfg.heatZ'), select([['', t('opt.select')], ...numericColumns().map(c => [c, c])], cfg.heatZ, v => { cfg.heatZ = v; rp(); })),
@@ -2409,6 +2676,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.trend'), select([['none', t('opt.none')], ['linear', t('opt.trendLinear')], ['poly2', t('opt.trendPoly2')], ['log', t('opt.trendLog')], ['exp', t('opt.trendExp')], ['power', t('opt.trendPower')], ['movavg', t('opt.trendMovavg')]], cfg.trend, v => { cfg.trend = v; rp(); })),
     row(t('cfg.trendStyle'), select(DASHES(), cfg.trendDash, v => { cfg.trendDash = v; rp(); }),
         el('input', { type: 'number', value: cfg.trendWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.trendWidthTitle'), oninput: e => { cfg.trendWidth = Number(e.target.value) || 1.5; rp(); } })),
+    row(t('cfg.trendStat'), select([['auto', t('opt.trendStatOn')], ['none', t('opt.trendStatOff')]], cfg.trendStat || 'auto', v => { cfg.trendStat = v; rp(); }, { title: t('cfg.trendStatTitle') })),
     row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })),
     el('div', { class: 'hint' }, t('cfg.trendHint')),
     row(t('cfg.ptAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.ptAgg, v => { cfg.ptAgg = v; rebuildPanel(); })),
@@ -2423,10 +2691,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
 
   // 고급(추세선·Pareto)은 산점/선 전용 — 막대에서는 숨김
   // 히트맵·덤벨은 포인트 레이블·베이스라인·추세선/Pareto가 무의미 → 숨김
-  const heatDumb = isHeat || isDumbbell;
+  const heatDumb = isHeat || isDumbbell || isDist;
   panel.append(gData, ...(gBar ? [gBar] : []), gFilter, gAxis, gStyle,
     ...(heatDumb ? [] : [gLabel, gBase]), ...(isBar || heatDumb ? [] : [gAdv]));
   restoreGroupState(cfg, panel);
+  panel.prepend(cfgSearchBox(panel));
 
   function rebuild() { renderSeries(); }
 }
@@ -2805,7 +3074,14 @@ function analyzeData() {
   const cols = visibleColumns();
   const total = all.length;
   const stride = total > AN.maxRows ? Math.ceil(total / AN.maxRows) : 1;
-  const rows = stride > 1 ? all.filter((_, i) => i % stride === 0) : all;   // 결정적 표본 (RNG 없이 재현 가능)
+  /* 예전엔 i % stride로 골랐는데, 데이터가 요인을 행 단위로 순환하며 기록됐고 주기가 stride의 배수면
+     특정 레벨만 남는다. 시드 고정 난수로 뽑아 재현성은 지키면서 주기와의 공진을 피한다. */
+  let rows = all;
+  if (stride > 1) {
+    const rnd = anRng(0x9E3779B9 ^ total), keep = AN.maxRows / total;
+    rows = all.filter(() => rnd() < keep);
+    if (rows.length > AN.maxRows) rows = rows.slice(0, AN.maxRows);   // 확률 추출이라 상한을 살짝 넘을 수 있다
+  }
   const profiles = anProfile(all, cols);                                    // 프로파일은 항상 전체 행
   const P = {};
   profiles.forEach(p => { P[p.col] = p; });
@@ -2952,12 +3228,13 @@ function analyzeData() {
       }
       if (within.length < 2) continue;
       const med = anMedian(within), gap = Math.abs(ps.r - med);
-      if ((Math.sign(med) !== Math.sign(ps.r) && Math.abs(med) >= 0.3) || gap >= AN.simpsonGap) {
-        if (!flip || gap > flip.gap) flip = { g, gap, within };
+      const flipped = Math.sign(med) !== Math.sign(ps.r) && Math.abs(med) >= 0.3;
+      if (flipped || gap >= AN.simpsonGap) {
+        if (!flip || gap > flip.gap) flip = { g, gap, within, flipped };
       }
     }
     if (flip) {
-      push(1, 'simpson', {
+      push(1, flip.flipped ? 'simpson' : 'simpsonGap', {
         a: ps.a, b: ps.b, g: flip.g, rp: ps.r.toFixed(2), k: flip.within.length,
         lo: Math.min(...flip.within).toFixed(2), hi: Math.max(...flip.within).toFixed(2),
       }, 0.9 + Math.min(0.09, flip.gap / 10), { type: 'scatter', x: ps.a, y: ps.b, group: flip.g, trend: 'linear' });
@@ -3008,6 +3285,7 @@ function analyzeData() {
         return { gl, m: vs.length ? anMean(vs) : null, k: vs.length };
       }).filter(s => s.m !== null && s.k >= 3);
       if (stats.length < 2) continue;
+      const skipped = lv.length - stats.length;   // 측정이 부족해 비교에서 빠진 레벨 수
       stats.sort((x, y) => y.m - x.m);
       const paired = (A, B) => blocks.map(bl => {
         const a = at(A, bl), b = at(B, bl);
@@ -3048,6 +3326,7 @@ function analyzeData() {
         c, g, best: best.gl, worst: worst.gl, m1: fv(best.m), m2: fv(worst.m),
         diff: fv(dd.mean), rel: (rel * 100).toFixed(1), lo: fv(dd.min), hi: fv(dd.max),
         ck: ds.filter(v => v > 0).length, cn: ds.length, bootLo: fv(boot.lo), bootHi: fv(boot.hi),
+        scopeK: stats.length, scopeSkipped: skipped,
       }, 0.5 + 0.4 * Math.min(1, Math.abs(rel) / 0.3),
         { type: 'bar', x: g, y: c, group: '', barAgg: 'mean', barError: 'sem', barSort: 'desc', barText: 'value' });
     }
@@ -3158,7 +3437,7 @@ function analyzeData() {
   const seen = {};
   const kept = ins.filter(i => {
     // 심슨 경고는 같은 뿌리(그룹 간 수준 차이)에서 여러 쌍이 한꺼번에 나오므로 더 짧게 자른다
-    const cap = i.kind === 'outlier' ? AN.outMax : i.kind === 'simpson' ? 2 : AN.maxPerKind;
+    const cap = i.kind === 'outlier' ? AN.outMax : /^simpson/.test(i.kind) ? 2 : AN.maxPerKind;
     seen[i.kind] = (seen[i.kind] || 0) + 1;
     return seen[i.kind] <= cap;
   });
@@ -3179,6 +3458,9 @@ function analyzeData() {
 /* 인사이트 문장: 언어 종속 조각(방향어·"전체 행")은 여기서만 해석한다 */
 function anInsText(ins) {
   const p = { ...ins.params };
+  if ('scopeK' in p) p.scope = p.scopeSkipped
+    ? tf('an.groupScope', { k: p.scopeK, skipped: p.scopeSkipped })
+    : tf('an.groupScopeAll', { k: p.scopeK });
   if ('dirUp' in p) p.dir = t(p.dirUp ? 'an.dir.up' : 'an.dir.down');
   for (const k of Object.keys(p)) if (p[k] === AN_ALL) p[k] = t('an.allRows');
   return tf('an.ins.' + ins.kind, p);
@@ -3345,7 +3627,7 @@ function renderChips() {
   for (const d of state.datasets) {
     box.append(el('span', { class: 'chip' },
       d.name, el('span', { class: 'n' }, tf('chips.rows', { n: d.rows.length })),
-      el('button', { title: t('btn.delete'), onclick: () => removeDataset(d.id) }, '×'),
+      el('button', { title: t('btn.delete'), onclick: () => askRemoveDataset(d.id) }, '×'),
     ));
   }
 }
@@ -3540,6 +3822,16 @@ function loadSaved() {
   return false;
 }
 function restoreSession(s) {
+  if (s.presets && typeof s.presets === 'object') {   // 같은 이름은 받는 쪽 것을 유지 — 남의 세션이 내 프리셋을 덮지 않게
+    const mine = loadPresets(), added = [];
+    for (const [k, v] of Object.entries(s.presets)) if (!(k in mine)) { mine[k] = v; added.push(k); }
+    if (added.length) { savePresets(mine); showToast(tf('toast.presetsImported', { n: added.length })); }
+  }
+  if (s.ui) {   // 보기 설정은 이 브라우저에 아직 선택이 없을 때만 따라간다
+    if (s.ui.lang && !localStorage.getItem(LANG_KEY)) { LANG = s.ui.lang; localStorage.setItem(LANG_KEY, LANG); applyLang(); }
+    if (s.ui.theme && !localStorage.getItem(THEME_KEY)) { THEME = s.ui.theme; localStorage.setItem(THEME_KEY, THEME); applyTheme(); }
+    if (s.ui.width && !localStorage.getItem(WIDTH_KEY)) { WIDTH = s.ui.width; localStorage.setItem(WIDTH_KEY, WIDTH); applyWidth(); }
+  }
   state.datasets = s.datasets || [];
   invalidateDataCaches();
   state.derived = s.derived || [];
@@ -3556,9 +3848,13 @@ function restoreSession(s) {
   onDataChanged(false);
   refreshCharts();
 }
+/* 세션을 받은 사람이 프리셋을 따로 받아야 했고 화면도 다르게 떴다 — 한 파일에 담는다 */
 function exportSession() {
   const charts = state.charts.map(serializableChart);
-  const blob = new Blob([JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId }, null, 1)], { type: 'application/json' });
+  /* 프리셋과 보기 설정도 함께 — 받는 쪽이 파일 두 개를 따로 받지 않도록 */
+  const payload = { datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId,
+    presets: loadPresets(), ui: { lang: LANG, theme: THEME, width: WIDTH } };
+  const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
 }
@@ -3724,6 +4020,7 @@ function chartPreset(cfg) {
   return p;
 }
 function applyPreset(cfg, preset) {
+  const prev = JSON.parse(JSON.stringify(serializableChart(cfg)));   // 설정을 통째로 덮어쓰므로 되돌릴 수 있어야 한다
   const keep = { id: cfg.id, title: cfg.title };
   let restored = 0;
   for (const d of preset._derived || []) {   // 프리셋이 쓰는 계산 컬럼이 없으면 정의를 복원한다
@@ -3741,6 +4038,13 @@ function applyPreset(cfg, preset) {
   const card = cardOf(cfg);   // 유형이 바뀔 수 있으므로 이 카드만 재구성 (다른 카드의 줌·패널 상태는 보존)
   if (card) { purgePlot(cfg.id); card.replaceWith(renderChartCard(cfg)); renderPlot(cfg); } else refreshCharts();
   save();
+  showToast(t('toast.presetApplied'), t('toast.undo'), () => {
+    for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
+    Object.assign(cfg, prev);
+    const c2 = cardOf(cfg);
+    if (c2) { purgePlot(cfg.id); c2.replaceWith(renderChartCard(cfg)); renderPlot(cfg); }
+    save();
+  });
 }
 function exportPresets() {
   const blob = new Blob([JSON.stringify(loadPresets(), null, 1)], { type: 'application/json' });

@@ -26,6 +26,8 @@ Two criteria drive the choice: **the kind of question**, and **whether X is a co
 | "How **reliable** is it?" (repeated-measure spread) | multiple rows per condition (per seed) | **Bar** + aggregate = Mean | Error bars (±std dev/±std error) |
 | X is numeric but only **a few settings** (budget 500/1k/…/16k) | discrete numbers | **Line** to stress the trend, **Bar** to stress the gaps | with bars, check "X as categories" |
 | **6+ items** or long names | long category list | **Bar → Orientation = Horizontal** | sort to make it a ranking |
+| "How much does it **scatter**?" (repeated measurements) | several values per condition | **Box plot** or **histogram** | group (color) overlays one per condition |
+| **Two metrics on different scales** | e.g. accuracy and latency | **Second Y axis** | right axis, dotted line with × markers |
 | "Which **combination** is good?" (a whole 2D sweep) | two discrete axes + one value (method × budget → accuracy) | **Heatmap** | show cell values, aggregate = Mean |
 | "How much does A→B **shift things**?" (paired comparison) | two conditions per item (before/after, 500 vs 16k) | **Dumbbell (paired)** | filter down to the two conditions |
 
@@ -196,6 +198,16 @@ You get one markdown file plus the chart PNGs; every chart section carries its *
 
 **Why the filter conditions must travel with the figure**: a conclusion that only holds for tokens ≤ 4000, screenshotted with the filter on and pasted without stating it, will be read as a conclusion about the whole dataset. The report writes that condition down for you.
 When moving findings into prose, do not convert them into causal claims (see "How to read the findings" in ⑪) and keep only what you need.
+
+### ⑬ Living with a weekly log
+
+Re-adding a file under the same name replaces the data and keeps your chart settings. Since v0.14 it also keeps **the work you did by hand**:
+rows you excluded, rows you faded, and point labels you dragged into place all carry over.
+Rows are recognised by their **condition columns** (method, tokens — the ones with few distinct values), so refreshed measurements still map to the same row.
+If the conditions themselves change (a new method appears), those count as new rows.
+
+With a folder served, overwriting the file and reloading is enough to pick up the new values
+(`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
 ## 3. Principles for effective charts (summary)
 
