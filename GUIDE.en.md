@@ -26,6 +26,8 @@ Two criteria drive the choice: **the kind of question**, and **whether X is a co
 | "How **reliable** is it?" (repeated-measure spread) | multiple rows per condition (per seed) | **Bar** + aggregate = Mean | Error bars (±std dev/±std error) |
 | X is numeric but only **a few settings** (budget 500/1k/…/16k) | discrete numbers | **Line** to stress the trend, **Bar** to stress the gaps | with bars, check "X as categories" |
 | **6+ items** or long names | long category list | **Bar → Orientation = Horizontal** | sort to make it a ranking |
+| "Which **combination** is good?" (a whole 2D sweep) | two discrete axes + one value (method × budget → accuracy) | **Heatmap** | show cell values, aggregate = Mean |
+| "How much does A→B **shift things**?" (paired comparison) | two conditions per item (before/after, 500 vs 16k) | **Dumbbell (paired)** | filter down to the two conditions |
 
 One-line summary: **change → line, magnitude → bar, trade-off → scatter.**
 
@@ -124,6 +126,55 @@ Want to see how each setting does **against a reference** (e.g. accuracy differe
 - **Delta vs reference**: **difference** or **retention %** vs the reference row with the same match keys (e.g. value=`accuracy`, reference = rows where `method`=`baseline`, match=`tokens` → "how many pt above baseline at the same tokens")
 
 The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. If you don't need it, just collapse the panel — no effect on the view.
+
+### ⑨ A whole 2D sweep in one picture — heatmap
+
+> Type=`Heatmap`, X axis=`method`, Y axis=`tokens`, Color value (column)=`accuracy`, Aggregate=`Mean`, check `Show cell value`
+
+![Heatmap of the method × token-budget grid, encoded as colour](assets/guide/r8-heatmap.png)
+
+This puts **every combination** of two discrete axes on one canvas. It shines when four overlapping lines become unreadable, or when
+you want to expose which cells were never measured. **How to read it**: the point where the colour stops deepening is the point where
+more budget stops buying anything. Colour only conveys magnitude, so it is **poor for fine comparisons** — use bars when the exact ranking matters.
+
+### ⑩ The gap between two conditions — dumbbell (paired)
+
+> Type=`Dumbbell (paired)`, Category (X)=`method`, Value (Y)=`accuracy`, Pair group=`tokens`
+> Filters → check only `500` and `16000` under `tokens` (dumbbells read best with exactly two conditions)
+
+![Dumbbell chart showing each method's accuracy moving from 500 to 16000 tokens](assets/guide/r9-dumbbell.png)
+
+Instead of two bars side by side, this draws **two dots and a connecting line**, so "how much was gained" is read directly as line length.
+**How to read it**: longer line = bigger effect of that condition change. Unlike bars, you see both the starting level and the size of the move.
+
+### ⑪ When you do not know where to start — the `Analyze` button
+
+Just received a dataset and unsure what to plot first? Press `Analyze` in the header. The tool scans the data and reports
+**data problems → interpretation cautions → findings**, and each row's `＋ Chart` builds the chart that backs it up.
+
+![The automatic analysis panel — findings tagged Data/Caution/Finding, plus the column profile table](assets/guide/r10-analysis.png)
+
+- **Data** (grey) — constant or empty columns, non-numeric values mixed into numbers (a single `OOM` drops the whole column out of the
+  axis candidates), duplicate rows, missing values concentrated in one group, combinations that were never measured. **Fix these first**;
+  everything below depends on them.
+- **Caution** (red) — relationships that reverse when pooled (Simpson's paradox) and crossovers where the winner changes with the condition.
+  These are what stop you from writing a wrong one-line summary.
+- **Finding** (grey) — correlations, group differences, saturation points, outliers.
+
+#### How to read the findings (and what not to claim)
+
+- **Correlation is not causation.** "A and B move together" does not mean A produces B. Do not convert these into causal claims in a paper or report.
+- **Handle "Caution" items before the findings below them.** If the pooled correlation is −0.23 while every method is +0.8 internally,
+  the per-method number is the one to report — the pooled figure flipped only because the methods sit at different levels.
+- **When a crossover is reported, do not summarise it as one mean.** "A beats B by +0.2pp on average" may only hold below budget 4000.
+- **p-values are deliberately absent.** Benchmark rows are not independent (a budget sweep for one method is a connected series) and the
+  number of repeats is arbitrary, so significance tests read more generously than the data supports. Instead you get the **raw difference plus
+  direction consistency across conditions** (e.g. "6 of 6 conditions agree") — a more useful signal for whether a finding will reproduce.
+- **Outliers are flagged, never removed.** They may be measurement errors or real behaviour, so inspect the value and exclude it yourself
+  with the table checkbox if you decide to.
+- **Finding nothing is also a result.** It means nothing cleared the thresholds, and relationships dug up by lowering them rarely reproduce.
+
+The analysis runs on **the rows still in the table** (rows excluded from charts are left out) and is discarded whenever the data changes. It is never stored in the session.
 
 ## 3. Principles for effective charts (summary)
 
