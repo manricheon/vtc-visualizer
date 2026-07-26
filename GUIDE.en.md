@@ -122,7 +122,7 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 
 Want to see how each setting does **against a reference** (e.g. accuracy difference vs baseline/dense) but the data has no such column? You don't need to regenerate the data — make it on the spot with **computed columns** (the "Computed columns" panel below the data input):
 
-- **Binary op**: new column = A [−, +, ×, ÷] B (e.g. `used_tokens ÷ input_tokens` = actual usage ratio)
+- **Binary op**: new column = A [−, +, ×, ÷] B, or against a **constant** (e.g. `used_tokens ÷ input_tokens` = actual usage ratio, `latency_ms ÷ 1000` = seconds). Which unit reads better depends on the data and the audience — this only adds a column, so you can keep both and pick per chart.
 - **Normalize / z-score**: compare metrics on different scales in one chart (0–1, % of max, z-score), optionally **within each group** — "how good is this relative to its own method"
 - **Rank**: position inside a group (e.g. the ranking of methods at each budget)
 - **Bin**: cut a continuous column into N bins; the labels are strings, so they work directly as groups, filters or colors

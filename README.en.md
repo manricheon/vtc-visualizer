@@ -153,27 +153,29 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
-### v0.14 — richer computed columns
-- **Constant operands**: type a number in the second slot of a binary operation (e.g. `latency_ms ÷ 1000` for seconds).
-- **Normalize**: 0–1, % of max, or z-score — **over the whole data or within a group**.
-- **Rank**: ascending/descending, overall or within a group (e.g. rank inside each method).
-- **Bin**: equal-width bins whose labels are strings, so they can be used directly as groups or filters.
-- **Group aggregate**: broadcast a group's mean/sum/min/max/count onto every row (combine with reference-delta for relative values).
-- Definitions can be **edited** (`✎`) and **reordered** (`↑`/`↓`), which matters when one computed column feeds another.
-- **Presets now carry the computed-column definitions they use**, so a preset built on a derived axis also works for whoever you send it to (missing definitions are recreated).
+### v0.12 — usability, reports, computed columns
 
-### v0.13 — from charts to a report
-- **Chart captions**: Settings → Style → Caption. Shown under the chart and carried into the report.
-- **`Report MD` button**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
-- **`Copy findings`**: copies the analysis findings as a markdown list (works in the offline file too).
-
-### v0.12 — usability
+**Usability**
 - **State is preserved**: adding a chart or switching language no longer resets **zoom and the collapsed/expanded state of settings groups** (previously every card was rebuilt from scratch).
 - **Undo chart deletion**: the toast's `Undo` restores the chart with its axes, colors and baselines intact.
 - **Reorder and collapse cards**: `↑`/`↓` in the card header change the order, `▾` folds the plot away so long pages read as a list.
 - **Copy filters to other charts**: `Copy these filters to…` in Settings → Filters applies the same conditions to one or all charts.
 - **Example data button**: with no data loaded, `Load example data` gets you a chart in one click — it works even when the file is opened by double-clicking.
 - Keyboard & accessibility: `ESC` closes modals and popovers, the paste box takes focus when opened, focus outlines, titles on icon-only buttons, screen-reader announcements for toasts.
+
+**From charts to a report**
+- **Chart captions**: Settings → Style → Caption. Shown under the chart and carried into the report.
+- **`Report MD` button**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
+- **`Copy findings`**: copies the analysis findings as a markdown list (works in the offline file too).
+
+**Richer computed columns**
+- **Constant operands**: type a number in the second slot of a binary operation (e.g. `latency_ms ÷ 1000`, `cost_usd × 1000`). Which unit reads better depends on your data and your audience — the tool does not push either way.
+- **Normalize**: 0–1, % of max, or z-score — **over the whole data or within a group**.
+- **Rank**: ascending/descending, overall or within a group (e.g. rank inside each method).
+- **Bin**: equal-width bins whose labels are strings, so they can be used directly as groups or filters.
+- **Group aggregate**: broadcast a group's mean/sum/min/max/count onto every row (combine with reference-delta for relative values).
+- Definitions can be **edited** (`✎`) and **reordered** (`↑`/`↓`), which matters when one computed column feeds another.
+- **Presets now carry the computed-column definitions they use**, so a preset built on a derived axis also works for whoever you send it to (missing definitions are recreated).
 
 ### v0.11.1 — analysis consistency fixes
 - Excluding or restoring rows in the table now **marks the analysis stale immediately** (previously the panel kept showing insights computed before the exclusion).
