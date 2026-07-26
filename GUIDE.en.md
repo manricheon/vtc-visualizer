@@ -123,9 +123,14 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 Want to see how each setting does **against a reference** (e.g. accuracy difference vs baseline/dense) but the data has no such column? You don't need to regenerate the data — make it on the spot with **computed columns** (the "Computed columns" panel below the data input):
 
 - **Binary op**: new column = A [−, +, ×, ÷] B (e.g. `used_tokens ÷ input_tokens` = actual usage ratio)
+- **Normalize / z-score**: compare metrics on different scales in one chart (0–1, % of max, z-score), optionally **within each group** — "how good is this relative to its own method"
+- **Rank**: position inside a group (e.g. the ranking of methods at each budget)
+- **Bin**: cut a continuous column into N bins; the labels are strings, so they work directly as groups, filters or colors
+- **Group aggregate**: attach a group's mean/sum to every row; combined with the reference delta this gives "how far is this row from its group average"
 - **Delta vs reference**: **difference** or **retention %** vs the reference row with the same match keys (e.g. value=`accuracy`, reference = rows where `method`=`baseline`, match=`tokens` → "how many pt above baseline at the same tokens")
 
-The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. If you don't need it, just collapse the panel — no effect on the view.
+A computed column can feed another one (use `↑`/`↓` in the list to fix the **calculation order**), and `✎` edits a definition.
+The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. Presets carry the definitions they need, so teammates get them too. If you don't need it, just collapse the panel — no effect on the view.
 
 ### ⑨ A whole 2D sweep in one picture — heatmap
 

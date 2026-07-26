@@ -305,7 +305,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.13';
+const APP_VERSION = 'v0.14';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -562,6 +562,14 @@ const I18N = {
     'table.exclSuffix': ', 그래프 제외 {n}행',
     'pager.info': '{page} / {pages} 페이지',
     'chips.rows': '{n}행',
+    'opt.derivedNorm': '정규화', 'opt.derivedRank': '순위', 'opt.derivedBin': '구간화', 'opt.derivedGroupAgg': '그룹 집계',
+    'opt.derivedConst': '숫자 직접 입력', 'opt.derivedWhole': '전체',
+    'opt.normMinmax': '0~1 정규화', 'opt.normMax': '최대값 대비 %', 'opt.normZ': 'z-score',
+    'opt.rankAsc': '작은 값이 1위', 'opt.rankDesc': '큰 값이 1위',
+    'cfg.derivedWithin': '기준 범위:', 'cfg.derivedWithinShort': '별', 'cfg.derivedBins': '구간',
+    'cfg.derivedEdit': '이 정의 수정', 'cfg.derivedSave': '수정 저장',
+    'cfg.derivedMoveUp': '위로 (계산 순서)', 'cfg.derivedMoveDown': '아래로 (계산 순서)',
+    'toast.presetDerived': '프리셋에 딸린 계산 컬럼 {n}개를 함께 만들었습니다.',
     'btn.report': '리포트 MD',
     'cfg.caption': '캡션',
     'cfg.captionPh': '이 그림이 말하는 것 (리포트에 함께 나갑니다)',
@@ -838,6 +846,14 @@ const I18N = {
     'table.exclSuffix': ', {n} excluded from chart',
     'pager.info': 'Page {page} / {pages}',
     'chips.rows': '{n} rows',
+    'opt.derivedNorm': 'Normalize', 'opt.derivedRank': 'Rank', 'opt.derivedBin': 'Bin', 'opt.derivedGroupAgg': 'Group aggregate',
+    'opt.derivedConst': 'Enter a number', 'opt.derivedWhole': 'whole data',
+    'opt.normMinmax': '0–1 normalize', 'opt.normMax': '% of max', 'opt.normZ': 'z-score',
+    'opt.rankAsc': 'smallest = 1', 'opt.rankDesc': 'largest = 1',
+    'cfg.derivedWithin': 'within:', 'cfg.derivedWithinShort': ' per', 'cfg.derivedBins': ' bins',
+    'cfg.derivedEdit': 'Edit this definition', 'cfg.derivedSave': 'Save changes',
+    'cfg.derivedMoveUp': 'Move up (calculation order)', 'cfg.derivedMoveDown': 'Move down (calculation order)',
+    'toast.presetDerived': 'Also created {n} computed column(s) the preset needs.',
     'btn.report': 'Report MD',
     'cfg.caption': 'Caption',
     'cfg.captionPh': 'What this figure says (goes into the report)',
@@ -958,11 +974,55 @@ function applyDerived() {
   for (const def of state.derived) {
     if (def.kind === 'binary') {
       const op = def.op;
+      const constB = def.bConst !== undefined && def.bConst !== '' ? Number(def.bConst) : null;   // 단위 환산용 상수
       for (const r of rows) {
-        const a = r[def.a], b = r[def.b];
+        const a = r[def.a], b = constB !== null ? constB : r[def.b];
         r[def.name] = (typeof a === 'number' && typeof b === 'number')
           ? roundv(op === '-' ? a - b : op === '+' ? a + b : op === '*' ? a * b : op === '/' ? (b ? a / b : null) : op === 'ratio' ? (b ? a / b * 100 : null) : null)
           : null;
+      }
+    } else if (def.kind === 'norm' || def.kind === 'rank' || def.kind === 'groupagg' || def.kind === 'bin') {
+      /* 그룹(선택) 안에서 계산 — by가 비면 전체가 하나의 그룹 */
+      const buckets = new Map();
+      for (const r of rows) {
+        const k = def.by ? String(r[def.by]) : '__all';
+        if (!buckets.has(k)) buckets.set(k, []);
+        buckets.get(k).push(r);
+      }
+      for (const rs of buckets.values()) {
+        const vals = rs.map(r => r[def.col]).filter(v => typeof v === 'number');
+        if (!vals.length) { rs.forEach(r => { r[def.name] = null; }); continue; }
+        const mn = Math.min(...vals), mx = Math.max(...vals);
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        const sd = vals.length > 1 ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (vals.length - 1)) : 0;
+        const sum = vals.reduce((a, b) => a + b, 0);
+        if (def.kind === 'norm') {
+          for (const r of rs) {
+            const v = r[def.col];
+            r[def.name] = typeof v !== 'number' ? null : roundv(
+              def.mode === 'z' ? (sd ? (v - mean) / sd : null)
+              : def.mode === 'max' ? (mx ? v / mx * 100 : null)
+              : (mx > mn ? (v - mn) / (mx - mn) : null));
+          }
+        } else if (def.kind === 'rank') {
+          const sorted = rs.filter(r => typeof r[def.col] === 'number')
+            .sort((a, b) => def.desc ? b[def.col] - a[def.col] : a[def.col] - b[def.col]);
+          sorted.forEach((r, i) => { r[def.name] = i + 1; });
+          for (const r of rs) if (typeof r[def.col] !== 'number') r[def.name] = null;
+        } else if (def.kind === 'groupagg') {
+          const agg = def.agg === 'sum' ? sum : def.agg === 'min' ? mn : def.agg === 'max' ? mx
+            : def.agg === 'count' ? vals.length : mean;
+          for (const r of rs) r[def.name] = roundv(agg);
+        } else {   // bin — 동일 폭 구간, 라벨은 경계값 (문자열이라 그룹·필터로 쓸 수 있다)
+          const n = Math.max(2, Math.min(20, Number(def.bins) || 4));
+          const w = (mx - mn) / n;
+          for (const r of rs) {
+            const v = r[def.col];
+            if (typeof v !== 'number') { r[def.name] = null; continue; }
+            const idx = w > 0 ? Math.min(n - 1, Math.floor((v - mn) / w)) : 0;
+            r[def.name] = `${roundv(mn + idx * w)}~${roundv(mn + (idx + 1) * w)}`;
+          }
+        }
       }
     } else if (def.kind === 'refdelta') {
       const ref = new Map();
@@ -3197,6 +3257,19 @@ function renderChips() {
   }
 }
 /* 계산 컬럼 패널 — 이항 연산 / 기준 대비 델타 */
+let derivedEditIdx = -1;
+function derivedDesc(d) {
+  const within = d.by ? ` [${d.by}${t('cfg.derivedWithinShort')}]` : '';
+  if (d.kind === 'binary') {
+    const opSym = { '-': '−', '+': '+', '*': '×', '/': '÷', ratio: '÷×100%' }[d.op];
+    return `${d.name} = ${d.a} ${opSym} ${d.bConst !== undefined && d.bConst !== '' ? d.bConst : d.b}`;
+  }
+  if (d.kind === 'norm') return `${d.name} = ${d.col} ${({ minmax: t('opt.normMinmax'), max: t('opt.normMax'), z: t('opt.normZ') })[d.mode]}${within}`;
+  if (d.kind === 'rank') return `${d.name} = ${d.col} ${d.desc ? t('opt.rankDesc') : t('opt.rankAsc')}${within}`;
+  if (d.kind === 'bin') return `${d.name} = ${d.col} → ${d.bins}${t('cfg.derivedBins')}${within}`;
+  if (d.kind === 'groupagg') return `${d.name} = ${d.by} ${t('cfg.derivedWithinShort')} ${d.col} ${d.agg}`;
+  return `${d.name} = ${d.valueCol} ${d.mode === 'retention' ? '÷' : '−'} (${d.refCol}=${d.refVal}${(d.keys || []).length ? ', ' + d.keys.join('·') : ''})`;
+}
 function renderDerived() {
   const panel = document.getElementById('derivedPanel');
   if (!panel) return;
@@ -3208,29 +3281,73 @@ function renderDerived() {
   panel.append(el('summary', {}, tf('cfg.derivedCount', { n: state.derived.length })));
   // 기존 정의 목록
   state.derived.forEach((d, i) => {
-    const desc = d.kind === 'binary' ? `${d.name} = ${d.a} ${({ '-': '−', '+': '+', '*': '×', '/': '÷', ratio: '÷×100%' })[d.op]} ${d.b}`
-      : `${d.name} = ${d.valueCol} ${d.mode === 'retention' ? '÷' : '−'} (${d.refCol}=${d.refVal}${(d.keys || []).length ? ', ' + d.keys.join('·') : ''})`;
+    const desc = derivedDesc(d);
     panel.append(el('div', { class: 'series-row' },
       el('span', { class: 'sname', title: desc }, desc),
-      el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { state.derived.splice(i, 1); commit(); } }, '×'),
+      el('button', { class: 'small', title: t('cfg.derivedMoveUp'), onclick: () => {
+        if (i > 0) { state.derived.splice(i - 1, 0, state.derived.splice(i, 1)[0]); commit(); }
+      } }, '↑'),
+      el('button', { class: 'small', title: t('cfg.derivedMoveDown'), onclick: () => {
+        if (i < state.derived.length - 1) { state.derived.splice(i + 1, 0, state.derived.splice(i, 1)[0]); commit(); }
+      } }, '↓'),
+      el('button', { class: 'small', title: t('cfg.derivedEdit'), onclick: () => { derivedEditIdx = i; renderDerived(); } }, '✎'),
+      el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { state.derived.splice(i, 1); derivedEditIdx = -1; commit(); } }, '×'),
     ));
   });
   // 추가 폼
-  const nameInp = el('input', { type: 'text', placeholder: t('cfg.derivedName'), style: 'width:120px' });
-  const kindSel = select([['binary', t('opt.derivedBinary')], ['refdelta', t('opt.derivedRef')]], 'binary', () => renderForm());
+  const editing = derivedEditIdx >= 0 && derivedEditIdx < state.derived.length ? state.derived[derivedEditIdx] : null;
+  const nameInp = el('input', { type: 'text', placeholder: t('cfg.derivedName'), style: 'width:120px', value: editing ? editing.name : '' });
+  const kindSel = select([['binary', t('opt.derivedBinary')], ['refdelta', t('opt.derivedRef')],
+    ['norm', t('opt.derivedNorm')], ['rank', t('opt.derivedRank')], ['bin', t('opt.derivedBin')], ['groupagg', t('opt.derivedGroupAgg')]],
+    editing ? editing.kind : 'binary', () => renderForm());
   const formBox = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:4px' });
   const numOpts = nums.map(c => [c, c]);
   const renderForm = () => {
     formBox.innerHTML = '';
+    const E = editing && editing.kind === kindSel.value ? editing : {};
+    const catOpts = cols.filter(c => !nums.includes(c)).map(c => [c, c]);
+    const byOpts = [['', t('opt.derivedWhole')], ...cols.map(c => [c, c])];
     if (kindSel.value === 'binary') {
-      const a = select(numOpts, nums[0], () => {}), op = select([['-', '−'], ['+', '+'], ['*', '×'], ['/', '÷'], ['ratio', '÷×100%']], '-', () => {}), b = select(numOpts, nums[1] || nums[0], () => {});
-      formBox._get = () => ({ kind: 'binary', a: a.value, op: op.value, b: b.value });
-      formBox.append(a, op, b);
+      const a = select(numOpts, E.a || nums[0], () => {});
+      const op = select([['-', '−'], ['+', '+'], ['*', '×'], ['/', '÷'], ['ratio', '÷×100%']], E.op || '-', () => {});
+      const b = select([...numOpts, ['__const', t('opt.derivedConst')]], E.bConst !== undefined && E.bConst !== '' ? '__const' : (E.b || nums[1] || nums[0]), () => syncConst());
+      const cnum = el('input', { type: 'number', step: 'any', style: 'width:80px', placeholder: t('opt.derivedConst'), value: E.bConst !== undefined ? E.bConst : '' });
+      const syncConst = () => { cnum.hidden = b.value !== '__const'; };
+      syncConst();
+      formBox._get = () => b.value === '__const'
+        ? { kind: 'binary', a: a.value, op: op.value, b: '', bConst: cnum.value }
+        : { kind: 'binary', a: a.value, op: op.value, b: b.value };
+      formBox.append(a, op, b, cnum);
+    } else if (kindSel.value === 'norm') {
+      const col = select(numOpts, E.col || nums[0], () => {});
+      const mode = select([['minmax', t('opt.normMinmax')], ['max', t('opt.normMax')], ['z', t('opt.normZ')]], E.mode || 'minmax', () => {});
+      const by = select(byOpts, E.by || '', () => {});
+      formBox._get = () => ({ kind: 'norm', col: col.value, mode: mode.value, by: by.value });
+      formBox.append(col, mode, el('span', {}, t('cfg.derivedWithin')), by);
+    } else if (kindSel.value === 'rank') {
+      const col = select(numOpts, E.col || nums[0], () => {});
+      const dir = select([['asc', t('opt.rankAsc')], ['desc', t('opt.rankDesc')]], E.desc ? 'desc' : 'asc', () => {});
+      const by = select(byOpts, E.by || '', () => {});
+      formBox._get = () => ({ kind: 'rank', col: col.value, desc: dir.value === 'desc', by: by.value });
+      formBox.append(col, dir, el('span', {}, t('cfg.derivedWithin')), by);
+    } else if (kindSel.value === 'bin') {
+      const col = select(numOpts, E.col || nums[0], () => {});
+      const bins = el('input', { type: 'number', min: '2', max: '20', style: 'width:60px', value: E.bins || 4 });
+      const by = select(byOpts, E.by || '', () => {});
+      formBox._get = () => ({ kind: 'bin', col: col.value, bins: Number(bins.value) || 4, by: by.value });
+      formBox.append(col, bins, el('span', {}, t('cfg.derivedBins')), el('span', {}, t('cfg.derivedWithin')), by);
+    } else if (kindSel.value === 'groupagg') {
+      const col = select(numOpts, E.col || nums[0], () => {});
+      const agg = select([['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')], ['count', t('opt.aggCount')]], E.agg || 'mean', () => {});
+      const by = select(cols.map(c => [c, c]), E.by || catOpts[0] || cols[0], () => {});
+      formBox._get = () => ({ kind: 'groupagg', col: col.value, agg: agg.value, by: by.value });
+      formBox.append(col, agg, el('span', {}, t('cfg.derivedWithin')), by);
     } else {
-      const val = select(numOpts, nums[0], () => {}), refCol = select(cols.map(c => [c, c]), cols[0], () => refreshVals()), refVal = select([], '', () => {});
-      const mode = select([['delta', t('opt.derivedDelta')], ['retention', t('opt.derivedRetention')]], 'delta', () => {});
+      const val = select(numOpts, E.valueCol || nums[0], () => {}), refCol = select(cols.map(c => [c, c]), E.refCol || cols[0], () => refreshVals()), refVal = select([], '', () => {});
+      const mode = select([['delta', t('opt.derivedDelta')], ['retention', t('opt.derivedRetention')]], E.mode || 'delta', () => {});
       const keysBox = el('span', { style: 'display:inline-flex;gap:6px;flex-wrap:wrap' });
-      cols.forEach(c => keysBox.append(el('label', { class: 'inline' }, el('input', { type: 'checkbox', 'data-k': c }), c)));
+      cols.forEach(c => keysBox.append(el('label', { class: 'inline' },
+        el('input', { type: 'checkbox', 'data-k': c, ...((E.keys || []).includes(c) ? { checked: '' } : {}) }), c)));
       const refreshVals = () => { refVal.innerHTML = ''; uniqueVals(refCol.value).forEach(v => refVal.append(el('option', { value: String(v) }, String(v)))); };
       refreshVals();
       formBox._get = () => ({ kind: 'refdelta', valueCol: val.value, refCol: refCol.value, refVal: refVal.value, mode: mode.value,
@@ -3245,10 +3362,15 @@ function renderDerived() {
     el('button', { class: 'small', onclick: () => {
       const name = nameInp.value.trim();
       if (!name) return alert(t('cfg.derivedName'));
-      if (name.startsWith('_') || visibleColumns().includes(name) || state.derived.some(d => d.name === name)) return alert(t('cfg.derivedNameTaken'));
-      state.derived.push({ name, ...formBox._get() });
+      const clash = name.startsWith('_') || (visibleColumns().includes(name) && !(editing && editing.name === name))
+        || state.derived.some((d, j) => d.name === name && j !== derivedEditIdx);
+      if (clash) return alert(t('cfg.derivedNameTaken'));
+      if (editing) state.derived[derivedEditIdx] = { name, ...formBox._get() };
+      else state.derived.push({ name, ...formBox._get() });
+      derivedEditIdx = -1;
       commit();
-    } }, t('cfg.derivedAdd')),
+    } }, editing ? t('cfg.derivedSave') : t('cfg.derivedAdd')),
+    ...(editing ? [el('button', { class: 'small', onclick: () => { derivedEditIdx = -1; renderDerived(); } }, t('btn.cancel'))] : []),
   );
 }
 
@@ -3431,15 +3553,42 @@ function loadPresets() {
   try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || {}; } catch (e) { return {}; }
 }
 function savePresets(p) { localStorage.setItem(PRESET_KEY, JSON.stringify(p)); }
+/* 프리셋이 참조하는 계산 컬럼 정의를 함께 담는다 — 없으면 받는 쪽에서 빈 차트가 되고 경고도 없었다 */
+function presetDerivedFor(cfg) {
+  const used = new Set([cfg.x, cfg.y, cfg.group, cfg.group2, cfg.size, cfg.colorBy, cfg.facetBy, cfg.labelCol, cfg.heatZ,
+    ...(cfg.filters || []).map(f => f.col)].filter(Boolean));
+  const out = [], seen = new Set();
+  const add = name => {
+    const d = state.derived.find(x => x.name === name);
+    if (!d || seen.has(name)) return;
+    seen.add(name);
+    [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || [])].filter(Boolean).forEach(add);   // 체인 의존성까지
+    out.push(d);
+  };
+  used.forEach(add);
+  return out;
+}
 function chartPreset(cfg) {
   const p = serializableChart(cfg);
   delete p.id; delete p.title;
   delete p.textMarkers; delete p.labelOffsets; delete p.hiddenLabels;   // 특정 데이터 점에 묶인 필드는 제외
+  const der = presetDerivedFor(cfg);
+  if (der.length) p._derived = der;   // 축으로 쓰는 계산 컬럼 정의를 함께 (적용 시 없으면 복원)
   return p;
 }
 function applyPreset(cfg, preset) {
   const keep = { id: cfg.id, title: cfg.title };
-  const merged = { ...defaultChart(), ...preset, ...keep };   // 프리셋에 없는 새 필드는 기본값으로 (세션 복원과 동일 규칙)
+  let restored = 0;
+  for (const d of preset._derived || []) {   // 프리셋이 쓰는 계산 컬럼이 없으면 정의를 복원한다
+    if (!state.derived.some(x => x.name === d.name)) { state.derived.push(d); restored++; }
+  }
+  if (restored) {
+    applyDerived(); renderDerived(); renderTable(); analysisStale();
+    showToast(tf('toast.presetDerived', { n: restored }));
+  }
+  const clean = { ...preset };
+  delete clean._derived;
+  const merged = { ...defaultChart(), ...clean, ...keep };   // 프리셋에 없는 새 필드는 기본값으로 (세션 복원과 동일 규칙)
   for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
   Object.assign(cfg, merged);
   const card = cardOf(cfg);   // 유형이 바뀔 수 있으므로 이 카드만 재구성 (다른 카드의 줌·패널 상태는 보존)

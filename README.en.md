@@ -153,6 +153,15 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.14 — richer computed columns
+- **Constant operands**: type a number in the second slot of a binary operation (e.g. `latency_ms ÷ 1000` for seconds).
+- **Normalize**: 0–1, % of max, or z-score — **over the whole data or within a group**.
+- **Rank**: ascending/descending, overall or within a group (e.g. rank inside each method).
+- **Bin**: equal-width bins whose labels are strings, so they can be used directly as groups or filters.
+- **Group aggregate**: broadcast a group's mean/sum/min/max/count onto every row (combine with reference-delta for relative values).
+- Definitions can be **edited** (`✎`) and **reordered** (`↑`/`↓`), which matters when one computed column feeds another.
+- **Presets now carry the computed-column definitions they use**, so a preset built on a derived axis also works for whoever you send it to (missing definitions are recreated).
+
 ### v0.13 — from charts to a report
 - **Chart captions**: Settings → Style → Caption. Shown under the chart and carried into the report.
 - **`Report MD` button**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
