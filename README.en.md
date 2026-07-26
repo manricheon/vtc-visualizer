@@ -87,7 +87,9 @@ ours,4000,4.1,0.744,MMLU
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
-| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete |
+| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed |
+| **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
+| **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
 | **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
 | **Trend lines** | Settings → Advanced: linear / quadratic / log / exponential / power / moving-average fits per series (dash & width adjustable), optional **error band (±1σ/±2σ)** shading |
 | **Shape group (3rd dimension)** | Settings → Data → Shape group: color = group 1, **marker shape = group 2**. E.g. color=method, shape=frames keeps method colors while distinguishing frames by shape |
@@ -156,6 +158,17 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.15 — annotations follow the data
+**Text markers are anchored to their point**
+- Creating a marker now stores the **identity of the point you clicked** (its condition columns — method, tokens, …) alongside the coordinates, and every render re-reads that row's current values. Refresh the data and the callout still points at the same point. Markers from older sessions keep their coordinate behaviour.
+
+**Nothing drifts silently**
+- If the anchor row disappears (filter, exclusion, replaced data) or the axis column changes so the coordinates no longer mean anything, the marker is **not drawn**, and a toast says so. A misplaced annotation goes straight into a report, so vanishing beats sitting in the wrong spot.
+- The Settings → Point labels list keeps it with a ⚠ and the reason (`axis changed` / `point is gone`); hit `Re-anchor` and click a point to attach it somewhere new.
+
+**Notes that belong to no point**
+- `＋ Pinned note` adds a note fixed to the plot area (`n=24 · measured 2026-07`, measurement conditions, provenance). It survives any data change or axis switch, and drags anywhere.
 
 ### v0.14 — refresh, distributions, second axis, safety
 **Hand work survives a data refresh**

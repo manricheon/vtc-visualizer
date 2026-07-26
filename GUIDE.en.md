@@ -114,7 +114,8 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 ### ⑦ Presentation polish — turning a chart into "the slide"
 
 - **Let the title state the conclusion**: Style → Title = "Ensemble overtakes baseline from 8k tokens", not "Accuracy vs Tokens" — the axis labels already say that.
-- **Click** the key point → `💬 Add text marker` for an annotation (drag to position; style it in the Point labels group)
+- **Click** the key point → `💬 Add text marker` for an annotation (drag to position; style it in the Point labels group). The marker is **anchored to that point**, so it still points at it after next week's refresh
+- For text that belongs to **no single point** — measurement conditions, sample size — use `＋ Pinned note` in the Point labels group; it holds its spot through data and axis changes
 - Style → Font size 15–16 (back-of-the-room test); with 2–3 series move the legend to `Inside chart` to save space
 - Export with `PNG` (3× resolution, for slides) or `SVG` (papers, vector editing)
 
@@ -202,9 +203,10 @@ When moving findings into prose, do not convert them into causal claims (see "Ho
 ### ⑬ Living with a weekly log
 
 Re-adding a file under the same name replaces the data and keeps your chart settings. Since v0.14 it also keeps **the work you did by hand**:
-rows you excluded, rows you faded, and point labels you dragged into place all carry over.
+rows you excluded, rows you faded, point labels you dragged into place — and, since v0.15, **text markers** — all carry over.
 Rows are recognised by their **condition columns** (method, tokens — the ones with few distinct values), so refreshed measurements still map to the same row.
 If the conditions themselves change (a new method appears), those count as new rows.
+When the point a marker referred to is gone, it is **hidden rather than left in the wrong place**, and you're told — check Settings → Point labels for the ⚠ and its reason, then `Re-anchor` it to another point or delete it.
 
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).

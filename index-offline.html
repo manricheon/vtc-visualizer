@@ -170,6 +170,11 @@
   .series-row.sub { margin: 2px 0 0 10px; }
   .series-row.sub select { flex: 1; width: auto; min-width: 0; }
   .series-row.sub input[type="number"] { width: 46px; flex: none; }
+  /* 텍스트 마커 목록: 고정 메모 표시 / 기준을 잃어 숨겨진 마커 */
+  .tm-badge { flex: none; font-size: var(--fs-xs); color: var(--muted); border: 1px solid var(--grid); border-radius: var(--radius); padding: 1px 6px; white-space: nowrap; }
+  .tm-badge.warn { color: var(--danger); border-color: var(--danger); }
+  .series-row.tm-stale { flex-wrap: wrap; }   /* 사유 + 다시 지정이 좁은 패널에서 잘리지 않도록 */
+  .series-row.tm-stale input[type="text"] { color: var(--muted); font-style: italic; min-width: 120px; }
 
   /* ===== data table ===== */
   #tableCtrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
@@ -352,7 +357,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.14';
+const APP_VERSION = 'v0.15';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -598,6 +603,12 @@ const I18N = {
     'cfg.labelHint': '드래그: 위치 조정 · 클릭: 개별 숨김. 같은 값 중복은 하나만 표시되고 겹침은 자동 회피됩니다.',
     'cfg.restoreHiddenLabels': '숨긴 레이블 {n}개 모두 복원',
     'cfg.textMarkerGlobal': '텍스트 마커 (전체 스타일)',
+    'cfg.addNote': '＋ 고정 메모',
+    'cfg.addNoteHint': '데이터 점과 무관하게 차트 한구석에 붙는 메모 — 데이터가 바뀌어도 자리를 지킵니다.',
+    'cfg.tmPinned': '고정',
+    'cfg.tmStaleAxis': '축이 바뀜',
+    'cfg.tmStaleGone': '점이 없음',
+    'cfg.tmReanchor': '다시 지정',
     'cfg.fontLabel': '글자',
     'cfg.tmFontSizeTitle': '마커 글자 크기 (비우면 차트 폰트 크기)',
     'cfg.tmColorTitle': '마커 글자 색',
@@ -640,6 +651,8 @@ const I18N = {
     'pt.addTextMarker': '💬 텍스트 마커 추가',
     'pt.textPlaceholder': '표시할 텍스트',
     'pt.textMarker': '텍스트 마커',
+    'pt.note': '고정 메모',
+    'pt.notePlaceholder': '차트에 고정할 메모',
     'pt.excludeNote': '제외는 모든 차트에 적용 · 하단 표에서 복원',
     'pt.editTextMarker': '텍스트 마커 편집',
     'pt.sizeTitle': '글자 크기 (비우면 전체 설정)',
@@ -691,6 +704,9 @@ const I18N = {
     'confirm.removeDataset': '{name} ({rows}행)을 지웁니다. 이 데이터를 쓰는 차트 {charts}개는 빈 상태가 됩니다. 계속할까요?',
     'toast.datasetRemoved': '{name}을(를) 지웠습니다.',
     'toast.marksKept': '갱신된 데이터에서 제외·흐리게 표시 {n}행을 그대로 이어받았습니다.',
+    'toast.tmStale': '텍스트 마커 {n}개가 기준 점을 잃어 숨겼습니다 — 설정 › 포인트 레이블에서 다시 지정하세요.',
+    'toast.tmPick': '마커를 붙일 점을 클릭하세요.',
+    'toast.tmReanchored': '마커를 새 점에 다시 붙였습니다.',
     'toast.presetsImported': '세션에 딸린 프리셋 {n}개를 추가했습니다.',
     'toast.presetApplied': '프리셋을 적용했습니다 (이전 설정은 덮어썼습니다).',
     'toast.derivedCleared': '{name} 삭제 — 차트 {n}개의 축·필터 설정을 함께 정리했습니다.',
@@ -917,6 +933,12 @@ const I18N = {
     'cfg.labelHint': 'Drag to reposition · click to hide individually. Duplicate values show once, and overlaps are avoided automatically.',
     'cfg.restoreHiddenLabels': 'Restore all {n} hidden labels',
     'cfg.textMarkerGlobal': 'Text markers (global style)',
+    'cfg.addNote': '＋ Pinned note',
+    'cfg.addNoteHint': 'A note pinned to a corner of the chart, tied to no data point — it stays put when the data changes.',
+    'cfg.tmPinned': 'pinned',
+    'cfg.tmStaleAxis': 'axis changed',
+    'cfg.tmStaleGone': 'point is gone',
+    'cfg.tmReanchor': 'Re-anchor',
     'cfg.fontLabel': 'Font',
     'cfg.tmFontSizeTitle': 'Marker font size (blank = chart font size)',
     'cfg.tmColorTitle': 'Marker font color',
@@ -959,6 +981,8 @@ const I18N = {
     'pt.addTextMarker': '💬 Add text marker',
     'pt.textPlaceholder': 'Text to display',
     'pt.textMarker': 'Text marker',
+    'pt.note': 'Pinned note',
+    'pt.notePlaceholder': 'Note to pin on the chart',
     'pt.excludeNote': 'Exclusion applies to all charts · restore from the table below',
     'pt.editTextMarker': 'Edit text marker',
     'pt.sizeTitle': 'Font size (blank = use global setting)',
@@ -1010,6 +1034,9 @@ const I18N = {
     'confirm.removeDataset': 'Delete {name} ({rows} rows)? The {charts} chart(s) built on it will come out empty. Continue?',
     'toast.datasetRemoved': 'Deleted {name}.',
     'toast.marksKept': 'Carried {n} excluded/faded row mark(s) over to the refreshed data.',
+    'toast.tmStale': 'Hid {n} text marker(s) that lost their anchor point — re-anchor them in Settings › Point labels.',
+    'toast.tmPick': 'Click a point to anchor the marker to.',
+    'toast.tmReanchored': 'Marker re-anchored to the new point.',
     'toast.presetsImported': 'Added {n} preset(s) bundled with the session.',
     'toast.presetApplied': 'Preset applied (the previous settings were replaced).',
     'toast.derivedCleared': 'Deleted {name} — also cleared axis/filter settings on {n} chart(s).',
@@ -1217,7 +1244,11 @@ function defaultChart() {
     renderMode: 'auto',         // auto | svg | gl — 점이 많으면 WebGL(scattergl)로 그린다 (auto)
     caption: '',                // 보고서·발표용 설명 (차트 아래 표시, 마크다운 리포트에 포함)
     baselines: [],              // [{x, y, shade, dir}] — shade: none|ur|ul|lr|ll, dir: both|h|v (기본 both)
-    textMarkers: [],            // [{x, y, text, ax, ay}] — 클릭으로 추가하는 자유 주석
+    /* [{x, y, text, ax, ay, rk?, xc?, yc?, anchor?}] — 클릭으로 추가하는 자유 주석.
+       rk = 앵커 행의 정체성 키(rowKey), xc/yc = 앵커를 잡을 때의 축 컬럼 — 그릴 때 현재 행에서 값을 다시 읽는다.
+       anchor:'paper'면 데이터와 무관한 고정 메모로 x·y가 0~1 비율 좌표.
+       rk가 없는 예전 마커는 지금까지처럼 좌표(x,y)로 그린다. */
+    textMarkers: [],
     pareto: false, paretoDir: 'min-x-max-y',
     trendStat: 'auto',          // auto | none — 추세선 적합도(R²·기울기) 배지 표시
     trend: 'none',              // none | linear | poly2 | log | exp | power | movavg
@@ -1515,6 +1546,26 @@ function chartRows(cfg) {
 function pointKey(series, x, y) { return `${series}|${x}|${y}`; }
 /* 값이 바뀌면 값 기반 키는 어긋난다 — 조건 컬럼 조합(행 정체성)으로 만든 키를 함께 쓴다 */
 function pointKeyRow(series, r) { return `${series}#${rowKey(r)}`; }
+/* ---- 텍스트 마커 앵커 해석 ----
+   마커는 늘 "이 점에 대한 메모"로 만들어지는데 저장은 좌표로 해 왔다. 값이 갱신되거나 축 컬럼이
+   바뀌면 주석이 엉뚱한 자리에 남는다 — 그림은 그대로 보고서로 나가므로 조용히 틀리는 쪽이 가장 나쁘다.
+   그래서 앵커를 행 정체성(rk)으로 들고 다니며 그릴 때마다 현재 값을 다시 읽고,
+   기준을 잃으면 그리지 않고 stale로 보고한다(설정 패널에서 다시 지정/삭제). */
+function markerAnchorRows(cfg) {
+  const map = new Map();
+  for (const r of chartRows(cfg)) { const k = rowKey(r); if (!map.has(k)) map.set(k, r); }
+  return map;
+}
+function resolveMarker(cfg, m, rowsByKey) {
+  if (m.anchor === 'paper') return { mode: 'paper', x: m.x, y: m.y };
+  if (!m.rk) return { mode: 'xy', x: m.x, y: m.y };            // 예전 마커 — 좌표 그대로
+  if ((m.xc && m.xc !== cfg.x) || (m.yc && m.yc !== cfg.y)) return { mode: 'point', stale: 'axis' };
+  const r = (rowsByKey || markerAnchorRows(cfg)).get(m.rk);
+  if (!r) return { mode: 'point', stale: 'gone' };
+  const x = r[cfg.x], y = r[cfg.y];
+  if (x === null || x === undefined || y === null || y === undefined) return { mode: 'point', stale: 'gone' };
+  return { mode: 'point', x, y, row: r };
+}
 function labelSetting(map, series, r, x, y) {
   const rk = pointKeyRow(series, r);
   if (map && Object.prototype.hasOwnProperty.call(map, rk)) return { key: rk, val: map[rk] };
@@ -2002,16 +2053,29 @@ function buildAnnotations(cfg) {
     }
   }
   // 텍스트 마커 (클릭으로 추가한 자유 주석) — 전역 기본값 ← 개별 오버라이드 순으로 적용
+  const anchorRows = cfg.textMarkers.some(m => m.rk) ? markerAnchorRows(cfg) : null;
+  let staleN = 0;
   cfg.textMarkers.forEach((m, i) => {
+    const at = resolveMarker(cfg, m, anchorRows);
+    if (at.stale) { staleN++; return; }        // 기준을 잃은 마커는 그리지 않는다 (설정 패널에 ⚠로 남는다)
+    const font = { family: cfg.fontFamily, size: Number(m.size || cfg.tmFontSize) || cfg.fontSize, color: m.color || cfg.tmColor || inkOf(cfg) };
+    const box = cfg.tmBg ? { bgcolor: CHROME.overlay, bordercolor: CHROME.axis, borderwidth: 1, borderpad: 3 } : { borderpad: 2 };
+    if (at.mode === 'paper') {   // 데이터와 무관한 고정 메모 — 어떤 데이터가 들어와도 자리를 지킨다
+      ann.push({
+        x: at.x, y: at.y, xref: 'paper', yref: 'paper', xanchor: 'left', yanchor: 'top',
+        text: m.text, showarrow: false, captureevents: true, font, ...box,
+        _kind: 'tmarker', _tmIdx: i, _paper: true,
+      });
+      return;
+    }
     ann.push({
-      x: axCoord(m.x, cfg.xScale), y: axCoord(m.y, cfg.yScale), text: m.text,
+      x: axCoord(at.x, cfg.xScale), y: axCoord(at.y, cfg.yScale), text: m.text,
       showarrow: true, arrowcolor: cfg.tmArrow ? CHROME.muted : 'rgba(0,0,0,0)', arrowwidth: 1, arrowhead: 2,
-      ax: m.ax, ay: m.ay, captureevents: true,
-      font: { family: cfg.fontFamily, size: Number(m.size || cfg.tmFontSize) || cfg.fontSize, color: m.color || cfg.tmColor || inkOf(cfg) },
-      ...(cfg.tmBg ? { bgcolor: CHROME.overlay, bordercolor: CHROME.axis, borderwidth: 1, borderpad: 3 } : { borderpad: 2 }),
+      ax: m.ax, ay: m.ay, captureevents: true, font, ...box,
       _kind: 'tmarker', _tmIdx: i,
     });
   });
+  cfg._tmStaleN = staleN;
   return ann;
 }
 function baselineShapes(cfg, gd) {
@@ -2218,17 +2282,25 @@ function renderPlot(cfg) {
   Plotly.react(gd, traces, buildLayout(cfg, gd._fullLayout ? gd : null, traces), {
     responsive: true, displaylogo: false,
     scrollZoom: true, displayModeBar: true,
-    edits: { annotationTail: true },
+    edits: { annotationTail: true, annotationPosition: true },   // position은 고정 메모(paper)를 끌어 옮기기 위한 것
     modeBarButtonsToRemove: ['lasso2d', 'select2d'],
   }).then(() => {
     gd._vizRendering = false;
+    /* 기준을 잃은 마커는 화면에서 사라지므로, 사라졌다는 사실을 한 번은 말해 준다 */
+    if ((cfg._tmStaleN || 0) !== (cfg._tmStaleShown || 0)) {
+      if (cfg._tmStaleN) showToast(tf('toast.tmStale', { n: cfg._tmStaleN }));
+      cfg._tmStaleShown = cfg._tmStaleN;
+      refreshPanels(cfg);
+    }
     if (!gd._vizBound) {
       gd._vizBound = true;
       gd.on('plotly_click', ev => {
         const p = ev.points && ev.points[0];
         if (!p || p.data.name === 'Pareto frontier') return;
         const c = state.charts.find(ch => ch.id === cfg.id);
-        if (c) showPointPopover(c, gd, p, ev.event);
+        if (!c) return;
+        if (tmPending && tmPending.chartId === c.id) applyReanchor(c, p);   // "다시 지정" 대기 중
+        else showPointPopover(c, gd, p, ev.event);
       });
       gd.on('plotly_clickannotation', ev => {
         const c = state.charts.find(ch => ch.id === cfg.id);
@@ -2245,10 +2317,18 @@ function renderPlot(cfg) {
         if (!c) return;
         let moved = false, zoomed = false;
         for (const k of Object.keys(ev)) {
-          const m = k.match(/^annotations\[(\d+)\]\.(ax|ay)$/);
+          const m = k.match(/^annotations\[(\d+)\]\.(ax|ay|x|y)$/);
           if (m) {
             const ann = gd.layout.annotations[Number(m[1])];
             if (!ann) continue;
+            if (m[2] === 'x' || m[2] === 'y') {
+              // 고정 메모만 위치 자체를 옮긴다 — 점에 묶인 마커의 머리는 행이 정하므로 무시한다
+              if (ann._kind === 'tmarker' && ann._paper && c.textMarkers[ann._tmIdx]) {
+                c.textMarkers[ann._tmIdx][m[2]] = Math.max(0, Math.min(1, ev[k]));
+                moved = true;
+              }
+              continue;
+            }
             if (ann._kind === 'plabel' && ann._key) {
               const off = c.labelOffsets[ann._key] || { ax: 0, ay: -14 };
               off[m[2]] = ev[k];
@@ -2334,7 +2414,10 @@ function showPointPopover(c, gd, p, mouseEv) {
         const inp = el('input', { type: 'text', placeholder: t('pt.textPlaceholder') });
         const add = () => {
           const txt = inp.value.trim();
-          if (txt) { c.textMarkers.push({ x: p.x, y: p.y, text: txt, ax: 40, ay: -40 }); renderPlot(c); refreshPanels(c); save(); }
+          if (txt) {
+            c.textMarkers.push({ x: p.x, y: p.y, text: txt, ax: 40, ay: -40, ...markerAnchorFor(c, p) });
+            renderPlot(c); refreshPanels(c); save();
+          }
           hidePopover();
         };
         inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); if (e.key === 'Escape') hidePopover(); });
@@ -2346,6 +2429,46 @@ function showPointPopover(c, gd, p, mouseEv) {
     el('div', { class: 'pp-note' }, t('pt.excludeNote')),
   );
   placePopover(mouseEv);
+}
+/* 클릭한 점이 어느 행이었는지 기억해 둔다 — 값이 갱신돼도 같은 조건의 행을 다시 찾아간다 */
+function markerAnchorFor(c, p) {
+  const g = p.data && p.data._g, g2 = p.data && p.data._g2;
+  const row = allRows().find(r => !r._excluded && r[c.x] === p.x && r[c.y] === p.y
+    && (g == null || String(r[c.group]) === g) && (g2 == null || String(r[c.group2]) === g2));
+  return row ? { rk: rowKey(row), xc: c.x, yc: c.y } : {};
+}
+let tmPending = null;   // {chartId, idx} — "다시 지정"을 누른 마커. 다음 포인트 클릭이 새 앵커가 된다
+function startReanchor(c, idx) {
+  tmPending = { chartId: c.id, idx };
+  showToast(t('toast.tmPick'), t('btn.cancel'), () => { tmPending = null; });
+}
+function applyReanchor(c, p) {
+  const m = c.textMarkers[tmPending.idx];
+  tmPending = null;
+  if (!m) return;
+  delete m.rk; delete m.xc; delete m.yc; delete m.anchor;
+  Object.assign(m, { x: p.x, y: p.y, ax: m.ax || 40, ay: m.ay || -40 }, markerAnchorFor(c, p));
+  c._tmStaleShown = undefined;
+  renderPlot(c); refreshPanels(c); save();
+  showToast(t('toast.tmReanchored'));
+}
+/* 고정 메모 — 데이터 점이 아니라 플롯 영역(0~1 비율)에 붙는다 */
+function showNotePopover(c, mouseEv) {
+  popover.innerHTML = '';
+  const inp = el('input', { type: 'text', placeholder: t('pt.notePlaceholder') });
+  const add = () => {
+    const txt = inp.value.trim();
+    if (txt) {
+      const nth = c.textMarkers.filter(m => m.anchor === 'paper').length;
+      c.textMarkers.push({ anchor: 'paper', x: 0.03, y: Math.max(0.1, 0.97 - nth * 0.08), text: txt, ax: 0, ay: 0 });
+      renderPlot(c); refreshPanels(c); save();
+    }
+    hidePopover();
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); if (e.key === 'Escape') hidePopover(); });
+  popover.append(el('div', { class: 'pp-title' }, t('pt.note')), inp,
+    el('div', { class: 'pp-row' }, el('button', { onclick: add }, t('btn.add')), el('button', { onclick: hidePopover }, t('btn.cancel'))));
+  placePopover(mouseEv); inp.focus();
 }
 function showMarkerEditPopover(c, idx, mouseEv) {
   const m = c.textMarkers[idx];
@@ -2721,6 +2844,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         tf('cfg.restoreHiddenLabels', { n: cfg.hiddenLabels.length })));
     }
     markerBox.innerHTML = '';
+    markerBox.append(
+      el('div', { class: 'row' }, el('button', { class: 'small', onclick: e => showNotePopover(cfg, e) }, t('cfg.addNote'))),
+      el('div', { class: 'hint' }, t('cfg.addNoteHint')),
+    );
     if (cfg.textMarkers.length) {
       markerBox.append(
         el('div', { class: 'hint' }, t('cfg.textMarkerGlobal')),
@@ -2733,11 +2860,21 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         ),
       );
     }
+    /* 기준을 잃은 마커는 그려지지 않으므로 목록이 유일한 단서다 — 이유와 함께 여기서 되살린다 */
+    const rowsByKey = cfg.textMarkers.some(m => m.rk) ? markerAnchorRows(cfg) : null;
     cfg.textMarkers.forEach((m, i) => {
-      markerBox.append(el('div', { class: 'series-row' },
+      const at = resolveMarker(cfg, m, rowsByKey);
+      const tail = [];
+      if (at.mode === 'paper') tail.push(el('span', { class: 'tm-badge' }, t('cfg.tmPinned')));
+      if (at.stale) {
+        tail.push(el('span', { class: 'tm-badge warn' }, '⚠ ' + t(at.stale === 'axis' ? 'cfg.tmStaleAxis' : 'cfg.tmStaleGone')),
+          el('button', { class: 'small', onclick: () => startReanchor(cfg, i) }, t('cfg.tmReanchor')));
+      }
+      markerBox.append(el('div', { class: 'series-row' + (at.stale ? ' tm-stale' : '') },
         el('input', { type: 'color', value: m.color || cfg.tmColor || cfg.fontColor || CHROME.ink, title: t('cfg.tmMarkerColorTitle'), oninput: e => { m.color = e.target.value; rp(); } }),
         el('input', { type: 'text', value: m.text, style: 'flex:1', oninput: e => { m.text = e.target.value; rp(); } }),
-        el('button', { class: 'small danger', onclick: () => { cfg.textMarkers.splice(i, 1); renderLabelLists(); rp(); } }, '×'),
+        ...tail,
+        el('button', { class: 'small danger', onclick: () => { cfg.textMarkers.splice(i, 1); cfg._tmStaleShown = undefined; renderLabelLists(); rp(); } }, '×'),
       ));
     });
   };

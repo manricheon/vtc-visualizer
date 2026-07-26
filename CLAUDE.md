@@ -30,7 +30,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록), v0.12 사용성·보고서·계산 컬럼(부분 렌더링·삭제 되돌리기·카드 순서/접기·필터 복사·예시 데이터 / 캡션·마크다운 리포트·인사이트 복사 / 상수·정규화·순위·구간화·그룹집계·편집/순서·프리셋 동반), v0.12.1 리뷰 수정(캡션 유실·파생-부모 상관·flag 그룹·포화 오버슈트·이상치 정렬), v0.13 속도(크기 컬럼 O(n²) 제거·컬럼 캐시·WebGL 자동 전환), v0.13.1 계산 컬럼 삭제 시 사용처 확인·참조 정리, v0.14 갱신 시 큐레이션 보존·분포 차트·보조 Y축·축 눈금·적합도·설정 검색·세션 번들.
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록), v0.12 사용성·보고서·계산 컬럼(부분 렌더링·삭제 되돌리기·카드 순서/접기·필터 복사·예시 데이터 / 캡션·마크다운 리포트·인사이트 복사 / 상수·정규화·순위·구간화·그룹집계·편집/순서·프리셋 동반), v0.12.1 리뷰 수정(캡션 유실·파생-부모 상관·flag 그룹·포화 오버슈트·이상치 정렬), v0.13 속도(크기 컬럼 O(n²) 제거·컬럼 캐시·WebGL 자동 전환), v0.13.1 계산 컬럼 삭제 시 사용처 확인·참조 정리, v0.14 갱신 시 큐레이션 보존·분포 차트·보조 Y축·축 눈금·적합도·설정 검색·세션 번들, v0.15 텍스트 마커 점 앵커(행 정체성)·기준 상실 감지/다시 지정·고정 메모(paper 좌표).
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -66,7 +66,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **차트 설정 스키마**: `defaultChart()` — 새 옵션은 여기에 필드 추가부터.
   차트 유형: scatter|line|scatter+line|bar|heatmap|dumbbell. heatmap/dumbbell은 `buildTraces` 앞부분에서 `buildHeatmap`/`buildDumbbell`로 분기(facet·베이스라인·레이블 비활성),
   buildLayout에 전용 축 분기(heatmap=이산 X·Y+컬러바, dumbbell=값 X·카테고리 Y 가로). heatmap 필드 `heatZ`/`heatAgg`/`heatText`, 덤벨은 x=카테고리·group=짝·y=값.
-  주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
+  주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay,rk?,xc?,yc?,anchor?}]`(→ 아래 "텍스트 마커 앵커"), `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
   `group2`(마커 모양 2차 그룹 — **`group`이 비어도 단독으로 시리즈를 나눈다**(색은 하나, 모양만 구분). 범례는 `legendPos: 'none'`일 때만 숨긴다 — 시리즈 수로 자동 판단하지 않는다 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),
@@ -113,6 +113,15 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   같은 이름 데이터셋을 다시 넣으면 `addDataset`이 이 키로 `_excluded`/`_muted`를 되붙이고, 포인트 레이블은
   `pointKeyRow()`(행 정체성) 키를 우선 쓰되 예전 값 기반 키(`pointKey`)도 계속 읽는다.
   **측정값이 키에 들어가면 갱신 때 전부 어긋난다** — 임계값을 느슨하게 바꾸지 말 것.
+- **텍스트 마커 앵커**(v0.15): 마커는 늘 포인트 클릭으로 만들어지므로 **좌표가 아니라 점에 묶는다** —
+  `markerAnchorFor(cfg, p)`가 클릭한 점의 행을 찾아 `{rk: rowKey(row), xc, yc}`(행 정체성 + 그때의 축 컬럼)를 마커에 담고,
+  `resolveMarker(cfg, m, rowsByKey)`가 그릴 때마다 `markerAnchorRows()`(chartRows의 rowKey 맵)에서 행을 찾아 **현재 값을 다시 읽는다**.
+  세 가지 모드: `paper`(고정 메모 — x·y가 0~1 비율, `xref/yref:'paper'`, `_paper` 플래그) · `xy`(rk 없는 예전 마커, 좌표 그대로) · `point`(행 앵커).
+  **기준을 잃으면(행이 없음 = `gone`, 축 컬럼이 바뀜 = `axis`) 그리지 않는다** — 어긋난 주석은 그대로 보고서로 나가므로 조용히 틀리는 쪽이 가장 나쁘다.
+  `buildAnnotations`가 `cfg._tmStaleN`에 개수를 남기고, `renderPlot`이 직전 값(`_tmStaleShown`)과 다를 때만 토스트 + `refreshPanels`,
+  설정 목록(`renderLabelLists`)이 ⚠ 사유와 `다시 지정`(`startReanchor`→다음 `plotly_click`→`applyReanchor`, 대기 상태는 모듈 스코프 `tmPending`)을 띄운다.
+  고정 메모를 끌어 옮기려면 config `edits.annotationPosition`이 필요하고, relayout 핸들러는 **`_paper` 마커일 때만** `x`/`y`를 받는다
+  (점 앵커의 머리 좌표는 행이 정하므로 무시 — 받으면 앵커와 어긋난다).
 - **분포 차트**: `buildDistribution(cfg, 'histogram'|'box')` — 값 컬럼은 `cfg.y`, 그룹이 있으면 그룹별로 겹쳐 그린다(히스토그램은 `barmode:'overlay'`).
 - **보조 Y축**: `cfg.y2` → `hasY2()`/`y2Layout()`. 기본 경로 레이아웃은 `baseLayout`을 쓰지 않으므로 **두 곳 모두에 적용**해야 한다.
 - **테이블**: `renderTable` (검색/정렬/페이지네이션 200행, 행 앞 체크박스로 `_excluded` 토글 → 전 차트에서 제외)
