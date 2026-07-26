@@ -2032,13 +2032,17 @@ function buildLayout(cfg, gd, traces) {
   if (cfg.type === 'histogram' || cfg.type === 'box') {
     const dcol = cfg.y || cfg.x;
     const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick);
+    const legendCfg = {   // 분포 차트도 범례 위치·숨김 설정을 따라야 한다
+      showlegend: cfg.legendPos !== 'none' && (cfg.group ? seriesDefs(cfg).length > 1 : false),
+      legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
+    };
     if (cfg.type === 'histogram') {
       const cnt = axis(cfg.xLabel || 'n', 'linear', '', '', '', '');
-      return { ...baseLayout, xaxis: { ...valAxis, title: { ...valAxis.title, text: cfg.xLabel || dcol } },
+      return { ...baseLayout, ...legendCfg, xaxis: { ...valAxis, title: { ...valAxis.title, text: cfg.xLabel || dcol } },
         yaxis: { ...cnt, title: { ...cnt.title, text: 'n' } }, barmode: 'overlay', bargap: 0.04 };
     }
     const catAx = axis('', 'linear', '', '', '', '');
-    return { ...baseLayout, xaxis: { ...catAx, type: 'category', showgrid: false }, yaxis: valAxis };
+    return { ...baseLayout, ...legendCfg, xaxis: { ...catAx, type: 'category', showgrid: false }, yaxis: valAxis };
   }
   if (cfg.type === 'heatmap') {   // X·Y 이산 축 + 컬러바(마진 여유), 범례 없음
     return { ...baseLayout, xaxis: catAxis(cfg.xLabel, cfg.x), yaxis: catAxis(cfg.yLabel, cfg.y), showlegend: false,
@@ -2069,7 +2073,7 @@ function buildLayout(cfg, gd, traces) {
       font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
       paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
       grid: { rows: rowsN, columns: cols, pattern: 'independent', roworder: 'top to bottom' },
-      showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
+      showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto || hasY2(cfg)),
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: (cfg.title ? 52 : 30) + 6, b: 52 },
       barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
@@ -2095,7 +2099,7 @@ function buildLayout(cfg, gd, traces) {
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
     paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
     xaxis, yaxis, ...y2Layout(cfg),
-    showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto),
+    showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto || hasY2(cfg)),   // 보조 축만 있어도 시리즈가 둘이다
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
