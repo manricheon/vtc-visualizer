@@ -153,6 +153,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.13 — from charts to a report
+- **Chart captions**: Settings → Style → Caption. Shown under the chart and carried into the report.
+- **`Report MD` button**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
+- **`Copy findings`**: copies the analysis findings as a markdown list (works in the offline file too).
+
 ### v0.12 — usability
 - **State is preserved**: adding a chart or switching language no longer resets **zoom and the collapsed/expanded state of settings groups** (previously every card was rebuilt from scratch).
 - **Undo chart deletion**: the toast's `Undo` restores the chart with its axes, colors and baselines intact.

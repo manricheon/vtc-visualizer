@@ -183,6 +183,14 @@ Each tier carries a one-line note on how to check it. The order of how objective
 The analysis runs on **the rows still in the table** (rows excluded from charts are left out) and is discarded whenever the data changes. It is never stored in the session.
 If nothing at all is reported, read the **scan scope** line at the top of the panel: it lists which columns were treated as groups and conditions and what was excluded and why, which tells you whether the relationships were weak or there were simply no conditions to compare.
 
+### ⑫ Exporting a report — figures with their sentences
+
+Once the charts are polished, write one or two sentences into Settings → Style → **Caption** for each ("what this figure says") and press `Report MD`.
+You get one markdown file plus the chart PNGs; every chart section carries its **caption, setup and the filters in effect**, and if the analysis has been run, its findings summary and caveat are appended.
+
+**Why the filter conditions must travel with the figure**: a conclusion that only holds for tokens ≤ 4000, screenshotted with the filter on and pasted without stating it, will be read as a conclusion about the whole dataset. The report writes that condition down for you.
+When moving findings into prose, do not convert them into causal claims (see "How to read the findings" in ⑪) and keep only what you need.
+
 ## 3. Principles for effective charts (summary)
 
 1. **One chart, one message** — want to say two things? Duplicate into two charts.
