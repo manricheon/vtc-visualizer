@@ -372,6 +372,20 @@ const PALETTE_THEMES = {
   ink:     { light: ['#1e8ae1', '#8c3b2f', '#2d9c70', '#6b3fa0', '#a58118', '#2091c3', '#93314f', '#659814'],
               dark:  ['#1e8ae1', '#a65245', '#2d9c70', '#8257ba', '#a58118', '#2091c3', '#ae4965', '#659814'] },
 };
+/* 그래프 면 색 — 팔레트마다 어울리는 톤. 전부 검증기로 확인했다(색약 분리는 배경과 무관하고,
+   바뀌는 것은 배경 대비뿐이라 옅은 두 단계까지만 둔다. 진한 면은 노랑·연두가 묻힌다). */
+const FACE_TONES = {
+  default: { soft: { light: '#f7f6f2', dark: '#211f1d' }, tint: { light: '#f1f0ea', dark: '#272522' } },
+  carbon:  { soft: { light: '#f6f7f9', dark: '#202224' }, tint: { light: '#eef0f3', dark: '#26282b' } },
+  okabe:   { soft: { light: '#f8f6f1', dark: '#211f1b' }, tint: { light: '#f2eee5', dark: '#272420' } },
+  ink:     { soft: { light: '#f8f5f0', dark: '#211e19' }, tint: { light: '#f3eee5', dark: '#26231d' } },
+};
+function faceColor(cfg) {
+  const tone = (FACE_TONES[PALETTE_THEME] || FACE_TONES.default)[cfg.plotFace];
+  return tone ? tone[effectiveDark() ? 'dark' : 'light'] : CHROME.surface;
+}
+/* 면에 색이 있으면 격자는 흰색(=카드색)으로 빼서 데이터 뒤로 물러나게 한다 — ggplot·Economist 방식 */
+function gridColorOf(cfg) { return (cfg.plotFace && cfg.plotFace !== 'none') ? CHROME.surface : CHROME.grid; }
 const PALETTE_KEY = 'vtc-visualizer:palette';
 let PALETTE_THEME = PALETTE_THEMES[localStorage.getItem(PALETTE_KEY)] ? localStorage.getItem(PALETTE_KEY) : 'default';
 const LIGHT_PALETTE = PALETTE_THEMES.default.light.slice();
@@ -540,6 +554,8 @@ const I18N = {
     'cfg.xRange': 'X 범위',
     'cfg.yRange': 'Y 범위',
     'cfg.rangeHint': '범위는 min/max 중 한쪽만 입력해도 됩니다. 비우면 자동.',
+    'cfg.plotFace': '그래프 면', 'cfg.plotFaceTitle': '데이터 영역에 옅은 바탕색을 깔고 격자를 흰색으로 뺍니다 (논문 그림은 보통 없음이 낫습니다)',
+    'opt.faceNone': '없음', 'opt.faceSoft': '아주 옅게', 'opt.faceTint': '옅게',
     'cfg.grid': '그리드',
     'cfg.title': '제목',
     'cfg.font': '폰트',
@@ -857,6 +873,8 @@ const I18N = {
     'cfg.xRange': 'X range',
     'cfg.yRange': 'Y range',
     'cfg.rangeHint': 'You can enter just min or max. Leave blank for automatic.',
+    'cfg.plotFace': 'Plot face', 'cfg.plotFaceTitle': 'Tint the data area and draw the grid in white (figures for papers usually read better without it)',
+    'opt.faceNone': 'None', 'opt.faceSoft': 'Very light', 'opt.faceTint': 'Light',
     'cfg.grid': 'Grid',
     'cfg.title': 'Title',
     'cfg.font': 'Font',
@@ -1187,7 +1205,7 @@ function defaultChart() {
     y2: '',                     // 보조 Y축(오른쪽) 컬럼 — 스케일이 다른 두 지표를 한 그림에
     xTick: '', yTick: '',       // '' | percent | thousands | sci | 0/1/2/3(소수 자릿수) — 축 눈금 표기
     xMin: '', xMax: '', yMin: '', yMax: '',
-    grid: true,
+    grid: true, plotFace: 'none',   // none | soft | tint — 그래프 면 색
     fontFamily: FONTS[0], fontSize: 13, fontColor: '',   // '' = 테마 잉크 자동(다크/라이트 따라감)
     legendPos: 'right',         // right | top | inside | none
     markerSize: 9, lineWidth: 2,
@@ -2067,7 +2085,7 @@ function buildLayout(cfg, gd, traces) {
     const a = {
       title: { text: label || col, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: inkOf(cfg)} },
       type: isCat ? 'category' : (scale === 'log' ? 'log' : 'linear'),
-      showgrid: cfg.grid, gridcolor: CHROME.grid, gridwidth: 1,
+      showgrid: cfg.grid, gridcolor: gridColorOf(cfg), gridwidth: (cfg.plotFace && cfg.plotFace !== 'none') ? 1.5 : 1,
       zeroline: false, linecolor: CHROME.axis, linewidth: 1,
       tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted },
       ticks: 'outside', tickcolor: CHROME.axis, mirror: false, automargin: true,
@@ -2095,7 +2113,7 @@ function buildLayout(cfg, gd, traces) {
   const baseLayout = {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg) }, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg) },
-    paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
+    paper_bgcolor: CHROME.surface, plot_bgcolor: faceColor(cfg),
     margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
     ...y2Layout(cfg),
     hovermode: 'closest',
@@ -2144,7 +2162,7 @@ function buildLayout(cfg, gd, traces) {
     const lay = {
       title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg)}, x: 0.5 } : undefined,
       font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
-      paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
+      paper_bgcolor: CHROME.surface, plot_bgcolor: faceColor(cfg),
       grid: { rows: rowsN, columns: cols, pattern: 'independent', roworder: 'top to bottom' },
       showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
@@ -2170,7 +2188,7 @@ function buildLayout(cfg, gd, traces) {
   return {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg)}, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
-    paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
+    paper_bgcolor: CHROME.surface, plot_bgcolor: faceColor(cfg),
     xaxis, yaxis, ...y2Layout(cfg),
     showlegend: cfg.legendPos !== 'none',   // 범례는 사용자가 숨길 때만 사라진다 (시리즈 수로 자동 판단하지 않음)
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
@@ -2639,6 +2657,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
                  el('input', { type: 'number', value: cfg.yMax, placeholder: 'max', step: 'any', oninput: e => { cfg.yMax = e.target.value; rp(); } })),
     el('div', { class: 'hint' }, t('cfg.rangeHint')),
     row(t('cfg.grid'), el('input', { type: 'checkbox', ...(cfg.grid ? { checked: '' } : {}), onchange: e => { cfg.grid = e.target.checked; rp(); } })),
+    row(t('cfg.plotFace'), select([['none', t('opt.faceNone')], ['soft', t('opt.faceSoft')], ['tint', t('opt.faceTint')]], cfg.plotFace || 'none', v => { cfg.plotFace = v; rp(); }, { title: t('cfg.plotFaceTitle') })),
   );
 
   /* --- 스타일 --- */

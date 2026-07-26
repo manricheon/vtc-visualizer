@@ -50,6 +50,8 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `PALETTE_THEME`(키 `vtc-visualizer:palette`) + `setPaletteTheme()`가 스왑하고 `applyTheme()`가 모드에 맞는 단계를 고른다.
   **색을 손으로 고치지 말 것** — `scripts/validate_palette.js`를 라이트/다크 각각 다시 돌려 통과시킨 값만 넣는다.
   순서 자체가 색약 안전 장치이므로 순서를 바꾸지 말 것(색은 엔티티를 따라간다).
+  `cfg.plotFace`(none|soft|tint) → `faceColor()`가 팔레트×모드에 맞는 면 색을, `gridColorOf()`가 격자색을 정한다
+  (면에 색이 있으면 격자는 카드색으로 빼서 뒤로 물린다). 면 색을 바꾸면 **대비 검증 기준이 달라지므로** 검증기를 다시 돌릴 것.
   디자인 토큰: 글자 4단계(`--fs-xs/sm/md/lg`), 간격 4px 배수(`--sp-1..6`), 컨트롤 규격(`--ctl-h`·`--radius`) — 새 UI는 이 토큰만 쓸 것.
 - **팔레트/스타일 상수** (`PALETTE`, `SYMBOLS`, `CHROME`, `SEQ_SCALE`, `FONTS`): dataviz 스킬의 검증된 카테고리 팔레트.
   순서가 색약 안전성 장치이므로 **순서를 바꾸거나 색을 추가하려면 dataviz 스킬을 로드해 validator로 검증**할 것.

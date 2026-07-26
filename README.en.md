@@ -176,6 +176,7 @@ The version shows next to the title (top-right) and in the footer, matching the 
 - **Pick a chart palette** from the top bar. The default is the palette you have been using; `Carbon` (IBM design system), `Okabe-Ito` (the colorblind-safe academic standard) and `Ink` (print-leaning) are available. The choice persists and travels with the session.
 - **The dark palette was corrected.** The previous dark colors sat above the lightness band for a dark surface (0.68–0.81); hues are unchanged, only lightness and chroma moved back into range.
 - All four palettes pass **lightness band · chroma floor · CVD (red-green/blue-yellow) adjacent separation · normal-vision separation · surface contrast**, in light and dark separately.
+- **Plot face**: Settings → Axes → Plot face (`None` / `Very light` / `Light`). Tinting the data area switches the grid to white so it recedes behind the marks (the ggplot/Economist treatment); each palette has its own tone, and dark mode lightens the face instead. Default is `None` — figures for papers usually want a white face.
 - Screen: header buttons grouped into **primary / export / view**, four type sizes instead of a mix, spacing on a 4px rhythm, one control height and radius, a soft shadow so charts read as paper, and an empty state that leads with `Load example data`.
 - Turning on the second Y axis now shows a **caution note** — two scales can manufacture a correlation depending on how each axis is framed.
 
