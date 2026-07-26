@@ -166,6 +166,11 @@ The version shows next to the title (top-right) and in the footer, matching the 
 - **Tick formats**: percent, thousands, scientific, fixed decimals.
 - **Trendline fit readout**: R², slope and n in the corner of the chart (can be turned off in Settings → Advanced).
 
+**Legend fixes**
+- **A shape group alone now splits the series.** With no color group set, the shape group used to be ignored entirely, collapsing everything into one series with no legend.
+- **The legend disappears only when set to `Hidden`.** Single-series charts show one too, labelled with the column being plotted.
+- Charts with only a second Y axis, and histograms/box plots, now follow the legend position and hide settings like every other type.
+
 **Safety and housekeeping**
 - Deleting a dataset now asks first and can be undone; applying a preset can be undone.
 - **Option search** in the settings panel: type "legend" or "log" and only matching options remain.

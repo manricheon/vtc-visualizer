@@ -1382,7 +1382,13 @@ function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 const plotDivs = {};   // chartId -> div
 /* 시리즈 정의: 색=group, 모양=group2. 인덱스는 전체(미필터) 고유값 기준 — 색/모양이 엔티티를 따라감 */
 function seriesDefs(cfg) {
-  if (!cfg.group) return [{ name: t('all'), colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
+  if (!cfg.group && cfg.group2) {   // 색 그룹 없이 모양 그룹만 — 색은 하나로 두고 모양으로 나눈다
+    return uniqueVals(cfg.group2).map(String).map((h, i) => ({
+      name: h, colorIdx: 0, symIdx: i, g: null, g2: h,
+      match: r => String(r[cfg.group2]) === h,
+    }));
+  }
+  if (!cfg.group) return [{ name: t('all'), solo: true, colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
   const gs = uniqueVals(cfg.group).map(String);
   if (!cfg.group2 || cfg.group2 === cfg.group) {
     return gs.map((g, i) => ({ name: g, colorIdx: i, symIdx: i, g, g2: null, match: r => String(r[cfg.group]) === g }));
@@ -1480,7 +1486,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       pts = pts.slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
     }
     const name = def.name;   // 내부 식별자(스타일·추세·숨김레이블 키·보조 trace명) — 절대 바꾸지 않음
-    const dname = (cfg.seriesLabels && cfg.seriesLabels[name]) || name;   // 범례·hover 표시용
+    const dname = (cfg.seriesLabels && cfg.seriesLabels[name]) || (def.solo && cfg.y ? cfg.y : name);   // 범례·hover 표시용 (단일 시리즈는 컬럼명이 낫다)
     const st = seriesStyle(cfg, def);
     const labelfn = r => cfg.labelCol ? r[cfg.labelCol] : (cfg.group ? r[cfg.group] : r[cfg.y]);
     const hoverT = `<b>${esc(dname)}</b><br>${esc(cfg.x)}=%{x}<br>${esc(cfg.y)}=%{y}<extra></extra>`;
@@ -1744,14 +1750,14 @@ function buildDistribution(cfg, kind) {
   const kept = applyFilters(allRows().filter(r => !r._excluded), cfg.filters).filter(r => typeof r[col] === 'number');
   if (!kept.length) return [];
   const defs = cfg.group ? seriesDefs(cfg)
-    : [{ name: t('all'), colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
+    : [{ name: t('all'), solo: true, colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];
   const out = [];
   defs.forEach(def => {
     const pts = kept.filter(def.match);
     if (!pts.length) return;
     const st = seriesStyle(cfg, def);
     const vals = pts.map(r => r[col]);
-    const dname = (cfg.seriesLabels && cfg.seriesLabels[def.name]) || def.name;
+    const dname = (cfg.seriesLabels && cfg.seriesLabels[def.name]) || (def.solo && (cfg.y || cfg.x) ? (cfg.y || cfg.x) : def.name);
     if (kind === 'histogram') {
       const tr = { type: 'histogram', name: dname, x: vals,
         marker: { color: hexToRgba(st.color, cfg.barOpacity || 0.75), line: { width: 1, color: st.color } },
@@ -2033,7 +2039,7 @@ function buildLayout(cfg, gd, traces) {
     const dcol = cfg.y || cfg.x;
     const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick);
     const legendCfg = {   // 분포 차트도 범례 위치·숨김 설정을 따라야 한다
-      showlegend: cfg.legendPos !== 'none' && (cfg.group ? seriesDefs(cfg).length > 1 : false),
+      showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     };
     if (cfg.type === 'histogram') {
@@ -2073,7 +2079,7 @@ function buildLayout(cfg, gd, traces) {
       font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
       paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
       grid: { rows: rowsN, columns: cols, pattern: 'independent', roworder: 'top to bottom' },
-      showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto || hasY2(cfg)),
+      showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: (cfg.title ? 52 : 30) + 6, b: 52 },
       barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
@@ -2099,7 +2105,7 @@ function buildLayout(cfg, gd, traces) {
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
     paper_bgcolor: CHROME.surface, plot_bgcolor: CHROME.surface,
     xaxis, yaxis, ...y2Layout(cfg),
-    showlegend: cfg.legendPos !== 'none' && (seriesDefs(cfg).length > 1 || cfg.pareto || hasY2(cfg)),   // 보조 축만 있어도 시리즈가 둘이다
+    showlegend: cfg.legendPos !== 'none',   // 범례는 사용자가 숨길 때만 사라진다 (시리즈 수로 자동 판단하지 않음)
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',

@@ -60,7 +60,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   차트 유형: scatter|line|scatter+line|bar|heatmap|dumbbell. heatmap/dumbbell은 `buildTraces` 앞부분에서 `buildHeatmap`/`buildDumbbell`로 분기(facet·베이스라인·레이블 비활성),
   buildLayout에 전용 축 분기(heatmap=이산 X·Y+컬러바, dumbbell=값 X·카테고리 Y 가로). heatmap 필드 `heatZ`/`heatAgg`/`heatText`, 덤벨은 x=카테고리·group=짝·y=값.
   주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay}]`, `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
-  `group2`(마커 모양 2차 그룹 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
+  `group2`(마커 모양 2차 그룹 — **`group`이 비어도 단독으로 시리즈를 나눈다**(색은 하나, 모양만 구분). 범례는 `legendPos: 'none'`일 때만 숨긴다 — 시리즈 수로 자동 판단하지 않는다 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),
   `lineShape`(linear|spline), `lineDash`(전역 선 종류, 시리즈별 `seriesStyles[name].dash`/`lwidth`로 오버라이드),
