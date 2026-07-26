@@ -305,7 +305,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.12.1';
+const APP_VERSION = 'v0.13';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -571,6 +571,9 @@ const I18N = {
     'cfg.derivedMoveUp': '위로 (계산 순서)', 'cfg.derivedMoveDown': '아래로 (계산 순서)',
     'toast.presetDerived': '프리셋에 딸린 계산 컬럼 {n}개를 함께 만들었습니다.',
     'btn.report': '리포트 MD',
+    'cfg.renderMode': '렌더링',
+    'cfg.renderModeTitle': '점이 5천 개를 넘으면 자동으로 WebGL로 그립니다 (SVG 내보내기는 자동으로 벡터로 되돌림)',
+    'opt.renderAuto': '자동', 'opt.renderSvg': '고품질 (SVG)', 'opt.renderGl': '고속 (WebGL)',
     'cfg.caption': '캡션',
     'cfg.captionPh': '이 그림이 말하는 것 (리포트에 함께 나갑니다)',
     'an.copyInsights': '인사이트 복사',
@@ -857,6 +860,9 @@ const I18N = {
     'cfg.derivedMoveUp': 'Move up (calculation order)', 'cfg.derivedMoveDown': 'Move down (calculation order)',
     'toast.presetDerived': 'Also created {n} computed column(s) the preset needs.',
     'btn.report': 'Report MD',
+    'cfg.renderMode': 'Rendering',
+    'cfg.renderModeTitle': 'Above 5,000 points the chart switches to WebGL automatically (SVG export temporarily switches back to vector)',
+    'opt.renderAuto': 'Auto', 'opt.renderSvg': 'High quality (SVG)', 'opt.renderGl': 'Fast (WebGL)',
     'cfg.caption': 'Caption',
     'cfg.captionPh': 'What this figure says (goes into the report)',
     'an.copyInsights': 'Copy findings',
@@ -1040,6 +1046,7 @@ function applyDerived() {
     }
   }
   derivedApplied = state.derived.map(d => d.name);
+  invalidateDataCaches();   // 파생 컬럼이 컬럼 목록·숫자 판정을 바꾼다
 }
 
 function defaultChart() {
@@ -1061,6 +1068,7 @@ function defaultChart() {
     showLabels: false, labelCol: '',
     labelOffsets: {},           // pointKey -> {ax, ay}
     hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
+    renderMode: 'auto',         // auto | svg | gl — 점이 많으면 WebGL(scattergl)로 그린다 (auto)
     caption: '',                // 보고서·발표용 설명 (차트 아래 표시, 마크다운 리포트에 포함)
     baselines: [],              // [{x, y, shade, dir}] — shade: none|ur|ul|lr|ll, dir: both|h|v (기본 both)
     textMarkers: [],            // [{x, y, text, ax, ay}] — 클릭으로 추가하는 자유 주석
@@ -1161,20 +1169,29 @@ function addDataset(name, rows) {
   const existing = state.datasets.find(d => d.name === name);
   if (existing) existing.rows = rows;
   else state.datasets.push({ id: state.nextId++, name, rows });
+  invalidateDataCaches();
   onDataChanged();
 }
 function removeDataset(id) {
   state.datasets = state.datasets.filter(d => d.id !== id);
+  invalidateDataCaches();
   onDataChanged();
 }
 function allRows() { return state.datasets.flatMap(d => d.rows); }
+/* 컬럼 목록·숫자 판정·고유값은 매 호출마다 전 행을 훑는다. 설정 패널 하나를 그리는 데 수십 번 불리므로
+   데이터가 바뀔 때만 무효화되는 캐시를 둔다(dataVer는 데이터셋·계산 컬럼이 바뀔 때만 증가). */
+let dataVer = 0, colCache = null, numColCache = null;
+const uniqCache = new Map();
+function invalidateDataCaches() { dataVer++; colCache = null; numColCache = null; uniqCache.clear(); sizeRangeCache = null; }
 function columns() {
+  if (colCache) return colCache;
   const set = new Set();
   for (const d of state.datasets) for (const r of d.rows) for (const k of Object.keys(r)) {
     if (k.startsWith('_') && k !== '_source') continue;   // 내부 키(_excluded 등) 숨김
     set.add(k);
   }
-  return [...set];
+  colCache = [...set];
+  return colCache;
 }
 /* _source는 데이터셋이 2개 이상일 때만 노출 (1개면 헷갈리기만 함) */
 function visibleColumns() {
@@ -1182,6 +1199,7 @@ function visibleColumns() {
   return state.datasets.length > 1 ? cols : cols.filter(c => c !== '_source');
 }
 function numericColumns() {
+  if (numColCache) return numColCache;
   const cols = columns(), rows = allRows(), out = [];
   for (const c of cols) {
     let any = false, ok = true;
@@ -1193,12 +1211,16 @@ function numericColumns() {
     }
     if (any && ok) out.push(c);
   }
+  numColCache = out;
   return out;
 }
 function uniqueVals(col) {
+  if (uniqCache.has(col)) return uniqCache.get(col);
   const s = new Set();
   for (const r of allRows()) { const v = r[col]; if (v !== null && v !== undefined) s.add(v); }
-  return [...s].sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b)));
+  const out = [...s].sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b)));
+  uniqCache.set(col, out);
+  return out;
 }
 /* 단일 필터 매칭 — 컬럼 미선택·값 미입력은 통과(true)로 취급 */
 function matchFilter(f, r) {
@@ -1289,13 +1311,17 @@ function buildTraces(cfg) {
   if (cfg.type === 'heatmap') return buildHeatmap(cfg);
   if (cfg.type === 'dumbbell') return buildDumbbell(cfg);
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
-  if (!cfg.facetBy) return buildFacetTraces(cfg, chartRows(cfg), lineMode);
+  if (!cfg.facetBy) {
+    const rs = chartRows(cfg);
+    return buildFacetTraces(cfg, rs, lineMode, useGl(cfg, rs.length));
+  }
   // facet: 값별 subplot에 같은 시리즈를 배정 (색·정의 공유), 범례는 첫 subplot만
   const vals = facetValues(cfg), all = chartRows(cfg), out = [];
+  const gl = useGl(cfg, all.length);
   vals.forEach((v, i) => {
     const sub = all.filter(r => String(r[cfg.facetBy]) === v);
     const sfx = i === 0 ? '' : String(i + 1);
-    buildFacetTraces(cfg, sub, lineMode).forEach(tr => {
+    buildFacetTraces(cfg, sub, lineMode, gl).forEach(tr => {
       tr.xaxis = 'x' + sfx; tr.yaxis = 'y' + sfx;
       if (i !== 0) tr.showlegend = false;
       out.push(tr);
@@ -1303,7 +1329,16 @@ function buildTraces(cfg) {
   });
   return out;
 }
-function buildFacetTraces(cfg, rows, lineMode) {
+/* SVG로 5만 점을 그리면 ~1초, WebGL은 ~20ms. 다만 scattergl은 SVG 내보내기에서 래스터로 나가므로
+   점이 많을 때만 자동 전환하고(그 크기의 SVG는 논문에 못 쓴다), 내보낼 때는 잠시 SVG로 되돌린다. */
+const GL_MIN_POINTS = 5000;
+function useGl(cfg, nPoints) {
+  if (cfg._forceSvg || cfg.renderMode === 'svg') return false;
+  if (cfg.renderMode === 'gl') return true;
+  return nPoints >= GL_MIN_POINTS;
+}
+function buildFacetTraces(cfg, rows, lineMode, gl) {
+  const scat = gl ? 'scattergl' : 'scatter';
   const traces = [];
   seriesDefs(cfg).forEach(def => {
     let pts = rows.filter(def.match);
@@ -1350,7 +1385,7 @@ function buildFacetTraces(cfg, rows, lineMode) {
       if (mpts.length) {
         traces.push({
           name: `${name} __muted`, x: mpts.map(r => r[cfg.x]), y: mpts.map(r => r[cfg.y]),
-          type: 'scatter', mode: lineMode, showlegend: false, opacity: 0.28,
+          type: scat, mode: lineMode, showlegend: false, opacity: 0.28,
           marker: { color: CHROME.muted, symbol: st.symbol, size: cfg.size ? mpts.map(r => sizeScale(r[cfg.size], cfg)) : Math.max(4, st.msize - 2) },
           line: { color: CHROME.muted, width: 1, shape: cfg.lineShape },
           customdata: mpts.map(labelfn), hovertemplate: hoverT,
@@ -1383,7 +1418,7 @@ function buildFacetTraces(cfg, rows, lineMode) {
             symbol: st.symbol, size: cfg.size ? npts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize, line: { width: 1.5, color: CHROME.surface } }
         : { color: st.color, symbol: st.symbol, size: (cfg.ptAgg === 'none' && cfg.size) ? npts.map(r => sizeScale(r[cfg.size], cfg)) : st.msize, line: { width: 1.5, color: CHROME.surface } };
       traces.push({
-        name: dname, _g: def.g, _g2: def.g2, type: 'scatter', mode: lineMode,
+        name: dname, _g: def.g, _g2: def.g2, type: scat, mode: lineMode,
         x: mx, y: my, customdata: cfg.ptAgg === 'none' ? npts.map(labelfn) : mx, hovertemplate: hoverT,
         marker, line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
         ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
@@ -1427,11 +1462,26 @@ function fmtBarVal(v) {
   const a = Math.abs(v);
   return a >= 100 ? v.toFixed(0) : a >= 1 ? String(+v.toFixed(2)) : String(+v.toFixed(3));
 }
+/* 크기 컬럼의 값 범위. 예전에는 점마다 chartRows()를 다시 돌려 2만 행에서 렌더가 49초 걸렸다 —
+   렌더 한 번에 한 번만 계산해 캐시한다(스프레드 대신 루프: 5만 원소 스프레드는 스택을 넘긴다). */
+let sizeRangeCache = null;   // {key, mn, mx}
+function sizeRange(cfg) {
+  const key = cfg.id + '|' + cfg.size + '|' + dataVer + '|' + JSON.stringify(cfg.filters || []);
+  if (sizeRangeCache && sizeRangeCache.key === key) return sizeRangeCache;
+  let mn = Infinity, mx = -Infinity;
+  for (const r of chartRows(cfg)) {
+    const v = r[cfg.size];
+    if (typeof v !== 'number') continue;
+    if (v < mn) mn = v;
+    if (v > mx) mx = v;
+  }
+  sizeRangeCache = { key, mn, mx };
+  return sizeRangeCache;
+}
 function sizeScale(v, cfg) {
   if (typeof v !== 'number') return cfg.markerSize;
-  const rows = chartRows(cfg).map(r => r[cfg.size]).filter(x => typeof x === 'number');
-  const mn = Math.min(...rows), mx = Math.max(...rows);
-  if (mx === mn) return cfg.markerSize;
+  const { mn, mx } = sizeRange(cfg);
+  if (!(mx > mn)) return cfg.markerSize;
   return 6 + 18 * (v - mn) / (mx - mn);
 }
 /* ---- 추세선 피팅 (최소자승) ---- */
@@ -2257,6 +2307,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gStyle.append(
     row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; nameSpan.textContent = cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }); rp(); } })),
     row(t('cfg.caption'), capInput(cfg)),
+    row(t('cfg.renderMode'), select([['auto', t('opt.renderAuto')], ['svg', t('opt.renderSvg')], ['gl', t('opt.renderGl')]], cfg.renderMode || 'auto', v => { cfg.renderMode = v; rp(); }, { title: t('cfg.renderModeTitle') })),
     row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
     row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor || CHROME.ink, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
@@ -2369,10 +2420,14 @@ function buildCfgPanel(cfg, panel, nameSpan) {
 
   function rebuild() { renderSeries(); }
 }
-function exportImg(cfg, format) {
+async function exportImg(cfg, format) {
   const div = plotDivs[cfg.id];
   if (!div || !div.data) { alert(t('err.drawChartFirst')); return; }
-  Plotly.downloadImage(div, { format, width: div.clientWidth * 1.0 || 900, height: div.clientHeight || 480, scale: format === 'png' ? 3 : 1, filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
+  /* WebGL로 그려진 차트를 그대로 SVG로 내보내면 그림이 래스터로 박힌다 — 잠시 SVG로 다시 그린 뒤 되돌린다 */
+  const wasGl = format === 'svg' && div.data.some(tr => tr.type === 'scattergl');
+  if (wasGl) { cfg._forceSvg = true; renderPlot(cfg); await new Promise(r => setTimeout(r, 250)); }
+  await Plotly.downloadImage(div, { format, width: div.clientWidth * 1.0 || 900, height: div.clientHeight || 480, scale: format === 'png' ? 3 : 1, filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
+  if (wasGl) { delete cfg._forceSvg; renderPlot(cfg); }
 }
 function addChart(cfgOverride) {
   const cfg = { ...defaultChart(), ...(cfgOverride || {}) };
@@ -3433,6 +3488,7 @@ function loadSaved() {
 }
 function restoreSession(s) {
   state.datasets = s.datasets || [];
+  invalidateDataCaches();
   state.derived = s.derived || [];
   state.charts = (s.charts || []).map(c => {
     const m = { ...defaultChart(), ...c };
@@ -3790,6 +3846,7 @@ document.getElementById('btnReset').addEventListener('click', () => {
   if (!confirm(t('confirm.resetAll'))) return;
   localStorage.removeItem(STORAGE_KEY);
   state.datasets = []; state.charts = []; state.nextId = 1;
+  invalidateDataCaches();
   onDataChanged(false); refreshCharts();
 });
 document.getElementById('restoreExcl').addEventListener('click', () => {

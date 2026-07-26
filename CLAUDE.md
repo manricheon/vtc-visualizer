@@ -30,7 +30,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록), v0.12 사용성·보고서·계산 컬럼(부분 렌더링·삭제 되돌리기·카드 순서/접기·필터 복사·예시 데이터 / 캡션·마크다운 리포트·인사이트 복사 / 상수·정규화·순위·구간화·그룹집계·편집/순서·프리셋 동반), v0.12.1 리뷰 수정(캡션 유실·파생-부모 상관·flag 그룹·포화 오버슈트·이상치 정렬).
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록), v0.12 사용성·보고서·계산 컬럼(부분 렌더링·삭제 되돌리기·카드 순서/접기·필터 복사·예시 데이터 / 캡션·마크다운 리포트·인사이트 복사 / 상수·정규화·순위·구간화·그룹집계·편집/순서·프리셋 동반), v0.12.1 리뷰 수정(캡션 유실·파생-부모 상관·flag 그룹·포화 오버슈트·이상치 정렬), v0.13 속도(크기 컬럼 O(n²) 제거·컬럼 캐시·WebGL 자동 전환).
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -96,6 +96,12 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `exportReport()`가 .md와 각 차트 PNG를 순차 저장(파일명은 `reportImgName()`으로 링크와 일치). 리포트 본문은 현재 언어를 따른다.
   이미지 한 장이 실패해도 나머지를 계속 저장하고(`failed` 목록으로 보고), 아직 그려지지 않은 차트는 이미지 링크 대신 안내 문구를 넣는다. 제목의 대괄호는 `mdEsc()`로 escape.
   클립보드는 `copyText()` — `navigator.clipboard`는 `file://`에서 막히므로 textarea+execCommand 폴백이 필수.
+- **성능**(v0.13): 규모가 커질 때의 병목은 **추측하지 말고 실측**할 것(scratchpad의 perf 스크립트 패턴 — 행 수별로 addDataset/renderPlot/analyze/패널 빌드 시간 측정).
+  고친 것: `sizeScale`이 점마다 `chartRows()`를 돌던 O(n²)(2만 행 49.5초 → 0.43초, `sizeRange` 캐시),
+  `columns`/`numericColumns`/`uniqueVals`의 전 행 스캔(`dataVer` 캐시 — **데이터·계산 컬럼을 바꾸는 코드는 반드시 `invalidateDataCaches()` 호출**),
+  5천 점 초과 시 `scattergl` 자동 전환(`useGl()`, `cfg.renderMode` = auto|svg|gl).
+  scattergl은 SVG 내보내기가 래스터가 되므로 `exportImg`가 `_forceSvg`로 잠시 SVG로 되돌린 뒤 저장하고 복구한다.
+  대량 배열에 `Math.min(...arr)` 스프레드 금지(스택 초과) — 루프로 쓸 것.
 - **테이블**: `renderTable` (검색/정렬/페이지네이션 200행, 행 앞 체크박스로 `_excluded` 토글 → 전 차트에서 제외)
 - **세션**: `save`(debounce→localStorage), `exportSession`/`restoreSession`, 키 `vtc-visualizer:session`
   (구 키 `visualizer-by-mrc:session`은 `loadSaved()`가 읽어 자동 마이그레이션)

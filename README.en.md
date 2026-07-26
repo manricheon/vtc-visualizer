@@ -100,6 +100,7 @@ ours,4000,4.1,0.744,MMLU
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
 | Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top bar, `Export CSV` (current filtered data) in the table |
+| **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
 | Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
@@ -152,6 +153,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.13 — speed
+Measured the slow paths on large data and fixed them (numbers at 20k rows).
+- **Charts using a size column: 49.5s → 0.43s.** The size range was recomputed for every single point; it is now computed once per render (at 50k rows the chart effectively never appeared).
+- **Opening a settings panel: 57ms → 2ms** — the column list, numeric detection and unique values are recomputed only when the data changes.
+- **Automatic WebGL**: above 5,000 points charts render with WebGL (a 30k-point scatter goes from 949ms to 18ms of render time). Pin `High quality (SVG)` in Settings → Style → Rendering if you prefer, and **SVG export temporarily switches back to vector**, so figures for papers keep their quality.
 
 ### v0.12.1 — review fixes
 - **Captions were silently lost**: reopening the settings panel showed an empty caption box, and typing one character there replaced the whole caption.
