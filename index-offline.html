@@ -314,7 +314,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.12';
+const APP_VERSION = 'v0.12.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -380,7 +380,7 @@ function applyWidth() {
   else document.documentElement.setAttribute('data-width', WIDTH);
   const b = document.getElementById('btnWidth');
   if (b) b.textContent = tf('width.label', { mode: t('width.' + WIDTH) });
-  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data) Plotly.Plots.resize(gd); } });
+  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); } });
 }
 function cycleWidth() {
   WIDTH = WIDTHS[(WIDTHS.indexOf(WIDTH) + 1) % WIDTHS.length];
@@ -590,6 +590,8 @@ const I18N = {
     'report.setup': '설정',
     'report.filters': '필터',
     'report.analysis': '자동 분석 요약',
+    'toast.reportPartial': '리포트를 저장했습니다 (차트 {n}장). 이미지 생성 실패: {list}',
+    'report.notDrawn': '(이 차트는 아직 그려지지 않아 이미지가 없습니다)',
     'toast.reportSaved': '리포트(.md)와 차트 PNG {n}장을 저장했습니다.',
     'toast.insightsCopied': '인사이트를 마크다운으로 복사했습니다.',
     'toast.copyFailed': '복사에 실패했습니다 — 브라우저가 막았을 수 있습니다.',
@@ -874,6 +876,8 @@ const I18N = {
     'report.setup': 'Setup',
     'report.filters': 'Filters',
     'report.analysis': 'Automatic analysis summary',
+    'toast.reportPartial': 'Report saved ({n} charts). Image export failed for: {list}',
+    'report.notDrawn': '(this chart has not been drawn yet, so there is no image)',
     'toast.reportSaved': 'Saved the report (.md) and {n} chart PNG(s).',
     'toast.insightsCopied': 'Findings copied as markdown.',
     'toast.copyFailed': 'Copy failed — the browser may have blocked it.',
@@ -1826,12 +1830,14 @@ function renderPlot(cfg) {
   }
   const gd = div;
   if (!gd.data) gd.innerHTML = '';   // placeholder 텍스트만 제거 — 기존 플롯 DOM은 Plotly.react가 관리
+  gd._vizRendering = true;
   Plotly.react(gd, buildTraces(cfg), buildLayout(cfg, gd._fullLayout ? gd : null), {
     responsive: true, displaylogo: false,
     scrollZoom: true, displayModeBar: true,
     edits: { annotationTail: true },
     modeBarButtonsToRemove: ['lasso2d', 'select2d'],
   }).then(() => {
+    gd._vizRendering = false;
     if (!gd._vizBound) {
       gd._vizBound = true;
       gd.on('plotly_click', ev => {
@@ -2082,7 +2088,7 @@ function applyChartSize(cfg) {
     if (plot) { plot.style.minHeight = plot.style.height = (cfg.plotHeight || 460) + 'px'; }
   }
   requestAnimationFrame(() => {
-    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data) Plotly.Plots.resize(gd); }
+    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); }
   });
   save();
 }
@@ -2259,9 +2265,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   renderSeries();
   gStyle.append(
     row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; nameSpan.textContent = cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }); rp(); } })),
-    row(t('cfg.caption'), el('textarea', { rows: '2', style: 'flex:1;min-width:60px;font:inherit;resize:vertical',
-      placeholder: t('cfg.captionPh'), value: cfg.caption || '',
-      oninput: e => { cfg.caption = e.target.value; applyCaption(cfg); save(); } })),
+    row(t('cfg.caption'), capInput(cfg)),
     row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
     row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor || CHROME.ink, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
@@ -2406,15 +2410,22 @@ function duplicateChart(src) {
   state.charts.push(copy);
   appendChartCard(copy); save();
 }
+function purgePlot(id) {   // responsive:true가 등록한 resize 리스너는 purge에서만 해제된다
+  const gd = plotDivs[id];
+  if (!gd || !gd.data || gd._vizRendering) return;   // 렌더 중인 div를 purge하면 Plotly 내부 promise가 깨진다
+  try { Plotly.purge(gd); } catch (e) { /* 이미 정리됨 */ }
+}
 function removeChart(id) {
   const i = state.charts.findIndex(c => c.id === id);
   if (i < 0) return;
   const [gone] = state.charts.splice(i, 1);   // 축·색·베이스라인까지 통째로 사라지므로 되돌릴 수 있어야 한다
   const card = document.querySelector(`.chart-card[data-chart="${id}"]`);
+  purgePlot(id);
   if (card) card.remove();
   delete plotDivs[id];
   updateEmptyCharts(); renumberCards(); save();
   showToast(t('toast.chartDeleted'), t('toast.undo'), () => {
+    if (state.charts.some(c => c.id === gone.id)) gone.id = state.nextId++;   // 그 사이 초기화·세션 가져오기가 있었다면 id가 겹친다
     state.charts.splice(Math.min(i, state.charts.length), 0, gone);
     refreshCharts(); save();
   });
@@ -2422,6 +2433,7 @@ function removeChart(id) {
 function refreshCharts() {
   const box = document.getElementById('charts');
   box.innerHTML = '';
+  for (const id of Object.keys(plotDivs)) delete plotDivs[id];   // 사라진 차트의 죽은 참조를 남기지 않는다
   for (const cfg of state.charts) box.append(renderChartCard(cfg));
   updateEmptyCharts();
   for (const cfg of state.charts) renderPlot(cfg);
@@ -2432,6 +2444,15 @@ function updateEmptyCharts() {
   const ex = document.getElementById('btnExample');
   if (ex) ex.hidden = state.datasets.length > 0;
   if (box) box.classList.toggle('empty', !state.datasets.length);
+}
+/* textarea는 value가 콘텐츠 속성이 아니라 setAttribute로는 값이 들어가지 않는다 —
+   그대로 두면 패널을 다시 열 때 빈 칸이 보이고, 한 글자만 입력해도 기존 캡션이 통째로 덮어써진다 */
+function capInput(cfg) {
+  const ta = el('textarea', { rows: '2', style: 'flex:1;min-width:60px;font:inherit;resize:vertical',
+    placeholder: t('cfg.captionPh'),
+    oninput: e => { cfg.caption = e.target.value; applyCaption(cfg); save(); } });
+  ta.value = cfg.caption || '';
+  return ta;
 }
 function applyCaption(cfg) {   // 카드 재생성 없이 캡션만 갱신
   const cap = cardOf(cfg) && cardOf(cfg).querySelector('.plot-caption');
@@ -2615,6 +2636,8 @@ function anRobustZ(a) {
   return m > 0 ? a.map(v => (v - med) / (1.253314 * m)) : null;
 }
 function anZ(z) { const a = Math.abs(z); return a >= 99 ? '99+' : a.toFixed(1); }
+/* 이상치 점수는 |z|를 따라야 상한(outMax)이 '가장 극단적인 것'을 남긴다 */
+function anOutScore(z) { return 0.3 + 0.19 * Math.min(1, (Math.abs(z) - AN.madZ) / 20); }
 /* 결정적 난수(mulberry32) — 같은 데이터면 항상 같은 구간이 나와야 보고서에 옮겨 적을 수 있다 */
 function anRng(seed) {
   let a = seed >>> 0;
@@ -2700,7 +2723,7 @@ function anProfile(rows, cols) {
       p.num = anDescribe(numsArr);
       const lv = [...set].sort((a, b) => a - b), allInt = numsArr.every(v => Number.isInteger(v));
       if (AN_ID_RE.test(col) || (allInt && total >= 10 && unique >= total * 0.9)) p.role = 'id';
-      else if (unique <= 2) { p.role = 'flag'; p.levels = lv; }
+      else if (unique <= 2) { p.role = 'flag'; p.levels = lv.map(String); }
       else if (unique <= AN.designMaxLv && (unique <= total / 3 || (allInt && unique <= 8)) && (allInt || anIsSeq(lv))) { p.role = 'design'; p.levels = lv; }
       else p.role = 'cont';
     } else if (p.numRatio >= 0.5 && numeric >= 2) { p.role = 'mixed'; p.num = anDescribe(numsArr); p.badN = nonNull - numeric; }
@@ -2735,7 +2758,7 @@ function analyzeData() {
   const pc = x => Math.round(x * 100);
   const fv = v => fmtBarVal(v);
 
-  const catCols = profiles.filter(p => p.role === 'cat').map(p => p.col);
+  const catCols = profiles.filter(p => p.role === 'cat' || p.role === 'flag').map(p => p.col);   // flag = 2값 조건(fp16 on/off 등)
   const designAll = profiles.filter(p => p.role === 'design').map(p => p.col);
   /* 설계값이 1:1로 대응하면(frames = tokens/250 같은 경우) 같은 블록을 두 번 세는 셈이라
      대표 하나만 남긴다 — 연속 컬럼의 중복 접기와 같은 원칙 */
@@ -2811,7 +2834,11 @@ function analyzeData() {
   /* ===== 상관 스캔 — 자명한 쌍을 먼저 걷어내고, 남은 쌍은 그룹별로 재검산 ===== */
   const derivedPairs = new Set();   // 계산 컬럼 부모–자식 (자명한 상관)
   for (const d of state.derived) {
-    const parents = d.kind === 'binary' ? [d.a, d.b] : [d.valueCol];
+    /* 파생 컬럼과 그 입력의 상관은 자명하다 — kind마다 부모 필드가 다르므로 전부 등록한다
+       (예전에는 binary 외에는 valueCol만 봐서 z-score 컬럼이 원본과 "함께 움직인다"로 보고됐다) */
+    const parents = d.kind === 'binary' ? [d.a, d.b]
+      : d.kind === 'refdelta' ? [d.valueCol, d.refCol, ...(d.keys || [])]
+      : [d.col, d.by];
     for (const pa of parents) if (pa) derivedPairs.add([d.name, pa].sort().join(AN_SEP));
   }
   /* 1차 패스: 자명한 쌍(정의상 같은 값·거의 같은 정보)을 찾아 대표 컬럼 하나로 접는다.
@@ -2994,6 +3021,7 @@ function analyzeData() {
       let cum = 0, k = -1;
       for (let i = 0; i < steps.length; i++) { cum += steps[i]; if (Math.abs(cum / gain) >= AN.satFrac) { k = i; break; } }
       if (k < 0 || k > steps.length - 2) continue;   // 뒤에 최소 한 구간 이상 남아야 "포화"
+      if (Math.abs(cum) > Math.abs(gain)) continue;  // 중간에 넘었다가 되돌아오는 곡선은 포화가 아니다 (비율이 100%를 넘는다)
       satHits.push({ c, gl, k, pct: pc(Math.abs(cum / gain)) });
     }
     /* 같은 지점에서 포화하는 그룹이 여럿이면 한 문장으로 합친다 (같은 말을 그룹 수만큼 반복하지 않도록) */
@@ -3042,7 +3070,7 @@ function analyzeData() {
         const rng = Math.max(...vals) - Math.min(...vals);
         z.forEach((zi, i) => {
           if (Math.abs(zi) >= AN.madZ && rng > 0) {
-            push(2, 'outlier', { col: c, val: fv(vals[i]), z: anZ(zi), scope: scopeOf(cr[i]) }, 0.4);
+            push(2, 'outlier', { col: c, val: fv(vals[i]), z: anZ(zi), scope: scopeOf(cr[i]) }, anOutScore(zi));
           }
         });
       }
@@ -3062,7 +3090,7 @@ function analyzeData() {
           if (Math.abs(z[i]) >= AN.madZ && Math.abs(res[i]) >= AN.outMinAmp * rng) {
             push(2, 'outlier', {
               col: c, val: fv(ys[i]), z: anZ(z[i]), scope: scopeOf(sub[i]),
-            }, 0.4, { type: 'scatter+line', x: xcol, y: c, group: primaryCat, showLabels: true, labelCol: c });
+            }, anOutScore(z[i]), { type: 'scatter+line', x: xcol, y: c, group: primaryCat, showLabels: true, labelCol: c });
           }
         }
       }
@@ -3267,6 +3295,9 @@ function renderChips() {
 }
 /* 계산 컬럼 패널 — 이항 연산 / 기준 대비 델타 */
 let derivedEditIdx = -1;
+/* 편집 중 목록 순서가 바뀌면 인덱스가 다른 정의를 가리키게 된다 — 이름으로 다시 찾는다 */
+function editingName() { return derivedEditIdx >= 0 && state.derived[derivedEditIdx] ? state.derived[derivedEditIdx].name : null; }
+function retrackEdit(name) { derivedEditIdx = name ? state.derived.findIndex(d => d.name === name) : -1; }
 function derivedDesc(d) {
   const within = d.by ? ` [${d.by}${t('cfg.derivedWithinShort')}]` : '';
   if (d.kind === 'binary') {
@@ -3294,10 +3325,10 @@ function renderDerived() {
     panel.append(el('div', { class: 'series-row' },
       el('span', { class: 'sname', title: desc }, desc),
       el('button', { class: 'small', title: t('cfg.derivedMoveUp'), onclick: () => {
-        if (i > 0) { state.derived.splice(i - 1, 0, state.derived.splice(i, 1)[0]); commit(); }
+        if (i > 0) { const editName = editingName(); state.derived.splice(i - 1, 0, state.derived.splice(i, 1)[0]); retrackEdit(editName); commit(); }
       } }, '↑'),
       el('button', { class: 'small', title: t('cfg.derivedMoveDown'), onclick: () => {
-        if (i < state.derived.length - 1) { state.derived.splice(i + 1, 0, state.derived.splice(i, 1)[0]); commit(); }
+        if (i < state.derived.length - 1) { const editName = editingName(); state.derived.splice(i + 1, 0, state.derived.splice(i, 1)[0]); retrackEdit(editName); commit(); }
       } }, '↓'),
       el('button', { class: 'small', title: t('cfg.derivedEdit'), onclick: () => { derivedEditIdx = i; renderDerived(); } }, '✎'),
       el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { state.derived.splice(i, 1); derivedEditIdx = -1; commit(); } }, '×'),
@@ -3342,8 +3373,9 @@ function renderDerived() {
     } else if (kindSel.value === 'bin') {
       const col = select(numOpts, E.col || nums[0], () => {});
       const bins = el('input', { type: 'number', min: '2', max: '20', style: 'width:60px', value: E.bins || 4 });
+      const clampBins = v => Math.max(2, Math.min(20, Number(v) || 4));
       const by = select(byOpts, E.by || '', () => {});
-      formBox._get = () => ({ kind: 'bin', col: col.value, bins: Number(bins.value) || 4, by: by.value });
+      formBox._get = () => ({ kind: 'bin', col: col.value, bins: clampBins(bins.value), by: by.value });
       formBox.append(col, bins, el('span', {}, t('cfg.derivedBins')), el('span', {}, t('cfg.derivedWithin')), by);
     } else if (kindSel.value === 'groupagg') {
       const col = select(numOpts, E.col || nums[0], () => {});
@@ -3477,7 +3509,9 @@ function buildReportMd() {
     `${t('report.data')}: ${ds || '-'} · ${t('report.generated')}: ${stamp}${nExcl ? ` · ${tf('report.excluded', { n: nExcl })}` : ''}`, ''];
   state.charts.forEach((cfg, i) => {
     const name = cfg.title || tf('card.chartNum', { n: i + 1 });
-    out.push(`## ${i + 1}. ${name}`, '', `![${name}](${reportImgName(cfg, i)})`, '');
+    const drawn = plotDivs[cfg.id] && plotDivs[cfg.id].data;
+    out.push(`## ${i + 1}. ${mdEsc(name)}`, '',
+      drawn ? `![${mdEsc(name)}](${reportImgName(cfg, i)})` : `_${t('report.notDrawn')}_`, '');
     if (cfg.caption) out.push(cfg.caption, '');
     out.push(`- ${t('report.setup')}: ${chartSpecText(cfg)}`);
     const ft = filterText(cfg);
@@ -3491,6 +3525,7 @@ function buildReportMd() {
   }
   return out.join('\n');
 }
+function mdEsc(sx) { return String(sx).replace(/([\[\]])/g, '\\$1'); }   // 제목의 대괄호가 링크 문법을 깨뜨린다
 function reportImgName(cfg, i) { return `chart-${i + 1}-${(cfg.title || 'chart').replace(/[^\w가-힣-]+/g, '_').slice(0, 40)}.png`; }
 function downloadBlob(blob, filename) {
   const a = el('a', { href: URL.createObjectURL(blob), download: filename });
@@ -3501,16 +3536,19 @@ async function exportReport() {
   if (!state.charts.length) { alert(t('err.drawChartFirst')); return; }
   downloadBlob(new Blob(['\ufeff' + buildReportMd()], { type: 'text/markdown;charset=utf-8' }), 'vtc-visualizer-report.md');
   let saved = 0;
+  const failed = [];
   for (let i = 0; i < state.charts.length; i++) {   // 그림은 별도 파일로 — 마크다운의 링크 이름과 맞춘다
     const cfg = state.charts[i], gd = plotDivs[cfg.id];
     if (!gd || !gd.data) continue;
-    const url = await Plotly.toImage(gd, { format: 'png', scale: 2, width: gd.clientWidth || 900, height: gd.clientHeight || 460 });
-    const blob = await (await fetch(url)).blob();
-    downloadBlob(blob, reportImgName(cfg, i));
-    saved++;
+    try {
+      const url = await Plotly.toImage(gd, { format: 'png', scale: 2, width: gd.clientWidth || 900, height: gd.clientHeight || 460 });
+      const blob = await (await fetch(url)).blob();
+      downloadBlob(blob, reportImgName(cfg, i));
+      saved++;
+    } catch (e) { failed.push(cfg.title || tf('card.chartNum', { n: i + 1 })); }   // 한 장 실패로 나머지를 멈추지 않는다
     await new Promise(r => setTimeout(r, 350));   // 브라우저 다중 다운로드 제한 회피
   }
-  showToast(tf('toast.reportSaved', { n: saved }));
+  showToast(failed.length ? tf('toast.reportPartial', { n: saved, list: failed.join(', ') }) : tf('toast.reportSaved', { n: saved }));
 }
 /* 클립보드: file://에서는 navigator.clipboard가 막히므로 폴백을 함께 둔다 */
 async function copyText(text) {
@@ -3601,7 +3639,7 @@ function applyPreset(cfg, preset) {
   for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
   Object.assign(cfg, merged);
   const card = cardOf(cfg);   // 유형이 바뀔 수 있으므로 이 카드만 재구성 (다른 카드의 줌·패널 상태는 보존)
-  if (card) { card.replaceWith(renderChartCard(cfg)); renderPlot(cfg); } else refreshCharts();
+  if (card) { purgePlot(cfg.id); card.replaceWith(renderChartCard(cfg)); renderPlot(cfg); } else refreshCharts();
   save();
 }
 function exportPresets() {

@@ -153,6 +153,14 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.12.1 — review fixes
+- **Captions were silently lost**: reopening the settings panel showed an empty caption box, and typing one character there replaced the whole caption.
+- **Analysis**: the trivial correlation between a computed column and its source (e.g. `accuracy` and its z-score) is no longer reported as a finding.
+- **Analysis**: two-valued conditions (an A/B flag like `fp16` on/off) are now group-comparison candidates; they used to be dropped silently, producing no findings at all.
+- **Analysis**: curves that rise and then fall back are no longer reported as "saturation" with a share above 100%.
+- **Analysis**: the outlier list keeps the most extreme cases instead of whichever was scanned first.
+- Also fixed: console errors when resizing with a collapsed chart, a possible id collision when undoing a chart deletion, and a failed chart image aborting the rest of a report export.
+
 ### v0.12 — usability, reports, computed columns
 
 **Usability**
