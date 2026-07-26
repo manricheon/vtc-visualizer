@@ -73,6 +73,7 @@ ours,4000,4.1,0.744,MMLU
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
 | **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
 | **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) |
+| **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
 | **Option search** | Type an option name in the search box above the settings panel to filter it down |
 | **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
@@ -170,6 +171,13 @@ The version shows next to the title (top-right) and in the footer, matching the 
 - **A shape group alone now splits the series.** With no color group set, the shape group used to be ignored entirely, collapsing everything into one series with no legend.
 - **The legend disappears only when set to `Hidden`.** Single-series charts show one too, labelled with the column being plotted.
 - Charts with only a second Y axis, and histograms/box plots, now follow the legend position and hide settings like every other type.
+
+**Themes and screen polish**
+- **Pick a chart palette** from the top bar. The default is the palette you have been using; `Carbon` (IBM design system), `Okabe-Ito` (the colorblind-safe academic standard) and `Ink` (print-leaning) are available. The choice persists and travels with the session.
+- **The dark palette was corrected.** The previous dark colors sat above the lightness band for a dark surface (0.68–0.81); hues are unchanged, only lightness and chroma moved back into range.
+- All four palettes pass **lightness band · chroma floor · CVD (red-green/blue-yellow) adjacent separation · normal-vision separation · surface contrast**, in light and dark separately.
+- Screen: header buttons grouped into **primary / export / view**, four type sizes instead of a mix, spacing on a 4px rhythm, one control height and radius, a soft shadow so charts read as paper, and an empty state that leads with `Load example data`.
+- Turning on the second Y axis now shows a **caution note** — two scales can manufacture a correlation depending on how each axis is framed.
 
 **Safety and housekeeping**
 - Deleting a dataset now asks first and can be undone; applying a preset can be undone.

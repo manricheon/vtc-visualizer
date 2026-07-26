@@ -209,6 +209,17 @@ If the conditions themselves change (a new method appears), those count as new r
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
+### ⑭ Choosing colors — where is the figure going?
+
+The palette picker sits in the top bar. All four pass colorblind-safety validation, so **any of them is safe**; pick by destination.
+
+- **Papers and conferences** → `Okabe-Ito`: familiar to reviewers and still readable in greyscale print.
+- **Internal decks and dashboards** → `Carbon`: saturated enough to read on a screen.
+- **Figures inside a text document** → `Ink`: quiet, doesn't fight the prose.
+- **Otherwise** → `Default`.
+
+A team on one palette gets consistent method colors across every document. Exporting a session carries the palette choice, but a recipient who already picked one keeps theirs.
+
 ## 3. Principles for effective charts (summary)
 
 1. **One chart, one message** — want to say two things? Duplicate into two charts.

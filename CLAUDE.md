@@ -46,6 +46,11 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 
 모든 코드는 하나의 `<script>` 안에 있고, 상태는 전역 `state = {datasets, charts, nextId}` 하나다.
 
+- **팔레트 테마**(v0.14): `PALETTE_THEMES`(default·carbon·okabe·ink) × light/dark — **전부 dataviz 검증기를 통과시킨 값**이다.
+  `PALETTE_THEME`(키 `vtc-visualizer:palette`) + `setPaletteTheme()`가 스왑하고 `applyTheme()`가 모드에 맞는 단계를 고른다.
+  **색을 손으로 고치지 말 것** — `scripts/validate_palette.js`를 라이트/다크 각각 다시 돌려 통과시킨 값만 넣는다.
+  순서 자체가 색약 안전 장치이므로 순서를 바꾸지 말 것(색은 엔티티를 따라간다).
+  디자인 토큰: 글자 4단계(`--fs-xs/sm/md/lg`), 간격 4px 배수(`--sp-1..6`), 컨트롤 규격(`--ctl-h`·`--radius`) — 새 UI는 이 토큰만 쓸 것.
 - **팔레트/스타일 상수** (`PALETTE`, `SYMBOLS`, `CHROME`, `SEQ_SCALE`, `FONTS`): dataviz 스킬의 검증된 카테고리 팔레트.
   순서가 색약 안전성 장치이므로 **순서를 바꾸거나 색을 추가하려면 dataviz 스킬을 로드해 validator로 검증**할 것.
   테마별로 `LIGHT_/DARK_` 변형이 있고 `applyTheme()`가 `PALETTE`/`SEQ_SCALE` 스왑 + `CHROME` Object.assign(참조 유지) 후 전 차트 재렌더.

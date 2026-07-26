@@ -31,6 +31,13 @@
     --danger: #d03b3b;
     --hover: #eef4fd;
     --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* 타이포 4단계 — 예전엔 12/12.5/13/15px가 섞여 있었다 */
+    --fs-xs: 11px; --fs-sm: 12.5px; --fs-md: 14px; --fs-lg: 20px;
+    /* 간격은 4px 배수로만 */
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+    /* 컨트롤 규격 통일 */
+    --ctl-h: 30px; --radius: 6px; --radius-lg: 10px;
+    --shadow-1: 0 1px 2px rgba(11,11,11,.05), 0 1px 1px rgba(11,11,11,.03);
   }
   /* 다크 테마 토큰 — 단순 반전이 아니라 다크 서피스에 맞춘 값. OS 선호를 기본으로, 토글이 양방향 오버라이드 */
   @media (prefers-color-scheme: dark) {
@@ -40,6 +47,8 @@
       --grid: #34363b; --axis: #4a4c52; --border: rgba(255,255,255,0.13); --accent: #5a9ef0; --danger: #f2635f; --hover: #223247;
     }
   }
+  :root[data-theme="dark"], :root:not([data-theme]) { }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme]) { --shadow-1: 0 1px 2px rgba(0,0,0,.45); } }
   :root[data-theme="dark"] {
     color-scheme: dark;
     --surface-1: #202226; --page: #16171a; --ink-1: #ececed; --ink-2: #b7b8bb; --ink-muted: #8a8b8f;
@@ -55,41 +64,59 @@
   :root[data-width="full"] .wrap { max-width: none; }
 
   header.app {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    padding: 10px 0 16px;
+    display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+    padding: var(--sp-3) 0 var(--sp-4);
   }
-  header.app h1 { font-size: 20px; margin: 0; font-weight: 700; }
-  header.app .sub { color: var(--ink-muted); font-size: 12px; margin-right: auto; }
+  header.app h1 { font-size: var(--fs-lg); margin: 0; font-weight: 650; letter-spacing: -.01em; }
+  header.app .sub { color: var(--ink-muted); font-size: var(--fs-sm); margin-right: auto; }
+  /* 버튼 9개를 한 줄에 나열하던 것을 역할별로 묶는다: 주 동작 · 내보내기 · 보기 */
+  header.app .actions { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+  header.app .grp { display: flex; align-items: center; gap: var(--sp-1); }
+  header.app .grp + .grp { padding-left: var(--sp-3); border-left: 1px solid var(--grid); }
+  header.app .grp.view select { max-width: 118px; }
 
   button, select, input[type="text"], input[type="number"], input[type="search"], textarea {
-    font-family: var(--font); font-size: 13px; color: var(--ink-1);
+    font-family: var(--font); font-size: var(--fs-md); color: var(--ink-1);
     background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 6px; padding: 5px 9px;
+    border-radius: var(--radius); padding: 0 var(--sp-2); height: var(--ctl-h);
+    line-height: calc(var(--ctl-h) - 2px);
   }
+  textarea { height: auto; line-height: 1.5; padding: var(--sp-1) var(--sp-2); }
+  select { padding-right: var(--sp-1); }
   button { cursor: pointer; }
   button:hover { border-color: var(--ink-muted); }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   button.primary:hover { filter: brightness(0.94); }
   button.ghost { background: transparent; }
   button.danger { color: var(--danger); }
-  button.small { font-size: 12px; padding: 3px 7px; }
+  button.small { font-size: var(--fs-sm); height: 26px; line-height: 24px; padding: 0 var(--sp-2); }
   input[type="color"] { width: 30px; height: 24px; padding: 1px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-1); cursor: pointer; }
   label.inline { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
 
   section.card {
     background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    border-radius: var(--radius-lg); padding: var(--sp-4); margin-bottom: var(--sp-4);
+    box-shadow: var(--shadow-1);
   }
-  section.card h2 { font-size: 13px; margin: 0 0 10px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  section.card h2 {
+    font-size: var(--fs-xs); margin: 0 0 var(--sp-3); color: var(--ink-muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: .09em;
+  }
 
   /* ===== data input ===== */
   #dropzone {
-    border: 1.5px dashed var(--axis); border-radius: 8px;
-    padding: 18px; text-align: center; color: var(--ink-muted);
-    transition: background .15s, border-color .15s;
+    border: 1.5px dashed var(--axis); border-radius: var(--radius-lg);
+    padding: var(--sp-5) var(--sp-4); text-align: center; color: var(--ink-muted);
+    font-size: var(--fs-md);
+    transition: background .15s, border-color .15s, padding .15s;
   }
+  #dropzone.empty { padding: var(--sp-6) var(--sp-4); background: var(--page); }
+  #dropzone.empty .btns { margin-top: var(--sp-4); }
+  #dropzone .empty-hint { display: none; font-size: var(--fs-sm); margin-top: var(--sp-2); }
+  #dropzone.empty .empty-hint { display: block; }
+  #btnExample { font-weight: 600; }
   #dropzone.drag { background: var(--hover); border-color: var(--accent); color: var(--accent); }
-  #dropzone .btns { margin-top: 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  #dropzone .btns { margin-top: var(--sp-3); display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; }
   #datasetChips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
@@ -120,13 +147,13 @@
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
   .chart-card .plot-hint { padding: 5px 12px; font-size: 11px; color: var(--ink-muted); border-top: 1px solid var(--grid); }
-  details.grp { margin-bottom: 8px; border-bottom: 1px solid var(--grid); padding-bottom: 8px; }
-  details.grp summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: 12.5px; padding: 3px 0; user-select: none; }
-  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
-  .row > span.lbl { width: 74px; flex: none; color: var(--ink-muted); font-size: 12px; }
+  details.grp { margin-bottom: var(--sp-2); border-bottom: 1px solid var(--grid); padding-bottom: var(--sp-2); }
+  details.grp summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: var(--fs-sm); padding: var(--sp-1) 0; user-select: none; letter-spacing: .01em; }
+  .row { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-2) 0; flex-wrap: wrap; }
+  .row > span.lbl { width: 78px; flex: none; color: var(--ink-muted); font-size: var(--fs-sm); }
   .row select, .row input[type="text"] { flex: 1; min-width: 60px; }
   .row input[type="number"] { width: 74px; }
-  .hint { color: var(--ink-muted); font-size: 11.5px; margin: 4px 0; }
+  .hint { color: var(--ink-muted); font-size: var(--fs-xs); line-height: 1.55; margin: var(--sp-1) 0; }
   .filter-row { display: flex; gap: 4px; margin: 4px 0; align-items: center; }
   .filter-row select { flex: 1; min-width: 40px; }
   .filter-row .op { flex: none; width: 62px; }
@@ -236,22 +263,32 @@
   <header class="app">
     <h1>VTC Visualizer <span id="appVersion" class="ver"></span></h1>
     <span class="sub" data-i18n="header.sub"></span>
-    <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
-    <button id="btnAnalyze" data-i18n="btn.analyze"></button>
-    <button id="btnExportSession" data-i18n="btn.exportSession"></button>
-    <button id="btnImportSession" data-i18n="btn.importSession"></button>
-    <button id="btnExportAll" data-i18n="btn.exportAll"></button>
-    <button id="btnReport" data-i18n="btn.report"></button>
-    <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
-    <button id="btnWidth" class="ghost" title=""></button>
-    <button id="btnTheme" class="ghost" title=""></button>
-    <button id="btnLangToggle" class="ghost"></button>
+    <nav class="actions">
+      <span class="grp">
+        <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
+        <button id="btnAnalyze" data-i18n="btn.analyze"></button>
+      </span>
+      <span class="grp">
+        <button id="btnReport" data-i18n="btn.report"></button>
+        <button id="btnExportAll" data-i18n="btn.exportAll"></button>
+        <button id="btnExportSession" data-i18n="btn.exportSession"></button>
+        <button id="btnImportSession" data-i18n="btn.importSession"></button>
+      </span>
+      <span class="grp view">
+        <select id="selPalette" class="ghost" title=""></select>
+        <button id="btnWidth" class="ghost" title=""></button>
+        <button id="btnTheme" class="ghost" title=""></button>
+        <button id="btnLangToggle" class="ghost"></button>
+        <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
+      </span>
+    </nav>
   </header>
 
   <section class="card">
     <h2 data-i18n="section.dataInput"></h2>
     <div id="dropzone">
       <span data-i18n="dropzone.text"></span>
+      <div class="empty-hint" data-i18n="dropzone.emptyHint"></div>
       <div class="btns">
         <button id="btnOpenFiles" data-i18n="btn.openFiles"></button>
         <button id="btnOpenFolder" data-i18n="btn.openFolder"></button>
@@ -322,8 +359,23 @@ const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 /* 카테고리 팔레트 — 라이트는 dataviz 검증본. 다크는 같은 hue 유지하되 다크 서피스에서
  * 대비가 낮은 진초록(#008300)·진보라(#4a3aa7)를 같은 계열의 밝은 스텝으로 올림(정체성 보존). */
-const LIGHT_PALETTE = ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'];
-const DARK_PALETTE = ['#5a9ef0', '#3cb85a', '#ef8fb3', '#f0b53a', '#2fc891', '#f0784a', '#9a8cf0', '#f2635f'];
+/* 카테고리 팔레트 — 전부 dataviz 검증기(명도 대역·채도 하한·색약 인접 분리·정상 시야 분리·대비)를
+   라이트/다크 각각에 대해 통과시킨 값이다. **눈으로 고치지 말고 검증기를 다시 돌릴 것.**
+   순서 자체가 색약 안전 장치이므로 순서를 바꾸지 말 것(색은 엔티티를 따라간다). */
+const PALETTE_THEMES = {
+  default: { light: ['#2a78d6', '#008300', '#e87ba4', '#eda100', '#1baf7a', '#eb6834', '#4a3aa7', '#e34948'],
+              dark:  ['#2a78d6', '#008300', '#d56a93', '#ca8000', '#4fa27c', '#e76530', '#584cba', '#e34948'] },
+  carbon:  { light: ['#1192e8', '#198038', '#a56eff', '#eda100', '#13a7a7', '#9f1853', '#fa4d56', '#5182e5'],
+              dark:  ['#1192e8', '#198038', '#a56eff', '#13a7a7', '#b68028', '#bb3769', '#5182e5', '#fa4d56'] },
+  okabe:   { light: ['#0072B2', '#E69F00', '#8C6D1F', '#56B4E9', '#009E73', '#916eda', '#D55E00', '#CC79A7'],
+              dark:  ['#0072B2', '#b58127', '#3196cb', '#8C6D1F', '#916eda', '#009E73', '#D55E00', '#ce5ea0'] },
+  ink:     { light: ['#1e8ae1', '#8c3b2f', '#2d9c70', '#6b3fa0', '#a58118', '#2091c3', '#93314f', '#659814'],
+              dark:  ['#1e8ae1', '#a65245', '#2d9c70', '#8257ba', '#a58118', '#2091c3', '#ae4965', '#659814'] },
+};
+const PALETTE_KEY = 'vtc-visualizer:palette';
+let PALETTE_THEME = PALETTE_THEMES[localStorage.getItem(PALETTE_KEY)] ? localStorage.getItem(PALETTE_KEY) : 'default';
+const LIGHT_PALETTE = PALETTE_THEMES.default.light.slice();
+const DARK_PALETTE = PALETTE_THEMES.default.dark.slice();
 let PALETTE = LIGHT_PALETTE.slice();
 /* 연속 색상용 단일-hue 시퀀셜 — 라이트는 밝음→어두움, 다크는 어두움→밝음(높은 값이 밝게) */
 const LIGHT_SEQ = [[0, '#eaf2fb'], [0.35, '#9cc4ee'], [0.7, '#3d84d6'], [1, '#12467f']];
@@ -356,12 +408,19 @@ function effectiveDark() {
   if (THEME === 'light') return false;
   return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 }
+let paletteSelectRefresh = () => {};
+function setPaletteTheme(k) {
+  PALETTE_THEME = PALETTE_THEMES[k] ? k : 'default';
+  localStorage.setItem(PALETTE_KEY, PALETTE_THEME);
+  applyTheme();   // 팔레트 스왑 + 전 차트 재렌더
+}
 function applyTheme() {
   const dark = effectiveDark();
   if (THEME === 'auto') document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme', THEME);
   Object.assign(CHROME, dark ? DARK_CHROME : LIGHT_CHROME);   // 참조 유지 — 렌더 시점에 반영
-  PALETTE = (dark ? DARK_PALETTE : LIGHT_PALETTE).slice();
+  const pt = PALETTE_THEMES[PALETTE_THEME] || PALETTE_THEMES.default;
+  PALETTE = (dark ? pt.dark : pt.light).slice();
   SEQ_SCALE = dark ? DARK_SEQ : LIGHT_SEQ;
   const b = document.getElementById('btnTheme');
   if (b) { b.textContent = dark ? '☀️' : '🌙'; b.title = t('theme.toggle'); }
@@ -396,6 +455,7 @@ const I18N = {
     'btn.importSession': '세션 가져오기',
     'btn.reset': '전체 초기화',
     'section.dataInput': '데이터 입력',
+    'dropzone.emptyHint': '처음이라면 예시 데이터로 30초 만에 둘러볼 수 있습니다 — 아무것도 설치하지 않아도 됩니다.',
     'dropzone.text': 'CSV / JSON 파일을 여기에 드래그 앤 드랍하세요 (여러 개 가능)',
     'btn.openFiles': '파일 열기…',
     'btn.openFolder': '폴더 열기…',
@@ -414,6 +474,8 @@ const I18N = {
     'btn.add': '추가',
     'footer.text': '데이터는 브라우저 안에서만 처리되며 외부로 전송되지 않습니다.',
     'lang.toggle': 'EN',
+    'palette.title': '차트 색 팔레트 (전부 색약 안전 검증을 통과한 조합)',
+    'palette.default': '기본', 'palette.carbon': 'Carbon', 'palette.okabe': 'Okabe-Ito', 'palette.ink': '잉크 톤',
     'theme.toggle': '라이트/다크 전환',
     'width.label': '폭: {mode}', 'width.normal': '기본', 'width.wide': '넓게', 'width.full': '최대',
     all: '전체',
@@ -590,6 +652,7 @@ const I18N = {
     'cfg.trendStat': '적합도 표시', 'cfg.trendStatTitle': '추세선의 R²·기울기를 차트 구석에 표시합니다',
     'cfg.trendSlope': '기울기', 'opt.trendStatOn': '표시', 'opt.trendStatOff': '숨김',
     'cfg.y2': '보조 Y축(오른쪽)', 'cfg.y2Title': '스케일이 다른 두 지표를 한 차트에 — 점선·× 마커로 구분해 오른쪽 축에 그립니다',
+    'cfg.y2Warn': '두 축은 눈금을 어떻게 잡느냐에 따라 없는 상관도 있어 보이게 만듭니다. 관계를 주장하려면 차트를 둘로 나누거나 한쪽을 정규화해 같은 축에 놓는 편이 안전합니다.',
     'opt.histogram': '히스토그램', 'opt.box': '박스플롯',
     'cfg.histBins': '구간 수', 'cfg.histBinsPh': '자동',
     'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
@@ -709,6 +772,7 @@ const I18N = {
     'btn.importSession': 'Import session',
     'btn.reset': 'Reset all',
     'section.dataInput': 'Data input',
+    'dropzone.emptyHint': 'New here? The example data gives you a working chart in 30 seconds — nothing to install.',
     'dropzone.text': 'Drag and drop CSV / JSON files here (multiple allowed)',
     'btn.openFiles': 'Open files…',
     'btn.openFolder': 'Open folder…',
@@ -727,6 +791,8 @@ const I18N = {
     'btn.add': 'Add',
     'footer.text': 'Data is processed entirely in your browser and never sent anywhere.',
     'lang.toggle': '한국어',
+    'palette.title': 'Chart color palette (all validated colorblind-safe)',
+    'palette.default': 'Default', 'palette.carbon': 'Carbon', 'palette.okabe': 'Okabe-Ito', 'palette.ink': 'Ink',
     'theme.toggle': 'Toggle light/dark',
     'width.label': 'Width: {mode}', 'width.normal': 'Normal', 'width.wide': 'Wide', 'width.full': 'Full',
     all: 'All',
@@ -903,6 +969,7 @@ const I18N = {
     'cfg.trendStat': 'Fit readout', 'cfg.trendStatTitle': 'Show the trendline R² and slope in the corner of the chart',
     'cfg.trendSlope': 'slope', 'opt.trendStatOn': 'Show', 'opt.trendStatOff': 'Hide',
     'cfg.y2': 'Second Y axis (right)', 'cfg.y2Title': 'Two metrics on different scales in one chart — drawn on the right axis with a dotted line and × markers',
+    'cfg.y2Warn': 'Two scales can manufacture a correlation that is not there, depending on how each axis is framed. To claim a relationship, split into two charts or normalise one measure onto a shared axis.',
     'opt.histogram': 'Histogram', 'opt.box': 'Box plot',
     'cfg.histBins': 'Bins', 'cfg.histBinsPh': 'auto',
     'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
@@ -2446,7 +2513,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
     ...(!isBar && !isHeat && !isDumbbell && !isDist ? [
-      row(t('cfg.y2'), select([['', t('opt.noneParen')], ...numericColumns().filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rp(); }, { title: t('cfg.y2Title') })),
+      row(t('cfg.y2'), select([['', t('opt.noneParen')], ...numericColumns().filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rebuildPanel(); }, { title: t('cfg.y2Title') })),
+      ...(cfg.y2 ? [el('div', { class: 'hint' }, t('cfg.y2Warn'))] : []),
     ] : []),
     ...(isDist ? [
       el('div', { class: 'hint' }, t('cfg.distHint')),
@@ -3850,6 +3918,7 @@ function restoreSession(s) {
     if (s.ui.lang && !localStorage.getItem(LANG_KEY)) { LANG = s.ui.lang; localStorage.setItem(LANG_KEY, LANG); applyLang(); }
     if (s.ui.theme && !localStorage.getItem(THEME_KEY)) { THEME = s.ui.theme; localStorage.setItem(THEME_KEY, THEME); applyTheme(); }
     if (s.ui.width && !localStorage.getItem(WIDTH_KEY)) { WIDTH = s.ui.width; localStorage.setItem(WIDTH_KEY, WIDTH); applyWidth(); }
+    if (s.ui.palette && !localStorage.getItem(PALETTE_KEY)) setPaletteTheme(s.ui.palette);
   }
   state.datasets = s.datasets || [];
   invalidateDataCaches();
@@ -3872,7 +3941,7 @@ function exportSession() {
   const charts = state.charts.map(serializableChart);
   /* 프리셋과 보기 설정도 함께 — 받는 쪽이 파일 두 개를 따로 받지 않도록 */
   const payload = { datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId,
-    presets: loadPresets(), ui: { lang: LANG, theme: THEME, width: WIDTH } };
+    presets: loadPresets(), ui: { lang: LANG, theme: THEME, width: WIDTH, palette: PALETTE_THEME } };
   const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
@@ -4157,6 +4226,7 @@ function onDataChanged(autoChart = true) {
   renderTable();
   if (autoChart && state.datasets.length && !state.charts.length) addChart();
   else { refreshCfgPanels(); for (const c of state.charts) renderPlot(c); }
+  updateEmptyCharts();   // 데이터가 비면 빈 상태 안내·예시 버튼이 다시 보여야 한다
   save();
 }
 async function loadFiles(files) {
@@ -4247,11 +4317,27 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   LANG = LANG === 'ko' ? 'en' : 'ko';
   localStorage.setItem(LANG_KEY, LANG);
   applyLang();
+  paletteSelectRefresh();
   relabelCards(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c);
   renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
 });
+(() => {   // 팔레트 선택 — 기본은 현행, 나머지는 필요할 때 고른다
+  const sel = document.getElementById('selPalette');
+  const fill = () => {
+    sel.innerHTML = '';
+    for (const k of Object.keys(PALETTE_THEMES)) {
+      const o = el('option', { value: k }, t('palette.' + k));
+      if (k === PALETTE_THEME) o.selected = true;
+      sel.append(o);
+    }
+    sel.title = t('palette.title');
+  };
+  fill();
+  sel.addEventListener('change', e => setPaletteTheme(e.target.value));
+  paletteSelectRefresh = fill;
+})();
 document.getElementById('btnTheme').addEventListener('click', toggleTheme);
 document.getElementById('btnWidth').addEventListener('click', cycleWidth);
 if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (THEME === 'auto') applyTheme(); });
