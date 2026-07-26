@@ -148,6 +148,9 @@
   table.data tr:hover td { background: var(--hover); }
   #pager { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--ink-muted); font-size: 12px; }
 
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  #dropzone.empty { border-color: var(--accent); }
+
   /* ===== analysis panel ===== */
   #anCtrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
   #anCtrl .count { color: var(--ink-muted); font-size: 12px; }
@@ -241,6 +244,7 @@
         <button id="btnOpenFiles" data-i18n="btn.openFiles"></button>
         <button id="btnOpenFolder" data-i18n="btn.openFolder"></button>
         <button id="btnPaste" data-i18n="btn.paste"></button>
+        <button id="btnExample" class="ghost" data-i18n="btn.example"></button>
       </div>
     </div>
     <div id="datasetChips"></div>
@@ -299,7 +303,9 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.11.1';
+const APP_VERSION = 'v0.12';
+/* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
+const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 /* 카테고리 팔레트 — 라이트는 dataviz 검증본. 다크는 같은 hue 유지하되 다크 서피스에서
@@ -554,6 +560,19 @@ const I18N = {
     'table.exclSuffix': ', 그래프 제외 {n}행',
     'pager.info': '{page} / {pages} 페이지',
     'chips.rows': '{n}행',
+    'btn.example': '예시 데이터 불러오기',
+    'btn.removeItem': '이 항목 삭제',
+    'card.collapseTitle': '차트 접기/펴기',
+    'card.moveUpTitle': '위로 이동',
+    'card.moveDownTitle': '아래로 이동',
+    'cfg.copyFilters': '이 필터를 다른 차트에도',
+    'cfg.copyFiltersTitle': '필터 {n}개를 복사할 차트',
+    'cfg.copyFiltersNone': '다른 차트가 없습니다.',
+    'cfg.copyToAll': '전체 {n}개 차트에 적용',
+    'cfg.copyHasFilters': ' (기존 필터 {n}개 덮어씀)',
+    'toast.chartDeleted': '차트를 삭제했습니다.',
+    'toast.filtersCopied': '차트 {n}개에 필터를 적용했습니다.',
+    'toast.exampleLoaded': '예시 데이터를 불러왔습니다 — 차트가 자동으로 생성됩니다.',
     'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
     'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
     'toast.sourceOverwritten': '입력에 있던 _source 컬럼을 파일명으로 덮어썼습니다 (예약된 이름입니다).',
@@ -803,6 +822,19 @@ const I18N = {
     'table.exclSuffix': ', {n} excluded from chart',
     'pager.info': 'Page {page} / {pages}',
     'chips.rows': '{n} rows',
+    'btn.example': 'Load example data',
+    'btn.removeItem': 'Remove this item',
+    'card.collapseTitle': 'Collapse/expand chart',
+    'card.moveUpTitle': 'Move up',
+    'card.moveDownTitle': 'Move down',
+    'cfg.copyFilters': 'Copy these filters to…',
+    'cfg.copyFiltersTitle': 'Copy {n} filter(s) to',
+    'cfg.copyFiltersNone': 'There is no other chart.',
+    'cfg.copyToAll': 'Apply to all {n} charts',
+    'cfg.copyHasFilters': ' (replaces {n} existing)',
+    'toast.chartDeleted': 'Chart deleted.',
+    'toast.filtersCopied': 'Filters applied to {n} chart(s).',
+    'toast.exampleLoaded': 'Example data loaded — a chart is created automatically.',
     'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
     'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
     'toast.sourceOverwritten': 'The _source column in your input was overwritten with the filename (it is a reserved name).',
@@ -1855,6 +1887,7 @@ function refreshPanels(cfg) {
 
 /* ---- 토스트 (실행 취소 지원) ---- */
 const toastEl = document.createElement('div');
+toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
 toastEl.id = 'toast';
 document.body.append(toastEl);
 let toastTimer = null;
@@ -1906,15 +1939,25 @@ function renderChartCard(cfg) {
   const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
 
+  if (cfg._cfgHidden) cfgPanel.classList.add('hidden');   // 설정 패널 접힘은 카드가 다시 그려져도 유지
+  if (cfg._collapsed) plotDiv.style.display = 'none';
   const head = el('div', { class: 'head' },
     nameSpan,
+    el('button', { class: 'small', title: t('card.collapseTitle'), onclick: e => {
+      cfg._collapsed = !cfg._collapsed;
+      plotDiv.style.display = cfg._collapsed ? 'none' : '';
+      e.target.textContent = cfg._collapsed ? '▸' : '▾';
+      if (!cfg._collapsed && plotDiv.data) Plotly.Plots.resize(plotDiv);
+    } }, cfg._collapsed ? '▸' : '▾'),
+    el('button', { class: 'small', title: t('card.moveUpTitle'), onclick: () => moveChart(cfg, -1) }, '↑'),
+    el('button', { class: 'small', title: t('card.moveDownTitle'), onclick: () => moveChart(cfg, 1) }, '↓'),
     el('button', { class: 'small', title: t('card.resetViewTitle'), onclick: () => {
       cfg.xMin = cfg.xMax = cfg.yMin = cfg.yMax = '';
       renderPlot(cfg);
       if (plotDiv.data) Plotly.relayout(plotDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true });
       buildCfgPanel(cfg, cfgPanel, nameSpan); save();
     } }, t('card.resetView')),
-    el('button', { class: 'small', onclick: () => cfgPanel.classList.toggle('hidden') }, t('card.settings')),
+    el('button', { class: 'small', onclick: () => { cfgPanel.classList.toggle('hidden'); cfg._cfgHidden = cfgPanel.classList.contains('hidden'); } }, t('card.settings')),
     el('button', { class: 'small', onclick: e => showPresetMenu(cfg, e) }, t('card.preset')),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'svg') }, 'SVG'),
@@ -1941,6 +1984,15 @@ function applyChartSize(cfg) {
   save();
 }
 
+/* details 그룹 접힘 상태를 차트별로 기억한다 (`_` 접두사라 세션에는 저장되지 않는다) */
+function restoreGroupState(cfg, panel) {
+  cfg._open = cfg._open || {};
+  panel.querySelectorAll('details.grp[data-g]').forEach(d => {
+    const k = d.getAttribute('data-g');
+    if (cfg._open[k] !== undefined) d.open = cfg._open[k];
+    d.addEventListener('toggle', () => { cfg._open[k] = d.open; });
+  });
+}
 function buildCfgPanel(cfg, panel, nameSpan) {
   panel.innerHTML = '';
   const numCols = numericColumns();
@@ -1951,7 +2003,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const row = (label, ...ctrl) => el('div', { class: 'row' }, el('span', { class: 'lbl' }, label), ...ctrl);
 
   /* --- 데이터 --- */
-  const gData = el('details', { class: 'grp', open: '' }, el('summary', {}, t('cfg.data')));
+  const gData = el('details', { class: 'grp', open: '', 'data-g': 'data' }, el('summary', {}, t('cfg.data')));
   gData.append(
     row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
@@ -1986,7 +2038,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   /* --- 막대 옵션 (type=bar일 때만) --- */
   let gBar = null;
   if (isBar) {
-    gBar = el('details', { class: 'grp', open: '' }, el('summary', {}, t('cfg.bar')));
+    gBar = el('details', { class: 'grp', open: '', 'data-g': 'bar' }, el('summary', {}, t('cfg.bar')));
     gBar.append(
       row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
       row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
@@ -2004,7 +2056,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   }
 
   /* --- 필터 --- */
-  const gFilter = el('details', { class: 'grp' }, el('summary', {}, tf('cfg.filterCount', { n: cfg.filters.length })));
+  const gFilter = el('details', { class: 'grp', 'data-g': 'filter' }, el('summary', {}, tf('cfg.filterCount', { n: cfg.filters.length })));
   const fBox = el('div');
   const renderFilters = () => {
     fBox.innerHTML = '';
@@ -2047,7 +2099,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
         ...(valueCtrl ? [valueCtrl] : []),
         select([['exclude', t('opt.filterExclude')], ['dim', t('opt.filterDim')]], f.mode || 'exclude', v => { f.mode = v; rp(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
-        el('button', { class: 'small danger', onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
       ));
       if (valsBox) fBox.append(valsBox);
     });
@@ -2057,10 +2109,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gFilter.append(
     el('div', { class: 'hint' }, t('cfg.filterHint')),
     fBox,
+    el('button', { class: 'small', onclick: e => showFilterCopyMenu(cfg, e) }, t('cfg.copyFilters')),
     el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '', mode: 'exclude' }); renderFilters(); } }, t('cfg.addFilter')));
 
   /* --- 축 --- */
-  const gAxis = el('details', { class: 'grp' }, el('summary', {}, t('cfg.axis')));
+  const gAxis = el('details', { class: 'grp', 'data-g': 'axis' }, el('summary', {}, t('cfg.axis')));
   gAxis.append(
     row(t('cfg.xLabel'), el('input', { type: 'text', value: cfg.xLabel, placeholder: cfg.x || 'auto', oninput: e => { cfg.xLabel = e.target.value; rp(); } })),
     row(t('cfg.yLabel'), el('input', { type: 'text', value: cfg.yLabel, placeholder: cfg.y || 'auto', oninput: e => { cfg.yLabel = e.target.value; rp(); } })),
@@ -2075,7 +2128,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   );
 
   /* --- 스타일 --- */
-  const gStyle = el('details', { class: 'grp' }, el('summary', {}, t('cfg.style')));
+  const gStyle = el('details', { class: 'grp', 'data-g': 'style' }, el('summary', {}, t('cfg.style')));
   const seriesBox = el('div');
   const renderSeries = () => {
     seriesBox.innerHTML = '';
@@ -2123,7 +2176,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   );
 
   /* --- 포인트 레이블 & 텍스트 마커 --- */
-  const gLabel = el('details', { class: 'grp' }, el('summary', {}, t('cfg.pointLabels')));
+  const gLabel = el('details', { class: 'grp', 'data-g': 'label' }, el('summary', {}, t('cfg.pointLabels')));
   const hiddenBox = el('div');
   const markerBox = el('div');
   const renderLabelLists = () => {
@@ -2165,7 +2218,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   );
 
   /* --- 베이스라인 --- */
-  const gBase = el('details', { class: 'grp' }, el('summary', {}, tf('cfg.baselineCount', { n: cfg.baselines.length })));
+  const gBase = el('details', { class: 'grp', 'data-g': 'base' }, el('summary', {}, tf('cfg.baselineCount', { n: cfg.baselines.length })));
   const baseBox = el('div');
   const renderBaseList = () => {
     baseBox.innerHTML = '';
@@ -2189,7 +2242,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   );
 
   /* --- 고급 --- */
-  const gAdv = el('details', { class: 'grp' }, el('summary', {}, t('cfg.advanced')));
+  const gAdv = el('details', { class: 'grp', 'data-g': 'adv' }, el('summary', {}, t('cfg.advanced')));
   gAdv.append(
     row(t('cfg.trend'), select([['none', t('opt.none')], ['linear', t('opt.trendLinear')], ['poly2', t('opt.trendPoly2')], ['log', t('opt.trendLog')], ['exp', t('opt.trendExp')], ['power', t('opt.trendPower')], ['movavg', t('opt.trendMovavg')]], cfg.trend, v => { cfg.trend = v; rp(); })),
     row(t('cfg.trendStyle'), select(DASHES(), cfg.trendDash, v => { cfg.trendDash = v; rp(); }),
@@ -2211,6 +2264,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const heatDumb = isHeat || isDumbbell;
   panel.append(gData, ...(gBar ? [gBar] : []), gFilter, gAxis, gStyle,
     ...(heatDumb ? [] : [gLabel, gBase]), ...(isBar || heatDumb ? [] : [gAdv]));
+  restoreGroupState(cfg, panel);
 
   function rebuild() { renderSeries(); }
 }
@@ -2232,7 +2286,7 @@ function addChart(cfgOverride) {
     if (!cfg.group && cats[0]) cfg.group = cats[0];
   }
   state.charts.push(cfg);
-  refreshCharts();
+  appendChartCard(cfg);
   save();
   return cfg;
 }
@@ -2244,19 +2298,72 @@ function duplicateChart(src) {
   copy.id = state.nextId++;
   copy.title = src.title ? src.title + t('card.copySuffix') : '';
   state.charts.push(copy);
-  refreshCharts(); save();
+  appendChartCard(copy); save();
 }
 function removeChart(id) {
-  state.charts = state.charts.filter(c => c.id !== id);
+  const i = state.charts.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const [gone] = state.charts.splice(i, 1);   // 축·색·베이스라인까지 통째로 사라지므로 되돌릴 수 있어야 한다
+  const card = document.querySelector(`.chart-card[data-chart="${id}"]`);
+  if (card) card.remove();
   delete plotDivs[id];
-  refreshCharts(); save();
+  updateEmptyCharts(); renumberCards(); save();
+  showToast(t('toast.chartDeleted'), t('toast.undo'), () => {
+    state.charts.splice(Math.min(i, state.charts.length), 0, gone);
+    refreshCharts(); save();
+  });
 }
 function refreshCharts() {
   const box = document.getElementById('charts');
   box.innerHTML = '';
   for (const cfg of state.charts) box.append(renderChartCard(cfg));
-  document.getElementById('emptyCharts').style.display = state.charts.length ? 'none' : '';
+  updateEmptyCharts();
   for (const cfg of state.charts) renderPlot(cfg);
+}
+function updateEmptyCharts() {
+  document.getElementById('emptyCharts').style.display = state.charts.length ? 'none' : '';
+  const box = document.getElementById('dropzone');
+  const ex = document.getElementById('btnExample');
+  if (ex) ex.hidden = state.datasets.length > 0;
+  if (box) box.classList.toggle('empty', !state.datasets.length);
+}
+function cardOf(cfg) { return document.querySelector(`.chart-card[data-chart="${cfg.id}"]`); }
+/* 언어 전환은 라벨만 바꾸면 된다 — 카드를 다시 만들면 줌과 패널 상태가 함께 날아간다 */
+function relabelCards() {
+  for (const cfg of state.charts) {
+    const card = cardOf(cfg);
+    if (!card) continue;
+    const b = card.querySelectorAll('.head button');
+    const labels = [cfg._collapsed ? '▸' : '▾', '↑', '↓', t('card.resetView'), t('card.settings'), t('card.preset'), 'PNG', 'SVG', t('card.duplicate'), t('btn.delete')];
+    const titles = [t('card.collapseTitle'), t('card.moveUpTitle'), t('card.moveDownTitle'), t('card.resetViewTitle'), '', '', '', '', '', ''];
+    b.forEach((btn, i) => { if (labels[i] !== undefined) btn.textContent = labels[i]; if (titles[i]) btn.title = titles[i]; });
+    const hint = card.querySelector('.plot-hint');
+    if (hint) hint.textContent = t('card.plotHint');
+    const nameSpan = card.querySelector('.head .name');
+    if (nameSpan && !cfg.title) nameSpan.textContent = tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 });
+  }
+}
+/* 제목 없는 카드의 "차트 N"은 순서에 따라 달라지므로 순서가 바뀌면 다시 매긴다 */
+function renumberCards() {
+  state.charts.forEach((c, i) => {
+    const nameSpan = cardOf(c) && cardOf(c).querySelector('.head .name');
+    if (nameSpan && !c.title) nameSpan.textContent = tf('card.chartNum', { n: i + 1 });
+  });
+}
+/* 카드 하나만 추가 — 전체 재생성은 설정 패널 접힘·줌·스크롤을 모두 날린다 */
+function appendChartCard(cfg) {
+  document.getElementById('charts').append(renderChartCard(cfg));
+  updateEmptyCharts();
+  renderPlot(cfg);
+}
+function moveChart(cfg, dir) {
+  const i = state.charts.indexOf(cfg), j = i + dir;
+  if (i < 0 || j < 0 || j >= state.charts.length) return;
+  state.charts.splice(j, 0, state.charts.splice(i, 1)[0]);
+  const box = document.getElementById('charts'), card = cardOf(cfg);
+  const ref = cardOf(state.charts[dir > 0 ? j - 1 : j + 1]);
+  if (card && ref) box.insertBefore(card, dir > 0 ? ref.nextSibling : ref);
+  renumberCards(); save();
 }
 /* 카드를 재생성하지 않고 각 설정 패널만 다시 구성 — 컬럼 목록 변경(계산 컬럼 등) 반영, 열림/접힘 상태 보존 */
 function refreshCfgPanels() {
@@ -3058,7 +3165,7 @@ function renderDerived() {
       : `${d.name} = ${d.valueCol} ${d.mode === 'retention' ? '÷' : '−'} (${d.refCol}=${d.refVal}${(d.keys || []).length ? ', ' + d.keys.join('·') : ''})`;
     panel.append(el('div', { class: 'series-row' },
       el('span', { class: 'sname', title: desc }, desc),
-      el('button', { class: 'small danger', onclick: () => { state.derived.splice(i, 1); commit(); } }, '×'),
+      el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { state.derived.splice(i, 1); commit(); } }, '×'),
     ));
   });
   // 추가 폼
@@ -3205,7 +3312,9 @@ function applyPreset(cfg, preset) {
   const merged = { ...defaultChart(), ...preset, ...keep };   // 프리셋에 없는 새 필드는 기본값으로 (세션 복원과 동일 규칙)
   for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
   Object.assign(cfg, merged);
-  refreshCharts(); save();   // 유형이 바뀔 수 있으므로 패널 전체 재구성
+  const card = cardOf(cfg);   // 유형이 바뀔 수 있으므로 이 카드만 재구성 (다른 카드의 줌·패널 상태는 보존)
+  if (card) { card.replaceWith(renderChartCard(cfg)); renderPlot(cfg); } else refreshCharts();
+  save();
 }
 function exportPresets() {
   const blob = new Blob([JSON.stringify(loadPresets(), null, 1)], { type: 'application/json' });
@@ -3225,6 +3334,29 @@ function importPresets(then) {
     } catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
   });
   inp.click();
+}
+/* 같은 필터를 차트 5장에 걸려면 지금은 같은 작업을 5번 해야 한다 — 대상 차트를 골라 복사한다 */
+function showFilterCopyMenu(src, ev) {
+  const others = state.charts.filter(c => c.id !== src.id);
+  popover.innerHTML = '';
+  popover.append(el('div', { class: 'pp-title' }, tf('cfg.copyFiltersTitle', { n: src.filters.length })));
+  if (!others.length) popover.append(el('div', { class: 'pp-note' }, t('cfg.copyFiltersNone')));
+  const apply = targets => {
+    for (const c of targets) {
+      c.filters = JSON.parse(JSON.stringify(src.filters));
+      renderPlot(c);
+      const card = cardOf(c), panel = card && card.querySelector('.cfg'), nm = card && card.querySelector('.head .name');
+      if (panel && nm) buildCfgPanel(c, panel, nm);
+    }
+    hidePopover(); save();
+    showToast(tf('toast.filtersCopied', { n: targets.length }));
+  };
+  if (others.length > 1) popover.append(el('button', { onclick: () => apply(others) }, tf('cfg.copyToAll', { n: others.length })));
+  for (const c of others) {
+    const label = c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 });
+    popover.append(el('button', { onclick: () => apply([c]) }, label + (c.filters.length ? tf('cfg.copyHasFilters', { n: c.filters.length }) : '')));
+  }
+  placePopover(ev);
 }
 function showPresetMenu(cfg, mouseEv) {
   popover.innerHTML = '';
@@ -3275,7 +3407,7 @@ function onDataChanged(autoChart = true) {
   tableState.page = 0;
   renderTable();
   if (autoChart && state.datasets.length && !state.charts.length) addChart();
-  else refreshCharts();
+  else { refreshCfgPanels(); for (const c of state.charts) renderPlot(c); }
   save();
 }
 async function loadFiles(files) {
@@ -3300,7 +3432,10 @@ document.getElementById('btnOpenFolder').addEventListener('click', () => documen
 document.getElementById('fileInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
 document.getElementById('folderInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
 
-document.getElementById('btnPaste').addEventListener('click', () => document.getElementById('modalBack').classList.add('show'));
+document.getElementById('btnPaste').addEventListener('click', () => {
+  document.getElementById('modalBack').classList.add('show');
+  document.getElementById('pasteText').focus();
+});
 document.getElementById('pasteCancel').addEventListener('click', () => document.getElementById('modalBack').classList.remove('show'));
 document.getElementById('pasteAdd').addEventListener('click', () => {
   const name = document.getElementById('pasteName').value.trim() || `pasted-${state.datasets.length + 1}`;
@@ -3315,6 +3450,16 @@ document.getElementById('modalBack').addEventListener('click', e => { if (e.targ
 
 document.getElementById('btnAddChart').addEventListener('click', () => addChart());
 document.getElementById('btnAnalyze').addEventListener('click', toggleAnalysis);
+document.getElementById('btnExample').addEventListener('click', () => {
+  addDataset('example.csv', parseAny(EXAMPLE_CSV, 'example.csv'));
+  showToast(t('toast.exampleLoaded'));
+});
+document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
+  if (e.key !== 'Escape') return;
+  const modal = document.getElementById('modalBack');
+  if (modal.classList.contains('show')) { modal.classList.remove('show'); return; }
+  if (popover.classList.contains('show')) hidePopover();
+});
 document.getElementById('btnExportSession').addEventListener('click', exportSession);
 document.getElementById('btnImportSession').addEventListener('click', () => {
   const inp = el('input', { type: 'file', accept: '.json' });
@@ -3351,7 +3496,8 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   LANG = LANG === 'ko' ? 'en' : 'ko';
   localStorage.setItem(LANG_KEY, LANG);
   applyLang();
-  refreshCharts(); renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
+  relabelCards(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c);
+  renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
 });

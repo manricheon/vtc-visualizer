@@ -30,7 +30,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록).
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널, v0.11.1 분석 정합성 수정(행 제외 시 무효화·자동로드 갱신·다중 설계값 블록), v0.12 사용성(부분 렌더링·삭제 되돌리기·카드 순서/접기·필터 복사·예시 데이터).
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -83,6 +83,12 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **이벤트**: `plotly_click` → `showPointPopover`(베이스라인 추가/제거 · 포인트 제외(`_excluded`, 전 차트 공통) · 텍스트 마커 추가 메뉴),
   `plotly_clickannotation` → 포인트 레이블 개별 숨김 / 텍스트 마커 편집(`showMarkerEditPopover`),
   `plotly_relayout` → 주석 드래그 오프셋 저장(`_kind`별로 `labelOffsets` 또는 `textMarkers`) 및 줌 시 음영 재계산
+- **부분 렌더링**(v0.12): `refreshCharts()`(전체 재생성)는 세션 복원·전체 초기화·init에서만 쓴다. 그 외에는
+  `appendChartCard()`(추가) · 카드 `remove()`(삭제) · `relabelCards()`(언어 전환) · `refreshCfgPanels()`(데이터 변경) ·
+  카드 하나 `replaceWith`(프리셋) 로 국소 갱신 — **전체 재생성은 줌·설정 패널 접힘·스크롤·포커스를 모두 날린다**.
+  차트별 UI 상태는 `_` 접두사 필드(`_open`{그룹키}·`_cfgHidden`·`_collapsed`)에 두면 `serializableChart()`가 세션에서 자동 제외.
+  설정 그룹은 `data-g` 속성으로 식별하고 `restoreGroupState()`가 복원(요약 텍스트는 언어 종속이라 키로 쓰면 안 된다).
+  `removeChart()`는 삭제한 cfg를 토스트 undo로 되살린다. `moveChart()`는 배열 swap + DOM 이동 후 `renumberCards()`.
 - **테이블**: `renderTable` (검색/정렬/페이지네이션 200행, 행 앞 체크박스로 `_excluded` 토글 → 전 차트에서 제외)
 - **세션**: `save`(debounce→localStorage), `exportSession`/`restoreSession`, 키 `vtc-visualizer:session`
   (구 키 `visualizer-by-mrc:session`은 `loadSaved()`가 읽어 자동 마이그레이션)
