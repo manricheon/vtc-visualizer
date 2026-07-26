@@ -181,6 +181,7 @@ Each tier carries a one-line note on how to check it. The order of how objective
 - **Finding nothing is also a result.** It means nothing cleared the thresholds, and relationships dug up by lowering them rarely reproduce.
 
 The analysis runs on **the rows still in the table** (rows excluded from charts are left out) and is discarded whenever the data changes. It is never stored in the session.
+If nothing at all is reported, read the **scan scope** line at the top of the panel: it lists which columns were treated as groups and conditions and what was excluded and why, which tells you whether the relationships were weak or there were simply no conditions to compare.
 
 ## 3. Principles for effective charts (summary)
 

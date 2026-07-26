@@ -299,7 +299,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.11';
+const APP_VERSION = 'v0.11.1';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 /* 카테고리 팔레트 — 라이트는 dataviz 검증본. 다크는 같은 hue 유지하되 다크 서피스에서
@@ -554,6 +554,9 @@ const I18N = {
     'table.exclSuffix': ', 그래프 제외 {n}행',
     'pager.info': '{page} / {pages} 페이지',
     'chips.rows': '{n}행',
+    'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
+    'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
+    'toast.sourceOverwritten': '입력에 있던 _source 컬럼을 파일명으로 덮어썼습니다 (예약된 이름입니다).',
     'btn.analyze': '분석',
     'an.title': '자동 분석',
     'an.recompute': '다시 계산',
@@ -572,6 +575,10 @@ const I18N = {
     'an.less': '접기',
     'an.chartBtn': '＋ 차트',
     'an.chartAdded': '근거 차트를 추가했습니다.',
+    'an.scanScope': '검사 범위 — 그룹 후보 {cats} · 설계값 {designs} · 연속 지표 {conts}개',
+    'an.skipped': '· 제외: {list}',
+    'an.skipLevels': '{col}(레벨 {n}개)',
+    'an.scopeNone': '없음',
     'an.verify0': '표에서 바로 확인되는 사실입니다 — 하단 표에서 해당 컬럼을 검색·정렬해 보고, 데이터를 고치는 것이 먼저입니다.',
     'an.verify1': '두 계산이 서로 어긋난다는 보고입니다 — 오른쪽 버튼으로 그룹을 나눈 차트를 띄우면 1분 안에 직접 확인됩니다.',
     'an.verify2': '임계값을 넘은 후보입니다 — 아래 회색 줄이 그 차트 설정이니, 차트로 눈으로 확인한 뒤에만 문장으로 옮기세요.',
@@ -603,6 +610,7 @@ const I18N = {
     'an.ins.imbalance': '{g}×{d} — 조합 {total}개 중 {filled}개만 측정되어 있습니다. 평균 비교가 성능 차이가 아니라 측정 조건 차이를 반영할 수 있습니다.',
     'an.ins.sources': '데이터셋이 {k}개입니다 — 파일이 다르면 측정 환경도 다를 수 있으니 한 축에서 비교하기 전에 조건을 확인하세요.',
     'an.ins.dupcol': '{a} · {b} — 모든 행에서 관계가 일정합니다 ({rel}). 같은 값을 단위만 바꿔 담은 컬럼으로 보고 이후 분석에서는 {a} 하나만 씁니다.',
+    'an.ins.dupdesign': '{a} · {b} — 두 설계값이 1:1로 대응합니다(같은 조합을 가리킵니다). 이후 분석에서는 {a} 하나를 조건으로 씁니다.',
     'an.ins.dupinfo': '{a} · {b} — 거의 같은 정보를 담고 있습니다 ({rel}). 중복 지표로 보고 이후 분석에서는 {a} 하나만 씁니다.',
     'an.ins.simpson': '{a} · {b} — 전체를 합치면 r={rp}이지만, {g}별로 나누면 {k}개 그룹이 모두 r={lo}~{hi}입니다. 합친 수치는 {g} 간 차이 때문에 뒤집힌 것으로 보이니 {g}별로 나눠 보세요.',
     'an.ins.cross': '{c} — {a} vs {b}의 우열이 {d}에 따라 뒤바뀝니다 ({d}={loList} → {a} 우세, {d}={hiList} → {b} 우세 · 같은 조건끼리 짝지은 {n}쌍). 하나의 평균 차이로 요약하지 마세요.',
@@ -795,6 +803,9 @@ const I18N = {
     'table.exclSuffix': ', {n} excluded from chart',
     'pager.info': 'Page {page} / {pages}',
     'chips.rows': '{n} rows',
+    'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
+    'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
+    'toast.sourceOverwritten': 'The _source column in your input was overwritten with the filename (it is a reserved name).',
     'btn.analyze': 'Analyze',
     'an.title': 'Automatic analysis',
     'an.recompute': 'Recompute',
@@ -813,6 +824,10 @@ const I18N = {
     'an.less': 'Show less',
     'an.chartBtn': '＋ Chart',
     'an.chartAdded': 'Added a chart for this finding.',
+    'an.scanScope': 'Scan scope — group candidates {cats} · design values {designs} · {conts} continuous metrics',
+    'an.skipped': '· excluded: {list}',
+    'an.skipLevels': '{col} ({n} levels)',
+    'an.scopeNone': 'none',
     'an.verify0': 'Facts you can confirm directly — search or sort the column in the table below, then fix the data before reading anything further.',
     'an.verify1': 'A disagreement between two computations — the button on the right opens the split-by-group chart, so you can confirm it in a minute.',
     'an.verify2': 'Candidates that cleared a threshold — the grey line under each is its chart recipe; confirm it visually before writing it up.',
@@ -844,6 +859,7 @@ const I18N = {
     'an.ins.imbalance': '{g}×{d} — only {filled} of {total} combinations were measured, so a mean comparison may reflect what was measured rather than performance.',
     'an.ins.sources': '{k} datasets are loaded. Different files may come from different setups, so check that conditions match before comparing them on one axis.',
     'an.ins.dupcol': '{a} · {b} — the relation holds in every row ({rel}), so one is a rescaling of the other. Only {a} is used in the rest of the analysis.',
+    'an.ins.dupdesign': '{a} · {b} — the two design values map one-to-one (they mark the same combinations). Only {a} is used as the condition in the rest of the analysis.',
     'an.ins.dupinfo': '{a} · {b} — these carry almost the same information ({rel}). Treated as duplicate metrics; only {a} is used in the rest of the analysis.',
     'an.ins.simpson': '{a} · {b} — pooled across all rows they give r={rp}, but split by {g} all {k} groups give r={lo} to {hi}. The pooled figure appears reversed by differences between {g} levels, so use the per-{g} view.',
     'an.ins.cross': '{c} — which of {a} and {b} is higher flips with {d} ({d}={loList} → {a} leads; {d}={hiList} → {b} leads · {n} matched pairs). Do not summarise this as a single mean difference.',
@@ -1007,8 +1023,13 @@ function parseAny(text, filename) {
 }
 
 /* ================= data model ================= */
+let sourceWarned = false;
 function addDataset(name, rows) {
   if (!rows.length) { alert(tf('err.noRowsInDataset', { name })); return; }
+  if (!sourceWarned && rows.some(r => r._source !== undefined)) {   // _source는 예약어 — 덮어쓰되 침묵하지는 않는다
+    sourceWarned = true;
+    showToast(t('toast.sourceOverwritten'));
+  }
   rows.forEach(r => { r._source = name; });
   const existing = state.datasets.find(d => d.name === name);
   if (existing) existing.rows = rows;
@@ -1763,7 +1784,7 @@ function showPointPopover(c, gd, p, mouseEv) {
         }
         hidePopover();
         if (hit.length) {
-          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); save(); };
+          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); analysisStale(); save(); };
           refresh();
           showToast(tf('toast.excluded', { n: hit.length }), t('toast.undo'), () => { hit.forEach(r => delete r._excluded); refresh(); });
         }
@@ -1779,7 +1800,7 @@ function showPointPopover(c, gd, p, mouseEv) {
         for (const r of allRows()) if (match(r) && !r._excluded) { if (already) delete r._muted; else r._muted = true; hit.push(r); }
         hidePopover();
         if (hit.length) {
-          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); save(); };
+          const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); analysisStale(); save(); };
           refresh();
           if (!already) showToast(tf('toast.muted', { n: hit.length }), t('toast.undo'), () => { hit.forEach(r => delete r._muted); refresh(); });
         }
@@ -2289,12 +2310,12 @@ function renderTable() {
   table.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => {
     const r = view[Number(cb.dataset.i)];
     if (cb.checked) delete r._excluded; else r._excluded = true;
-    renderTable(); rerenderCharts(); save();
+    renderTable(); rerenderCharts(); analysisStale(); save();
   }));
   const chkAll = table.querySelector('#chkAll');
   if (chkAll) chkAll.addEventListener('change', () => {
     rows.forEach(r => { if (chkAll.checked) delete r._excluded; else r._excluded = true; });
-    renderTable(); rerenderCharts(); save();
+    renderTable(); rerenderCharts(); analysisStale(); save();
   });
   const nExcl = allRows().filter(r => r._excluded).length;
   document.getElementById('tableCount').textContent = tf('table.count', {
@@ -2322,7 +2343,7 @@ const AN = {
   maxRows: 20000, maxNumCols: 40, maxShown: 8, uniqueCap: 10000, maxPerKind: 3,
   minN: 8, rBase: 0.6, multK: 0.03, rDup: 0.995, defCV: 3e-3, rhoGap: 0.30, simpsonGap: 0.30,
   crossMin: 0.8, flipMin: 0.25, dzMin: 0.8, relMin: 0.05,
-  missMin: 0.05, biasGap: 0.30, designMaxLv: 12, catMaxLv: 8,
+  missMin: 0.05, biasGap: 0.30, designMaxLv: 12, catMaxLv: 24,   // 모델 20종 비교 같은 실제 사례를 침묵시키지 않도록
   madZ: 3.5, outMax: 3, outMinAmp: 0.05, satFrac: 0.9, bootB: 2000,
 };
 const AN_SEP = '\u0001';   // 복합 키 구분자 — 데이터 값에 나타나지 않는 제어문자
@@ -2496,10 +2517,28 @@ function analyzeData() {
   const fv = v => fmtBarVal(v);
 
   const catCols = profiles.filter(p => p.role === 'cat').map(p => p.col);
-  const designCols = profiles.filter(p => p.role === 'design').map(p => p.col);
+  const designAll = profiles.filter(p => p.role === 'design').map(p => p.col);
+  /* 설계값이 1:1로 대응하면(frames = tokens/250 같은 경우) 같은 블록을 두 번 세는 셈이라
+     대표 하나만 남긴다 — 연속 컬럼의 중복 접기와 같은 원칙 */
+  const samePartition = (a, b) => {
+    const ab = new Map(), ba = new Map();
+    for (const r of rows) {
+      if (r[a] === undefined || r[b] === undefined) continue;
+      const va = String(r[a]), vb = String(r[b]);
+      if (ab.has(va) && ab.get(va) !== vb) return false;
+      if (ba.has(vb) && ba.get(vb) !== va) return false;
+      ab.set(va, vb); ba.set(vb, va);
+    }
+    return ab.size > 0;
+  };
+  const designCols = [];
+  for (const d of designAll) {
+    const rep = designCols.find(k => samePartition(k, d));
+    if (rep) push(0, 'dupdesign', { a: rep, b: d }, 0.55);
+    else designCols.push(d);
+  }
   const contCols = profiles.filter(p => p.role === 'cont').map(p => p.col).slice(0, AN.maxNumCols);
   const primaryCat = catCols[0] || '';
-  const blockCol = designCols[0] || '';
 
   /* ===== Tier 0 — 데이터 무결성 (가장 싸고 항상 옳다) ===== */
   for (const p of profiles) {
@@ -2633,13 +2672,34 @@ function analyzeData() {
       { type: 'scatter', x: ps.a, y: ps.b, group: primaryCat, trend: 'linear', trendBand: '1' });
   }
 
-  /* ===== 그룹 비교 — 셀 평균으로 축약 후 같은 조건끼리 짝지어 비교 ===== */
+  /* ===== 그룹 비교 — 셀 평균으로 축약 후 같은 조건끼리 짝지어 비교 =====
+     블록 = **모든 설계 노브가 같은 행들**. 첫 노브만 쓰면 노브가 2개 이상인 데이터에서
+     "같은 조건끼리 짝지었다"가 사실이 아니게 된다(이상치 판정도 같은 기준을 쓴다). */
+  const blockKeyOf = r => designCols.length ? designCols.map(d => String(r[d])).join(AN_SEP) : '__all';
+  const blockLabelOf = key => {
+    if (key === '__all') return AN_ALL;
+    const vals = key.split(AN_SEP);
+    return designCols.length === 1 ? vals[0] : designCols.map((d, i) => `${d}=${vals[i]}`).join(' ');
+  };
+  const blocks = [];   // 실제로 관측된 조합만, 설계값 순서대로
+  {
+    const seen = new Set();
+    for (const r of rows) { const k = blockKeyOf(r); if (!seen.has(k)) { seen.add(k); blocks.push(k); } }
+    blocks.sort((a, b) => {
+      const va = a.split(AN_SEP), vb = b.split(AN_SEP);
+      for (let i = 0; i < va.length; i++) {
+        const na = Number(va[i]), nb = Number(vb[i]);
+        const d = (Number.isFinite(na) && Number.isFinite(nb)) ? na - nb : String(va[i]).localeCompare(String(vb[i]));
+        if (d) return d;
+      }
+      return 0;
+    });
+  }
   for (const g of catCols) {
     const lv = P[g].levels || [];
     if (lv.length < 2) continue;
-    const blocks = blockCol ? (P[blockCol].levels || []).map(String) : ['__all'];
     for (const c of reps) {
-      const cell = anCell(rows, c, r => String(r[g]) + AN_SEP + (blockCol ? String(r[blockCol]) : '__all'));
+      const cell = anCell(rows, c, r => String(r[g]) + AN_SEP + blockKeyOf(r));
       const at = (gl, bl) => { const v = cell.get(gl + AN_SEP + bl); return v ? anMean(v) : null; };
       const stats = lv.map(gl => {
         const vs = blocks.map(bl => at(gl, bl)).filter(v => v !== null);
@@ -2664,11 +2724,12 @@ function analyzeData() {
         if (!cross || sc > cross.sc) cross = { A: stats[i].gl, B: stats[j].gl, ds, sc, n: ds.length };
       }
       if (cross) {
-        const labs = (keep) => blocks.filter((bl, i) => cross.ds[i] !== undefined && keep(cross.ds[i])).join(', ');
+        const used = blocks.filter(bl => at(cross.A, bl) !== null && at(cross.B, bl) !== null);
+        const labs = keep => used.filter((bl, i) => keep(cross.ds[i])).map(blockLabelOf).join(', ');
         push(1, 'cross', {
-          c, g, d: blockCol, a: cross.A, b: cross.B, n: cross.n,
+          c, g, d: designCols.join(' × '), a: cross.A, b: cross.B, n: cross.n,
           loList: labs(v => v > 0), hiList: labs(v => v < 0),
-        }, 0.85 + 0.1 * cross.sc, { type: 'scatter+line', x: blockCol, y: c, group: g });
+        }, 0.85 + 0.1 * cross.sc, { type: 'scatter+line', x: designCols[0] || '', y: c, group: g });
         continue;   // 같은 (g, c)에 평균 차이 인사이트를 겹쳐 내지 않는다
       }
       const best = stats[0], worst = stats[stats.length - 1];
@@ -2691,14 +2752,18 @@ function analyzeData() {
   }
 
   /* ===== 포화 — 곡선 피팅·외삽 없이 관측 지점의 누적 증가분만 기술 ===== */
-  if (blockCol && (P[blockCol].levels || []).length >= 4) {
-    const xs = P[blockCol].levels;
+  for (const xcol of designCols) {
+    const xs = P[xcol].levels || [];
+    if (xs.length < 4) continue;
     const groups = primaryCat ? (P[primaryCat].levels || []) : ['__all'];
     const satHits = [];
     for (const c of reps) for (const gl of groups) {
       const sub = primaryCat ? rows.filter(r => String(r[primaryCat]) === gl) : rows;
+      /* 다른 노브에 대해 균형이 맞을 때만 주변 평균을 쓴다 — 불균형이면 추세가 아니라 구성 차이를 보게 된다 */
+      const counts = xs.map(x => sub.filter(r => r[xcol] === x).length);
+      if (!counts.length || counts.some(n => n !== counts[0]) || counts[0] === 0) continue;
       const ys = xs.map(x => {
-        const vs = sub.filter(r => r[blockCol] === x).map(r => r[c]).filter(v => typeof v === 'number');
+        const vs = sub.filter(r => r[xcol] === x).map(r => r[c]).filter(v => typeof v === 'number');
         return vs.length ? anMean(vs) : null;
       });
       if (ys.some(v => v === null)) continue;
@@ -2721,9 +2786,9 @@ function analyzeData() {
     }
     for (const hits of byPoint.values()) {
       const h0 = hits[0];
-      const chart = { type: 'scatter+line', x: blockCol, y: h0.c, group: primaryCat,
+      const chart = { type: 'scatter+line', x: xcol, y: h0.c, group: primaryCat,
         xScale: anIsSeq(xs) && xs[0] > 0 && xs[xs.length - 1] / xs[0] >= 20 ? 'log' : 'linear' };
-      const base = { y: h0.c, x: blockCol, k: xs.length, x0: xs[0], x1: xs[h0.k + 1] };
+      const base = { y: h0.c, x: xcol, k: xs.length, x0: xs[0], x1: xs[h0.k + 1] };
       const score = 0.45 + 0.3 * (1 - (h0.k + 1) / (xs.length - 1)) + 0.05 * (hits.length - 1);
       if (hits.length > 1 && primaryCat) {
         const ps = hits.map(h => h.pct);
@@ -2738,7 +2803,7 @@ function analyzeData() {
 
   /* ===== 이상치 — 셀 내부(반복) 또는 국소 추세 잔차에서만. 전체 풀에 IQR을 적용하면
      단조 스윕의 양 끝을 매번 오탐한다. 자동 제외는 하지 않는다(제안만). ===== */
-  const scopeOf = r => [primaryCat, blockCol].filter(Boolean).map(k => `${k}=${r[k]}`).join(', ') || AN_ALL;
+  const scopeOf = r => [primaryCat, ...designCols].filter(Boolean).map(k => `${k}=${r[k]}`).join(', ') || AN_ALL;
   for (const c of reps) {
     /* 셀 = 모든 설계 노브가 같은 행들(= 진짜 반복 측정). 첫 노브만 쓰면 스윕이 반복으로 오인된다 */
     const cells = new Map();
@@ -2762,12 +2827,13 @@ function analyzeData() {
           }
         });
       }
-    } else if (blockCol) {
+    } else if (designCols.length === 1) {   // 잔차 판정은 축이 하나일 때만 — 노브가 여럿이면 다른 노브의 변동을 잔차로 오인한다
       const groups = primaryCat ? (P[primaryCat].levels || []) : ['__all'];
       for (const gl of groups) {
+        const xcol = designCols[0];
         const sub = (primaryCat ? rows.filter(r => String(r[primaryCat]) === gl) : rows)
-          .filter(r => typeof r[c] === 'number' && typeof r[blockCol] === 'number')
-          .sort((a, b) => a[blockCol] - b[blockCol]);
+          .filter(r => typeof r[c] === 'number' && typeof r[xcol] === 'number')
+          .sort((a, b) => a[xcol] - b[xcol]);
         if (sub.length < 6) continue;
         const ys = sub.map(r => r[c]), rng = Math.max(...ys) - Math.min(...ys);
         const res = ys.map((v, i) => (i === 0 || i === ys.length - 1) ? 0 : v - anMedian([ys[i - 1], ys[i], ys[i + 1]]));
@@ -2777,7 +2843,7 @@ function analyzeData() {
           if (Math.abs(z[i]) >= AN.madZ && Math.abs(res[i]) >= AN.outMinAmp * rng) {
             push(2, 'outlier', {
               col: c, val: fv(ys[i]), z: anZ(z[i]), scope: scopeOf(sub[i]),
-            }, 0.4, { type: 'scatter+line', x: blockCol, y: c, group: primaryCat, showLabels: true, labelCol: c });
+            }, 0.4, { type: 'scatter+line', x: xcol, y: c, group: primaryCat, showLabels: true, labelCol: c });
           }
         }
       }
@@ -2788,11 +2854,21 @@ function analyzeData() {
   ins.sort((a, b) => a.tier - b.tier || b.score - a.score);
   const seen = {};
   const kept = ins.filter(i => {
-    const cap = i.kind === 'outlier' ? AN.outMax : AN.maxPerKind;
+    // 심슨 경고는 같은 뿌리(그룹 간 수준 차이)에서 여러 쌍이 한꺼번에 나오므로 더 짧게 자른다
+    const cap = i.kind === 'outlier' ? AN.outMax : i.kind === 'simpson' ? 2 : AN.maxPerKind;
     seen[i.kind] = (seen[i.kind] || 0) + 1;
     return seen[i.kind] <= cap;
   });
-  return { profiles, insights: kept, meta: { nRows: total, nScan: rows.length, nCols: cols.length, nPairs, stride,
+  /* 발견이 0건일 때 "왜 없는지"를 말해줄 수 있도록 스캔 범위를 함께 남긴다 */
+  const lvOf = c => (P[c].levels || []).length || P[c].unique;
+  const scope = {
+    cats: catCols.map(c => `${c}(${lvOf(c)})`),
+    designs: designCols.map(c => `${c}(${lvOf(c)})`),
+    conts: reps.length,
+    skipped: profiles.filter(p => ['id', 'catmany', 'const', 'empty'].includes(p.role))
+      .map(p => ({ col: p.col, role: p.role, unique: p.unique })),
+  };
+  return { profiles, insights: kept, meta: { nRows: total, nScan: rows.length, nCols: cols.length, nPairs, stride, scope,
     capped: profiles.filter(p => p.role === 'cont').length > AN.maxNumCols } };
 }
 
@@ -2836,6 +2912,9 @@ function runInsightChart(ins) {
 }
 
 /* ---- 패널 ---- */
+/* 행 집합(제외·흐리게·계산 컬럼)이 바뀌면 인사이트는 낡은 것이 된다.
+   GUIDE가 "표에 남아 있는 행에 대해 실행된다"고 약속하므로 조용히 남겨두면 안 된다. */
+function analysisStale() { if (analysis) { analysis = null; renderAnalysis(); } }
 function toggleAnalysis() {
   const card = document.getElementById('analysisCard');
   if (!allRows().length) { alert(t('an.emptyData')); return; }
@@ -2853,6 +2932,14 @@ function runAnalysis() {
 }
 const AN_KIND_KEY = { cont: 'an.k.cont', design: 'an.k.design', cat: 'an.k.cat', catmany: 'an.k.catmany',
   id: 'an.k.id', flag: 'an.k.flag', mixed: 'an.k.mixed', const: 'an.k.const', empty: 'an.k.empty', source: 'an.k.source' };
+/* 기본 목록 선정: 티어 순서는 지키되 데이터·주의가 발견을 전부 밀어내지 않도록 할당량을 둔다
+   (전체는 "더 보기"로 볼 수 있다) */
+function anPickShown(list) {
+  const quota = [3, 3, AN.maxShown], used = [0, 0, 0], out = [];
+  for (const i of list) if (used[i.tier] < quota[i.tier] && out.length < AN.maxShown) { out.push(i); used[i.tier]++; }
+  for (const i of list) if (out.length < AN.maxShown && !out.includes(i)) out.push(i);
+  return out.sort((a, b) => a.tier - b.tier || b.score - a.score);
+}
 function renderAnalysis() {
   const card = document.getElementById('analysisCard');
   const ctrl = document.getElementById('anCtrl'), body = document.getElementById('anBody');
@@ -2873,11 +2960,25 @@ function renderAnalysis() {
     el('button', { class: 'small', onclick: () => { card.hidden = true; } }, t('an.close')),
     el('span', { class: 'count' }, note),
   );
+  const sc = meta.scope || { cats: [], designs: [], conts: 0, skipped: [] };
+  const none = t('an.scopeNone');
+  let scopeLine = tf('an.scanScope', {
+    cats: sc.cats.length ? sc.cats.join(', ') : none,
+    designs: sc.designs.length ? sc.designs.join(', ') : none,
+    conts: sc.conts,
+  });
+  if (sc.skipped.length) {
+    scopeLine += ' ' + tf('an.skipped', {
+      list: sc.skipped.map(x => x.role === 'catmany' ? tf('an.skipLevels', { col: x.col, n: x.unique })
+        : `${x.col}(${t(AN_KIND_KEY[x.role] || x.role)})`).join(', '),
+    });
+  }
+  body.append(el('div', { class: 'hint' }, scopeLine));
 
   /* 인사이트 */
   const gIns = el('details', { class: 'grp', open: '' }, el('summary', {}, tf('an.insights', { n: insights.length })));
   if (!insights.length) gIns.append(el('div', { class: 'hint' }, t('an.none')));
-  const shown = anShowAll ? insights : insights.slice(0, AN.maxShown);
+  const shown = anShowAll ? insights : anPickShown(insights);
   let lastTier = -1;
   for (const i of shown) {
     if (i.tier !== lastTier) {   // 티어가 바뀔 때마다 "이 등급은 어떻게 확인하는가" 한 줄
@@ -2894,9 +2995,9 @@ function renderAnalysis() {
         onclick: () => runInsightChart(i) }, t(anFindChart(i.chart) ? 'an.chartGo' : 'an.chartBtn'))] : []),
     ));
   }
-  if (insights.length > AN.maxShown) {
+  if (insights.length > shown.length) {
     gIns.append(el('button', { class: 'small', onclick: () => { anShowAll = !anShowAll; renderAnalysis(); } },
-      anShowAll ? t('an.less') : tf('an.more', { n: insights.length - AN.maxShown })));
+      anShowAll ? t('an.less') : tf('an.more', { n: insights.length - shown.length })));
   }
 
   /* 컬럼 프로파일 */
@@ -2948,7 +3049,7 @@ function renderDerived() {
   panel.hidden = !state.datasets.length;
   if (!state.datasets.length) { panel.innerHTML = ''; return; }
   const nums = numericColumns(), cols = visibleColumns();
-  const commit = () => { applyDerived(); renderDerived(); renderTable(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c); save(); };
+  const commit = () => { applyDerived(); renderDerived(); renderTable(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c); analysisStale(); save(); };
   panel.innerHTML = '';
   panel.append(el('summary', {}, tf('cfg.derivedCount', { n: state.derived.length })));
   // 기존 정의 목록
@@ -2999,13 +3100,16 @@ function renderDerived() {
 
 /* ================= session persistence ================= */
 let saveTimer = null;
+let quotaWarned = false;
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
       const charts = state.charts.map(serializableChart);
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId }));
-    } catch (e) { /* quota — 데이터가 너무 크면 자동저장 생략 */ }
+    } catch (e) {   // 쿼터 초과 — 조용히 넘기면 자동 저장이 꺼진 줄 모르고 작업하게 된다
+      if (!quotaWarned) { quotaWarned = true; showToast(t('toast.quota')); }
+    }
   }, 400);
 }
 function loadSaved() {
@@ -3156,6 +3260,14 @@ function showPresetMenu(cfg, mouseEv) {
 /* ================= wiring ================= */
 function onDataChanged(autoChart = true) {
   applyDerived();   // 계산 컬럼 재적용 (데이터·정의 변경 반영)
+  if (state.datasets.length <= 1) {   // _source가 UI에서 사라지면 그걸 참조하던 설정도 유령이 된다
+    for (const c of state.charts) {
+      for (const k of ['x', 'y', 'group', 'group2', 'colorBy', 'facetBy', 'labelCol', 'heatZ']) {
+        if (c[k] === '_source') c[k] = '';
+      }
+      c.filters = c.filters.filter(f => f.col !== '_source');
+    }
+  }
   analysis = null;  // 분석 결과는 데이터에 종속 — 낡은 인사이트를 남기지 않는다
   renderAnalysis();
   renderChips();
@@ -3220,13 +3332,13 @@ document.getElementById('btnReset').addEventListener('click', () => {
 });
 document.getElementById('restoreExcl').addEventListener('click', () => {
   allRows().forEach(r => { delete r._excluded; });
-  renderTable();
+  renderTable(); analysisStale();
   for (const c of state.charts) renderPlot(c);
   save();
 });
 document.getElementById('restoreMuted').addEventListener('click', () => {
   allRows().forEach(r => { delete r._muted; });
-  renderTable();
+  renderTable(); analysisStale();
   for (const c of state.charts) renderPlot(c);
   save();
 });
@@ -3254,14 +3366,17 @@ async function tryServerAutoload() {
     const res = await fetch('api/files');
     if (!res.ok) return;
     const files = await res.json();
+    let reloaded = 0;
     for (const name of files) {
-      if (state.datasets.some(d => d.name === name)) continue;
+      /* 같은 이름이면 건너뛰던 예전 동작은 갱신된 로그를 영영 보여주지 않았다 — 항상 최신 내용으로 교체한다 */
+      const had = state.datasets.some(d => d.name === name);
       const r = await fetch('api/file?name=' + encodeURIComponent(name));
       if (r.ok) {
-        try { addDataset(name, parseAny(await r.text(), name)); }
+        try { addDataset(name, parseAny(await r.text(), name)); if (had) reloaded++; }
         catch (e) { console.warn('자동 로드 실패:', name, e); }
       }
     }
+    if (reloaded) showToast(tf('toast.reloaded', { n: reloaded }));
   } catch (e) { /* 서버 없음 — 정상 */ }
 }
 

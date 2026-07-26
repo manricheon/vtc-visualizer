@@ -151,6 +151,14 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.11.1 — analysis consistency fixes
+- Excluding or restoring rows in the table now **marks the analysis stale immediately** (previously the panel kept showing insights computed before the exclusion).
+- When a folder is served by `visualizer.py`, **files that changed are re-read** instead of being skipped, so updated logs actually show up.
+- Autosave failures caused by storage limits are reported instead of being swallowed.
+- Dropping back to a single dataset clears axis/group/filter settings that referenced `_source`.
+- Analysis: **when there is more than one design value (condition), pairing now happens on the combination** rather than the first one only. Design values that map one-to-one collapse into one representative, and the group-candidate limit is raised to 24 so comparisons across ~20 models still work.
+- The panel now shows a **scan-scope line** (group candidates, design values, excluded columns and why), so an empty result explains itself.
+
 ### v0.11 — automatic analysis panel
 - An **`Analyze` button** in the top bar: column profile (kind, missing, unique, min/median/max/mean/sd), automatic findings, and a profile CSV export.
 - Findings come in three tiers — **Data (integrity) → Caution (confounding) → Finding**: constant/empty columns, non-numeric values mixed into
