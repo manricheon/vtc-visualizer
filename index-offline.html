@@ -157,6 +157,19 @@
   table.data tr:hover td { background: var(--hover); }
   #pager { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--ink-muted); font-size: 12px; }
 
+  /* ===== analysis panel ===== */
+  #anCtrl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  #anCtrl .count { color: var(--ink-muted); font-size: 12px; }
+  #anTableWrap { overflow: auto; max-height: 360px; border: 1px solid var(--grid); border-radius: 8px; }
+  #anTableWrap table.data th { cursor: default; }
+  #anTableWrap table.data th:hover { color: var(--ink-2); }
+  .ins-row { display: flex; gap: 8px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--grid); }
+  .ins-row:last-of-type { border-bottom: none; }
+  .ins-row .ins-text { flex: 1; font-size: 12.5px; line-height: 1.5; }
+  .ins-badge { flex: none; font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--hover); color: var(--ink-2); }
+  .ins-badge.t0 { border: 1px solid var(--axis); }
+  .ins-badge.t1 { border: 1px solid var(--danger); color: var(--danger); }
+
   /* ===== modal ===== */
   #modalBack {
     display: none; position: fixed; inset: 0; background: rgba(11,11,11,0.35); z-index: 50;
@@ -216,6 +229,7 @@
     <h1>VTC Visualizer <span id="appVersion" class="ver"></span></h1>
     <span class="sub" data-i18n="header.sub"></span>
     <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
+    <button id="btnAnalyze" data-i18n="btn.analyze"></button>
     <button id="btnExportSession" data-i18n="btn.exportSession"></button>
     <button id="btnImportSession" data-i18n="btn.importSession"></button>
     <button id="btnExportAll" data-i18n="btn.exportAll"></button>
@@ -239,6 +253,12 @@
     <details id="derivedPanel" class="grp" hidden></details>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" multiple hidden>
     <input type="file" id="folderInput" webkitdirectory multiple hidden>
+  </section>
+
+  <section class="card" id="analysisCard" hidden>
+    <h2 data-i18n="an.title"></h2>
+    <div id="anCtrl"></div>
+    <div id="anBody"></div>
   </section>
 
   <div id="charts"></div>
@@ -285,7 +305,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.10';
+const APP_VERSION = 'v0.11';
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
 /* 카테고리 팔레트 — 라이트는 dataviz 검증본. 다크는 같은 hue 유지하되 다크 서피스에서
@@ -540,6 +560,57 @@ const I18N = {
     'table.exclSuffix': ', 그래프 제외 {n}행',
     'pager.info': '{page} / {pages} 페이지',
     'chips.rows': '{n}행',
+    'btn.analyze': '분석',
+    'an.title': '자동 분석',
+    'an.recompute': '다시 계산',
+    'an.exportProfile': '프로파일 CSV',
+    'an.close': '닫기',
+    'an.computing': '계산 중…',
+    'an.emptyData': '먼저 데이터를 불러오세요.',
+    'an.stale': '데이터가 바뀌었습니다 — 다시 계산하세요.',
+    'an.scan': '{rows}행 · {cols}컬럼 · 숫자 컬럼 조합 {pairs}쌍 검사 (그래프에서 제외한 행은 뺌)',
+    'an.sampled': '· {n}행 표본으로 스캔',
+    'an.capped': '· 숫자 컬럼 {n}개까지만 검사',
+    'an.insights': '발견 ({n})',
+    'an.profile': '컬럼 프로파일 ({n})',
+    'an.none': '임계값을 넘는 발견이 없습니다 — 데이터가 작거나 관계가 약합니다. 이것도 정상적인 결과입니다.',
+    'an.more': '나머지 {n}개 더 보기',
+    'an.less': '접기',
+    'an.chartBtn': '＋ 차트',
+    'an.chartAdded': '근거 차트를 추가했습니다.',
+    'an.tier0': '데이터',
+    'an.tier1': '주의',
+    'an.tier2': '발견',
+    'an.disclaimer': '탐색용 스크리닝입니다(확증 검정이 아닙니다). 상관은 인과가 아니며, 모든 수치는 지금 표에 있는 행에 한정됩니다. 이상치는 표시만 하고 자동으로 제외하지 않습니다.',
+    'an.allRows': '전체 행',
+    'an.dir.up': '함께 움직입니다',
+    'an.dir.down': '서로 반대로 움직입니다',
+    'an.k.cont': '연속', 'an.k.design': '설계값', 'an.k.cat': '범주', 'an.k.catmany': '범주(다수)',
+    'an.k.id': '식별자', 'an.k.flag': '이진', 'an.k.mixed': '혼합', 'an.k.const': '상수',
+    'an.k.empty': '비어 있음', 'an.k.source': '출처',
+    'an.h.col': '컬럼', 'an.h.kind': '종류', 'an.h.missing': '결측', 'an.h.unique': '고유',
+    'an.h.min': '최소', 'an.h.med': '중앙', 'an.h.max': '최대', 'an.h.mean': '평균', 'an.h.sd': '표준편차', 'an.h.note': '비고',
+    'an.note.mixed': '숫자 아닌 값 {k}개 ({sample})',
+    'an.ct.rel': '{a} vs {b}',
+    'an.ct.group': '{g}별 {c}',
+    'an.ct.trend': '{x}에 따른 {c}',
+    'an.ins.empty': '{col} — 컬럼이 완전히 비어 있습니다. 축이나 그룹으로 쓸 수 없습니다.',
+    'an.ins.const': '{col} — 값이 하나뿐입니다 ({val}). 비교에 쓸 수 없습니다.',
+    'an.ins.mixed': '{col} — 숫자가 아닌 값이 {k}개 섞여 있어({sample}) 이 컬럼 전체가 숫자 축 후보에서 빠집니다. 값을 고치면 축으로 쓸 수 있습니다.',
+    'an.ins.missing': '{col} — {pct}%({k}행)가 비어 있습니다. 이 컬럼을 쓰는 차트는 일부 행만 그립니다.',
+    'an.ins.duprow': '내용이 완전히 같은 행이 {k}개 있습니다 — 반복 측정인지 내보내기 중복인지 확인하세요.',
+    'an.ins.missbias': '{col} — 결측이 {g}={lv}에 몰려 있습니다 (그 그룹 {pct}% vs 전체 {base}%). 이 상태로 그룹을 비교하면 왜곡됩니다.',
+    'an.ins.imbalance': '{g}×{d} — 조합 {total}개 중 {filled}개만 측정되어 있습니다. 평균 비교가 성능 차이가 아니라 측정 조건 차이를 반영할 수 있습니다.',
+    'an.ins.sources': '데이터셋이 {k}개입니다 — 파일이 다르면 측정 환경도 다를 수 있으니 한 축에서 비교하기 전에 조건을 확인하세요.',
+    'an.ins.dupcol': '{a} · {b} — 모든 행에서 관계가 일정합니다 ({rel}). 같은 값을 단위만 바꿔 담은 컬럼으로 보고 이후 분석에서는 {a} 하나만 씁니다.',
+    'an.ins.dupinfo': '{a} · {b} — 거의 같은 정보를 담고 있습니다 ({rel}). 중복 지표로 보고 이후 분석에서는 {a} 하나만 씁니다.',
+    'an.ins.simpson': '{a} · {b} — 전체를 합치면 r={rp}이지만, {g}별로 나누면 {k}개 그룹이 모두 r={lo}~{hi}입니다. 합친 수치는 {g} 간 차이 때문에 뒤집힌 것으로 보이니 {g}별로 나눠 보세요.',
+    'an.ins.cross': '{c} — {a} vs {b}의 우열이 {d}에 따라 뒤바뀝니다 ({d}={loList} → {a} 우세, {d}={hiList} → {b} 우세 · 같은 조건끼리 짝지은 {n}쌍). 하나의 평균 차이로 요약하지 마세요.',
+    'an.ins.corr': '{a} · {b} — {dir} ({stat} = {v}, n={n}). 이 데이터에서 관측된 관련성이며 인과는 아닙니다.',
+    'an.ins.group': '{c} — {g}={best}에서 가장 높고 {g}={worst}에서 가장 낮습니다 (평균 {m1} vs {m2}, 차이 {diff} · {rel}%). 같은 조건끼리 짝지으면 차이는 {lo}~{hi} 범위이고, {cn}개 조건 중 {ck}개에서 방향이 같습니다.',
+    'an.ins.satur': '{y} — {g}에서 전체 변화량의 {pct}%가 {x} {x0}→{x1} 구간에 나타나고 나머지 {rest}%만 그 뒤에 나타납니다. 측정된 {k}개 지점 안에서의 설명이며 그 밖은 알 수 없습니다.',
+    'an.ins.saturMulti': '{y} — {x} {x0}→{x1} 구간에서 전체 변화량의 대부분({pctLo}~{pctHi}%)이 일어나고 그 뒤 구간의 몫은 작습니다 ({g} {total}개 중 {n}개에서 같은 양상). 측정된 {k}개 지점 안에서의 설명이며 그 밖은 알 수 없습니다.',
+    'an.ins.outlier': '{col} — {scope}의 값 {val}이 이웃 값들과 떨어져 있습니다 (수정 z={z}). 측정 오류인지 실제 변동인지 확인한 뒤 직접 제외하세요.',
   },
   en: {
     'header.sub': 'Interactive visualization for CSV/JSON benchmark & performance comparisons',
@@ -724,6 +795,57 @@ const I18N = {
     'table.exclSuffix': ', {n} excluded from chart',
     'pager.info': 'Page {page} / {pages}',
     'chips.rows': '{n} rows',
+    'btn.analyze': 'Analyze',
+    'an.title': 'Automatic analysis',
+    'an.recompute': 'Recompute',
+    'an.exportProfile': 'Profile CSV',
+    'an.close': 'Close',
+    'an.computing': 'Analyzing…',
+    'an.emptyData': 'Load some data first.',
+    'an.stale': 'The data changed — recompute.',
+    'an.scan': '{rows} rows · {cols} columns · {pairs} numeric column pairs scanned (rows excluded from charts are left out)',
+    'an.sampled': '· scanned on a {n}-row sample',
+    'an.capped': '· limited to {n} numeric columns',
+    'an.insights': 'Findings ({n})',
+    'an.profile': 'Column profile ({n})',
+    'an.none': 'Nothing passed the thresholds — the data may be small or the relationships weak. That is a legitimate result too.',
+    'an.more': 'Show {n} more',
+    'an.less': 'Show less',
+    'an.chartBtn': '＋ Chart',
+    'an.chartAdded': 'Added a chart for this finding.',
+    'an.tier0': 'Data',
+    'an.tier1': 'Caution',
+    'an.tier2': 'Finding',
+    'an.disclaimer': 'This is exploratory screening, not a confirmatory test. Correlation is not causation, every number here is limited to the rows currently in the table, and outliers are only flagged — never removed automatically.',
+    'an.allRows': 'all rows',
+    'an.dir.up': 'move together',
+    'an.dir.down': 'move in opposite directions',
+    'an.k.cont': 'continuous', 'an.k.design': 'design value', 'an.k.cat': 'category', 'an.k.catmany': 'category (many)',
+    'an.k.id': 'identifier', 'an.k.flag': 'binary', 'an.k.mixed': 'mixed', 'an.k.const': 'constant',
+    'an.k.empty': 'empty', 'an.k.source': 'source',
+    'an.h.col': 'column', 'an.h.kind': 'kind', 'an.h.missing': 'missing', 'an.h.unique': 'unique',
+    'an.h.min': 'min', 'an.h.med': 'median', 'an.h.max': 'max', 'an.h.mean': 'mean', 'an.h.sd': 'sd', 'an.h.note': 'note',
+    'an.note.mixed': '{k} non-numeric values ({sample})',
+    'an.ct.rel': '{a} vs {b}',
+    'an.ct.group': '{c} by {g}',
+    'an.ct.trend': '{c} vs {x}',
+    'an.ins.empty': '{col} — the column is entirely empty, so it cannot be used as an axis or a group.',
+    'an.ins.const': '{col} — holds a single value ({val}), so there is nothing to compare.',
+    'an.ins.mixed': '{col} — contains {k} non-numeric values ({sample}), so the whole column drops out of the numeric axis candidates. Fix those values to use it as an axis.',
+    'an.ins.missing': '{col} — {pct}% is empty ({k} rows), so charts using this column draw only part of the data.',
+    'an.ins.duprow': '{k} rows are exact duplicates. Check whether these are repeated measurements or an export artifact.',
+    'an.ins.missbias': '{col} — missing values concentrate in {g}={lv} ({pct}% there vs {base}% overall), so comparing groups in this state will be distorted.',
+    'an.ins.imbalance': '{g}×{d} — only {filled} of {total} combinations were measured, so a mean comparison may reflect what was measured rather than performance.',
+    'an.ins.sources': '{k} datasets are loaded. Different files may come from different setups, so check that conditions match before comparing them on one axis.',
+    'an.ins.dupcol': '{a} · {b} — the relation holds in every row ({rel}), so one is a rescaling of the other. Only {a} is used in the rest of the analysis.',
+    'an.ins.dupinfo': '{a} · {b} — these carry almost the same information ({rel}). Treated as duplicate metrics; only {a} is used in the rest of the analysis.',
+    'an.ins.simpson': '{a} · {b} — pooled across all rows they give r={rp}, but split by {g} all {k} groups give r={lo} to {hi}. The pooled figure appears reversed by differences between {g} levels, so use the per-{g} view.',
+    'an.ins.cross': '{c} — which of {a} and {b} is higher flips with {d} ({d}={loList} → {a} leads; {d}={hiList} → {b} leads · {n} matched pairs). Do not summarise this as a single mean difference.',
+    'an.ins.corr': '{a} · {b} — {dir} ({stat} = {v}, n={n}). An association observed in this data, not a cause.',
+    'an.ins.group': '{c} — highest at {g}={best}, lowest at {g}={worst} (mean {m1} vs {m2}, difference {diff} · {rel}%). Paired at matching conditions the difference ranges {lo} to {hi}, and {ck} of {cn} conditions agree in direction.',
+    'an.ins.satur': '{y} — for {g}, {pct}% of the total change occurs between {x} {x0} and {x1}, leaving only {rest}% after that. This describes the {k} measured points only and says nothing beyond them.',
+    'an.ins.saturMulti': '{y} — most of the total change ({pctLo}–{pctHi}% depending on the group) happens between {x} {x0} and {x1}, with little left after that ({n} of {total} {g} levels behave this way). This describes the {k} measured points only.',
+    'an.ins.outlier': '{col} — the value {val} in {scope} sits apart from its neighbours (modified z={z}). Inspect whether it is a measurement error or real variability before excluding it yourself.',
   },
 };
 function t(key) { return (I18N[LANG] && I18N[LANG][key]) !== undefined ? I18N[LANG][key] : (I18N.ko[key] !== undefined ? I18N.ko[key] : key); }
@@ -2183,6 +2305,572 @@ function renderTable() {
   document.getElementById('pgInfo').textContent = tf('pager.info', { page: pages ? tableState.page + 1 : 0, pages });
 }
 
+/* ================= 자동 분석 (탐색용 스크리닝) =================
+ * 인사이트는 세션에 저장하지 않는 순수 파생값 — 데이터가 바뀌면 버리고 다시 계산한다.
+ * 문장은 {kind, params}로만 보관하고 렌더 시 i18n 템플릿에 넣는다(언어 토글에 자동 대응).
+ * 설계 원칙: p값·"유의" 표현을 쓰지 않는다. 벤치마크 데이터는 행이 독립이 아니고(스윕=계열 상관,
+ * 시드=클러스터) 반복 수가 임의적이라 p값을 정당화할 수 없다. 대신 원단위 차이 + 조건별 방향
+ * 일관성으로 신뢰도를 나타내고, 자명하거나 뒤집힌 관계는 아예 발견으로 내보내지 않는다.
+ */
+const AN = {
+  maxRows: 20000, maxNumCols: 40, maxShown: 8, uniqueCap: 10000, maxPerKind: 3,
+  minN: 8, rBase: 0.6, multK: 0.03, rDup: 0.995, defCV: 3e-3, rhoGap: 0.30, simpsonGap: 0.30,
+  crossMin: 0.8, flipMin: 0.25, dzMin: 0.8, relMin: 0.05,
+  missMin: 0.05, biasGap: 0.30, designMaxLv: 12, catMaxLv: 8,
+  madZ: 3.5, outMax: 3, outMinAmp: 0.05, satFrac: 0.9,
+};
+const AN_SEP = '\u0001';   // 복합 키 구분자 — 데이터 값에 나타나지 않는 제어문자
+const AN_ALL = '\u0002';    // "전체 행" 자리표시자 — 문장은 렌더 시점에 번역되므로 언어를 굽지 않는다
+let analysis = null;      // {profiles, insights, meta} — 캐시. onDataChanged가 무효화
+let anShowAll = false;
+
+/* ---- 순수 통계 (인자만으로 동작 — 콘솔에서 바로 검증 가능) ---- */
+function anMean(a) { return a.length ? a.reduce((s, v) => s + v, 0) / a.length : null; }
+function anQuantile(sorted, p) {
+  if (!sorted.length) return null;
+  const i = (sorted.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i);
+  return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+function anMedian(a) { return a.length ? anQuantile(a.slice().sort((x, y) => x - y), 0.5) : null; }
+function anDescribe(a) {
+  const n = a.length; if (!n) return null;
+  const s = a.slice().sort((x, y) => x - y), mean = anMean(a);
+  const sd = n > 1 ? Math.sqrt(a.reduce((p, v) => p + (v - mean) * (v - mean), 0) / (n - 1)) : 0;
+  return { n, mean, sd, min: s[0], q1: anQuantile(s, 0.25), med: anQuantile(s, 0.5), q3: anQuantile(s, 0.75), max: s[n - 1] };
+}
+function anPearson(xs, ys) {
+  const n = xs.length; if (n < 3) return null;
+  const mx = anMean(xs), my = anMean(ys);
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+  const d = Math.sqrt(sxx * syy);
+  return d > 0 ? sxy / d : null;
+}
+function anRanks(a) {   // 동순위는 평균 랭크
+  const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]);
+  const out = new Array(a.length);
+  for (let i = 0; i < idx.length;) {
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+    const r = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) out[idx[k][1]] = r;
+    i = j + 1;
+  }
+  return out;
+}
+function anSpearman(xs, ys) { return anPearson(anRanks(xs), anRanks(ys)); }
+/* 수정 z (Iglewicz–Hoaglin). z-score를 쓰지 않는 이유: |z| 상한이 (n−1)/√n이라 n=10이면 최대 2.85 —
+   "|z|>3" 규칙이 물리적으로 발동하지 않는다. MAD=0(값의 과반이 동률)이면 평균절대편차로 폴백. */
+function anRobustZ(a) {
+  const med = anMedian(a), dev = a.map(v => Math.abs(v - med));
+  const mad = anMedian(dev);
+  if (mad > 0) return a.map(v => 0.6745 * (v - med) / mad);
+  const m = anMean(dev);
+  return m > 0 ? a.map(v => (v - med) / (1.253314 * m)) : null;
+}
+function anZ(z) { const a = Math.abs(z); return a >= 99 ? '99+' : a.toFixed(1); }
+function anCV(a) {   // 변동계수 — "정의상 관계"(비율·차이가 일정) 판정용
+  const m = anMean(a);
+  if (m === null || m === 0) return Infinity;
+  const sd = Math.sqrt(a.reduce((p, v) => p + (v - m) * (v - m), 0) / a.length);
+  return Math.abs(sd / m);
+}
+function anPairXY(rows, a, b) {   // 쌍별 완전관측만
+  const xs = [], ys = [], rs = [];
+  for (const r of rows) {
+    const x = r[a], y = r[b];
+    if (typeof x === 'number' && typeof y === 'number') { xs.push(x); ys.push(y); rs.push(r); }
+  }
+  return { xs, ys, rows: rs };
+}
+function anCell(rows, col, keyFn) {   // keyFn(row) -> 셀 키, 값은 숫자 배열
+  const m = new Map();
+  for (const r of rows) {
+    const v = r[col];
+    if (typeof v !== 'number') continue;
+    const k = keyFn(r);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(v);
+  }
+  return m;
+}
+
+/* ---- 컬럼 프로파일: 모든 가드의 전제 ----
+   numericColumns()는 숫자/문자만 구분하지만, 인사이트에는 식별자·설계 노브·연속량 구분이 필요하다. */
+const AN_ID_RE = /^(id|idx|index|uid|uuid|run|run_id|seed|trial|rep|repeat|timestamp)$/i;
+function anIsSeq(vals) {   // 등차 또는 등비 수열 (예: 500·1000·…·16000)
+  if (vals.length < 3) return true;
+  const d = [], r = [];
+  for (let i = 1; i < vals.length; i++) { d.push(vals[i] - vals[i - 1]); if (vals[i - 1] > 0) r.push(vals[i] / vals[i - 1]); }
+  return anCV(d) < 0.35 || (r.length === vals.length - 1 && anCV(r) < 0.35);
+}
+function anProfile(rows, cols) {
+  const total = rows.length;
+  return cols.map(col => {
+    let nonNull = 0, numeric = 0, capped = false;
+    const set = new Set(), numsArr = [], sample = [];
+    for (const r of rows) {
+      const v = r[col];
+      if (v === null || v === undefined || v === '') continue;
+      nonNull++;
+      if (set.size < AN.uniqueCap) set.add(v); else capped = true;
+      if (typeof v === 'number') { numsArr.push(v); numeric++; }
+      else if (sample.length < 3 && !sample.includes(String(v))) sample.push(String(v));
+    }
+    const unique = set.size;
+    const p = { col, n: nonNull, missing: total - nonNull, unique, uniqueCapped: capped, sample,
+                numRatio: nonNull ? numeric / nonNull : 0 };
+    if (col === '_source') p.role = 'source';
+    else if (!nonNull) p.role = 'empty';
+    else if (unique === 1) { p.role = 'const'; p.constVal = [...set][0]; }
+    else if (p.numRatio === 1) {
+      p.num = anDescribe(numsArr);
+      const lv = [...set].sort((a, b) => a - b), allInt = numsArr.every(v => Number.isInteger(v));
+      if (AN_ID_RE.test(col) || (allInt && total >= 10 && unique >= total * 0.9)) p.role = 'id';
+      else if (unique <= 2) { p.role = 'flag'; p.levels = lv; }
+      else if (unique <= AN.designMaxLv && (unique <= total / 3 || (allInt && unique <= 8)) && (allInt || anIsSeq(lv))) { p.role = 'design'; p.levels = lv; }
+      else p.role = 'cont';
+    } else if (p.numRatio >= 0.5 && numeric >= 2) { p.role = 'mixed'; p.num = anDescribe(numsArr); p.badN = nonNull - numeric; }
+    else if (AN_ID_RE.test(col) || (total >= 10 && unique >= total * 0.9)) p.role = 'id';
+    else if (unique <= AN.catMaxLv) { p.role = 'cat'; p.levels = [...set].map(String).sort(); }
+    else p.role = 'catmany';
+    if (['cat', 'catmany', 'const', 'flag', 'source'].includes(p.role)) {
+      const cnt = new Map();
+      for (const r of rows) {
+        const v = r[col];
+        if (v === null || v === undefined || v === '') continue;
+        cnt.set(String(v), (cnt.get(String(v)) || 0) + 1);
+      }
+      p.top = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    }
+    return p;
+  });
+}
+
+/* ---- 인사이트 엔진 ---- */
+function analyzeData() {
+  const all = allRows().filter(r => !r._excluded);
+  const cols = visibleColumns();
+  const total = all.length;
+  const stride = total > AN.maxRows ? Math.ceil(total / AN.maxRows) : 1;
+  const rows = stride > 1 ? all.filter((_, i) => i % stride === 0) : all;   // 결정적 표본 (RNG 없이 재현 가능)
+  const profiles = anProfile(all, cols);                                    // 프로파일은 항상 전체 행
+  const P = {};
+  profiles.forEach(p => { P[p.col] = p; });
+  const ins = [];
+  const push = (tier, kind, params, score, chart) => ins.push({ tier, kind, params, score, chart });
+  const pc = x => Math.round(x * 100);
+  const fv = v => fmtBarVal(v);
+
+  const catCols = profiles.filter(p => p.role === 'cat').map(p => p.col);
+  const designCols = profiles.filter(p => p.role === 'design').map(p => p.col);
+  const contCols = profiles.filter(p => p.role === 'cont').map(p => p.col).slice(0, AN.maxNumCols);
+  const primaryCat = catCols[0] || '';
+  const blockCol = designCols[0] || '';
+
+  /* ===== Tier 0 — 데이터 무결성 (가장 싸고 항상 옳다) ===== */
+  for (const p of profiles) {
+    if (p.role === 'empty') push(0, 'empty', { col: p.col, pct: 100 }, 0.95);
+    else if (p.role === 'const') push(0, 'const', { col: p.col, val: String(p.constVal) }, 0.9);
+    else if (p.role === 'mixed') push(0, 'mixed', { col: p.col, k: p.badN, sample: p.sample.join(', ') }, 0.99);
+    if (p.role !== 'empty' && total && p.missing / total >= AN.missMin) {
+      push(0, 'missing', { col: p.col, pct: pc(p.missing / total), k: p.missing }, 0.75 + (p.missing / total >= 0.2 ? 0.1 : 0));
+    }
+  }
+  if (state.datasets.length > 1) push(0, 'sources', { k: state.datasets.length }, 0.55);
+  {   // 완전 중복 행 (_source·내부 키 제외 — 두 파일의 같은 내용도 잡히도록)
+    const seen = new Set();
+    let dup = 0;
+    const kc = cols.filter(c => c !== '_source');
+    for (const r of rows) {
+      const k = kc.map(c => String(r[c])).join(AN_SEP);
+      if (seen.has(k)) dup++; else seen.add(k);
+    }
+    if (dup) push(0, 'duprow', { k: dup }, 0.7);
+  }
+  for (const p of profiles) {   // 그룹 편향 결측 — 다른 모든 비교를 무효화하므로 최상단
+    if (!p.missing || p.role === 'empty' || p.role === 'source') continue;
+    let hit = null;
+    for (const g of catCols) {
+      const byLv = new Map();
+      for (const r of rows) {
+        const lv = String(r[g]), o = byLv.get(lv) || [0, 0];
+        o[0]++;
+        const v = r[p.col];
+        if (v === null || v === undefined || v === '') o[1]++;
+        byLv.set(lv, o);
+      }
+      const base = p.missing / total;
+      for (const [lv, o] of byLv) {
+        const rate = o[1] / o[0];
+        if (rate - base >= AN.biasGap && (!hit || rate > hit.rate)) hit = { g, lv, rate, base };
+      }
+    }
+    if (hit) push(0, 'missbias', { col: p.col, g: hit.g, lv: hit.lv, pct: pc(hit.rate), base: pc(hit.base) }, 0.93);
+  }
+  for (const g of catCols) for (const d of designCols) {   // 설계 불균형 — 평균 비교의 전제
+    const filled = new Set();
+    for (const r of rows) if (r[g] !== undefined && r[d] !== undefined) filled.add(String(r[g]) + AN_SEP + String(r[d]));
+    const cells = (P[g].levels || []).length * (P[d].levels || []).length;
+    if (cells && filled.size / cells < AN.crossMin) {
+      push(0, 'imbalance', { g, d, filled: filled.size, total: cells }, 0.87);
+    }
+  }
+
+  /* ===== 상관 스캔 — 자명한 쌍을 먼저 걷어내고, 남은 쌍은 그룹별로 재검산 ===== */
+  const derivedPairs = new Set();   // 계산 컬럼 부모–자식 (자명한 상관)
+  for (const d of state.derived) {
+    const parents = d.kind === 'binary' ? [d.a, d.b] : [d.valueCol];
+    for (const pa of parents) if (pa) derivedPairs.add([d.name, pa].sort().join(AN_SEP));
+  }
+  /* 1차 패스: 자명한 쌍(정의상 같은 값·거의 같은 정보)을 찾아 대표 컬럼 하나로 접는다.
+     이렇게 하지 않으면 cost_usd(=latency_ms×5e-4) 때문에 모든 발견이 두 번씩 나온다. */
+  const alias = new Map();   // 컬럼 -> 대표 컬럼
+  const repOf = c => { let r = c; while (alias.has(r)) r = alias.get(r); return r; };
+  const pairCache = new Map();
+  let nPairs = 0;
+  for (let i = 0; i < contCols.length; i++) for (let j = i + 1; j < contCols.length; j++) {
+    const a = contCols[i], b = contCols[j];
+    const q = anPairXY(rows, a, b);
+    if (q.xs.length < AN.minN) continue;
+    nPairs++;
+    const r = anPearson(q.xs, q.ys);
+    if (r === null) continue;
+    pairCache.set(a + AN_SEP + b, { r, q });
+    if (derivedPairs.has([a, b].sort().join(AN_SEP))) { if (repOf(b) !== repOf(a)) alias.set(repOf(b), repOf(a)); continue; }
+    const ratios = [], diffs = [];
+    for (let k = 0; k < q.xs.length; k++) { if (q.xs[k] !== 0) ratios.push(q.ys[k] / q.xs[k]); diffs.push(q.ys[k] - q.xs[k]); }
+    const defRatio = ratios.length === q.xs.length && anCV(ratios) < AN.defCV;   // 반올림 오차 허용
+    const defDiff = anCV(diffs) < AN.defCV;
+    if (defRatio || defDiff || Math.abs(r) >= AN.rDup) {
+      const small = v => Math.abs(v) >= 0.01 ? fv(v) : v.toExponential(2);   // 배율은 0.0005처럼 작을 수 있다
+      const rel = defRatio ? '×' + small(anMean(ratios))
+        : defDiff ? (anMean(diffs) >= 0 ? '+' : '−') + small(Math.abs(anMean(diffs)))
+        : 'r=' + r.toFixed(3);
+      push(0, defRatio || defDiff ? 'dupcol' : 'dupinfo', { a, b, rel }, defRatio || defDiff ? 0.65 : 0.6);
+      if (repOf(b) !== repOf(a)) alias.set(repOf(b), repOf(a));   // b를 a로 접는다
+    }
+  }
+  const reps = contCols.filter(c => repOf(c) === c);   // 이후 모든 스캔은 대표 컬럼만
+  const pairStats = [];
+  for (let i = 0; i < reps.length; i++) for (let j = i + 1; j < reps.length; j++) {
+    const a = reps[i], b = reps[j];
+    const c1 = pairCache.get(a + AN_SEP + b);
+    if (!c1) continue;
+    pairStats.push({ a, b, r: c1.r, xs: c1.q.xs, ys: c1.q.ys, rows: c1.q.rows, n: c1.q.xs.length });
+  }
+  const rThresh = Math.min(0.95, AN.rBase + AN.multK * Math.log2(Math.max(2, nPairs)));   // 다중비교 억제(보정 아님)
+  const confCols = [...catCols, ...designCols];
+  for (const ps of pairStats) {
+    let flip = null;
+    for (const g of confCols) {   // 심슨 역전: 합친 수치가 그룹별 수치와 어긋나면 발견이 아니라 경고
+      const byLv = new Map();
+      for (const r of ps.rows) {
+        const lv = String(r[g]);
+        if (!byLv.has(lv)) byLv.set(lv, []);
+        byLv.get(lv).push(r);
+      }
+      const within = [];
+      for (const rs of byLv.values()) {
+        if (rs.length < 5) continue;
+        const q = anPairXY(rs, ps.a, ps.b), rw = anPearson(q.xs, q.ys);
+        if (rw !== null) within.push(rw);
+      }
+      if (within.length < 2) continue;
+      const med = anMedian(within), gap = Math.abs(ps.r - med);
+      if ((Math.sign(med) !== Math.sign(ps.r) && Math.abs(med) >= 0.3) || gap >= AN.simpsonGap) {
+        if (!flip || gap > flip.gap) flip = { g, gap, within };
+      }
+    }
+    if (flip) {
+      push(1, 'simpson', {
+        a: ps.a, b: ps.b, g: flip.g, rp: ps.r.toFixed(2), k: flip.within.length,
+        lo: Math.min(...flip.within).toFixed(2), hi: Math.max(...flip.within).toFixed(2),
+      }, 0.9 + Math.min(0.09, flip.gap / 10), { type: 'scatter', x: ps.a, y: ps.b, group: flip.g, trend: 'linear' });
+      continue;
+    }
+    if (Math.abs(ps.r) < rThresh) continue;
+    const rho = anSpearman(ps.xs, ps.ys);
+    const useRho = rho !== null && Math.abs(Math.abs(rho) - Math.abs(ps.r)) >= AN.rhoGap;
+    const v = useRho ? rho : ps.r;
+    push(2, 'corr', {
+      a: ps.a, b: ps.b, n: ps.n, dirUp: v >= 0,
+      stat: useRho ? 'Spearman ρ' : 'Pearson r', v: v.toFixed(2),
+    }, 0.5 + 0.45 * (Math.abs(ps.r) - rThresh) / (1 - rThresh || 1),
+      { type: 'scatter', x: ps.a, y: ps.b, group: primaryCat, trend: 'linear', trendBand: '1' });
+  }
+
+  /* ===== 그룹 비교 — 셀 평균으로 축약 후 같은 조건끼리 짝지어 비교 ===== */
+  for (const g of catCols) {
+    const lv = P[g].levels || [];
+    if (lv.length < 2) continue;
+    const blocks = blockCol ? (P[blockCol].levels || []).map(String) : ['__all'];
+    for (const c of reps) {
+      const cell = anCell(rows, c, r => String(r[g]) + AN_SEP + (blockCol ? String(r[blockCol]) : '__all'));
+      const at = (gl, bl) => { const v = cell.get(gl + AN_SEP + bl); return v ? anMean(v) : null; };
+      const stats = lv.map(gl => {
+        const vs = blocks.map(bl => at(gl, bl)).filter(v => v !== null);
+        return { gl, m: vs.length ? anMean(vs) : null, k: vs.length };
+      }).filter(s => s.m !== null && s.k >= 3);
+      if (stats.length < 2) continue;
+      stats.sort((x, y) => y.m - x.m);
+      const paired = (A, B) => blocks.map(bl => {
+        const a = at(A, bl), b = at(B, bl);
+        return (a !== null && b !== null) ? a - b : null;
+      }).filter(v => v !== null);
+
+      let cross = null;   // 교차: 우열이 조건에 따라 뒤집히면 평균 차이로 요약하지 않는다
+      for (let i = 0; i < stats.length; i++) for (let j = i + 1; j < stats.length; j++) {
+        const ds = paired(stats[i].gl, stats[j].gl);
+        if (ds.length < 3) continue;
+        const pos = ds.filter(v => v > 0), neg = ds.filter(v => v < 0);
+        if (!pos.length || !neg.length) continue;
+        const mx = Math.max(...pos), mn = Math.max(...neg.map(Math.abs));
+        if (Math.min(mx, mn) < AN.flipMin * Math.max(mx, mn)) continue;   // 미세한 흔들림은 교차가 아님
+        const sc = Math.min(pos.length, neg.length) / ds.length;
+        if (!cross || sc > cross.sc) cross = { A: stats[i].gl, B: stats[j].gl, ds, sc, n: ds.length };
+      }
+      if (cross) {
+        const labs = (keep) => blocks.filter((bl, i) => cross.ds[i] !== undefined && keep(cross.ds[i])).join(', ');
+        push(1, 'cross', {
+          c, g, d: blockCol, a: cross.A, b: cross.B, n: cross.n,
+          loList: labs(v => v > 0), hiList: labs(v => v < 0),
+        }, 0.85 + 0.1 * cross.sc, { type: 'scatter+line', x: blockCol, y: c, group: g });
+        continue;   // 같은 (g, c)에 평균 차이 인사이트를 겹쳐 내지 않는다
+      }
+      const best = stats[0], worst = stats[stats.length - 1];
+      const ds = paired(best.gl, worst.gl);
+      if (ds.length < 3) continue;
+      const same = ds.filter(v => v > 0).length / ds.length;
+      const dd = anDescribe(ds), dz = dd.sd ? dd.mean / dd.sd : (dd.mean ? Infinity : 0);
+      const rel = worst.m ? dd.mean / Math.abs(worst.m) : 0;
+      if (same < AN.crossMin) continue;
+      if (Math.abs(dz) < AN.dzMin && Math.abs(rel) < AN.relMin) continue;
+      push(2, 'group', {
+        c, g, best: best.gl, worst: worst.gl, m1: fv(best.m), m2: fv(worst.m),
+        diff: fv(dd.mean), rel: (rel * 100).toFixed(1), lo: fv(dd.min), hi: fv(dd.max),
+        ck: ds.filter(v => v > 0).length, cn: ds.length,
+      }, 0.5 + 0.4 * Math.min(1, Math.abs(rel) / 0.3),
+        { type: 'bar', x: g, y: c, group: '', barAgg: 'mean', barError: 'sem', barSort: 'desc', barText: 'value' });
+    }
+  }
+
+  /* ===== 포화 — 곡선 피팅·외삽 없이 관측 지점의 누적 증가분만 기술 ===== */
+  if (blockCol && (P[blockCol].levels || []).length >= 4) {
+    const xs = P[blockCol].levels;
+    const groups = primaryCat ? (P[primaryCat].levels || []) : ['__all'];
+    const satHits = [];
+    for (const c of reps) for (const gl of groups) {
+      const sub = primaryCat ? rows.filter(r => String(r[primaryCat]) === gl) : rows;
+      const ys = xs.map(x => {
+        const vs = sub.filter(r => r[blockCol] === x).map(r => r[c]).filter(v => typeof v === 'number');
+        return vs.length ? anMean(vs) : null;
+      });
+      if (ys.some(v => v === null)) continue;
+      const steps = [];
+      for (let i = 1; i < ys.length; i++) steps.push(ys[i] - ys[i - 1]);
+      const gain = ys[ys.length - 1] - ys[0];
+      if (!gain) continue;
+      if (steps.filter(s => Math.sign(s) === Math.sign(gain)).length / steps.length < 0.8) continue;
+      let cum = 0, k = -1;
+      for (let i = 0; i < steps.length; i++) { cum += steps[i]; if (Math.abs(cum / gain) >= AN.satFrac) { k = i; break; } }
+      if (k < 0 || k > steps.length - 2) continue;   // 뒤에 최소 한 구간 이상 남아야 "포화"
+      satHits.push({ c, gl, k, pct: pc(Math.abs(cum / gain)) });
+    }
+    /* 같은 지점에서 포화하는 그룹이 여럿이면 한 문장으로 합친다 (같은 말을 그룹 수만큼 반복하지 않도록) */
+    const byPoint = new Map();
+    for (const h of satHits) {
+      const key = h.c + AN_SEP + h.k;
+      if (!byPoint.has(key)) byPoint.set(key, []);
+      byPoint.get(key).push(h);
+    }
+    for (const hits of byPoint.values()) {
+      const h0 = hits[0];
+      const chart = { type: 'scatter+line', x: blockCol, y: h0.c, group: primaryCat,
+        xScale: anIsSeq(xs) && xs[0] > 0 && xs[xs.length - 1] / xs[0] >= 20 ? 'log' : 'linear' };
+      const base = { y: h0.c, x: blockCol, k: xs.length, x0: xs[0], x1: xs[h0.k + 1] };
+      const score = 0.45 + 0.3 * (1 - (h0.k + 1) / (xs.length - 1)) + 0.05 * (hits.length - 1);
+      if (hits.length > 1 && primaryCat) {
+        const ps = hits.map(h => h.pct);
+        push(2, 'saturMulti', { ...base, g: primaryCat, n: hits.length, total: groups.length,
+          pctLo: Math.min(...ps), pctHi: Math.max(...ps) }, score, chart);
+      } else {
+        push(2, 'satur', { ...base, g: primaryCat ? `${primaryCat}=${h0.gl}` : AN_ALL,
+          pct: h0.pct, rest: 100 - h0.pct }, score, chart);
+      }
+    }
+  }
+
+  /* ===== 이상치 — 셀 내부(반복) 또는 국소 추세 잔차에서만. 전체 풀에 IQR을 적용하면
+     단조 스윕의 양 끝을 매번 오탐한다. 자동 제외는 하지 않는다(제안만). ===== */
+  const scopeOf = r => [primaryCat, blockCol].filter(Boolean).map(k => `${k}=${r[k]}`).join(', ') || AN_ALL;
+  for (const c of reps) {
+    /* 셀 = 모든 설계 노브가 같은 행들(= 진짜 반복 측정). 첫 노브만 쓰면 스윕이 반복으로 오인된다 */
+    const cells = new Map();
+    for (const r of rows) {
+      if (typeof r[c] !== 'number') continue;
+      const k = [primaryCat, ...designCols].filter(Boolean).map(x => String(r[x])).join(AN_SEP);
+      if (!cells.has(k)) cells.set(k, []);
+      cells.get(k).push(r);
+    }
+    const repeated = [...cells.values()].some(v => v.length >= 4);
+    if (repeated) {
+      for (const cr of cells.values()) {
+        if (cr.length < 4) continue;
+        const vals = cr.map(r => r[c]);
+        const z = anRobustZ(vals);
+        if (!z) continue;
+        const rng = Math.max(...vals) - Math.min(...vals);
+        z.forEach((zi, i) => {
+          if (Math.abs(zi) >= AN.madZ && rng > 0) {
+            push(2, 'outlier', { col: c, val: fv(vals[i]), z: anZ(zi), scope: scopeOf(cr[i]) }, 0.4);
+          }
+        });
+      }
+    } else if (blockCol) {
+      const groups = primaryCat ? (P[primaryCat].levels || []) : ['__all'];
+      for (const gl of groups) {
+        const sub = (primaryCat ? rows.filter(r => String(r[primaryCat]) === gl) : rows)
+          .filter(r => typeof r[c] === 'number' && typeof r[blockCol] === 'number')
+          .sort((a, b) => a[blockCol] - b[blockCol]);
+        if (sub.length < 6) continue;
+        const ys = sub.map(r => r[c]), rng = Math.max(...ys) - Math.min(...ys);
+        const res = ys.map((v, i) => (i === 0 || i === ys.length - 1) ? 0 : v - anMedian([ys[i - 1], ys[i], ys[i + 1]]));
+        const z = anRobustZ(res);
+        if (!z || !rng) continue;
+        for (let i = 1; i < ys.length - 1; i++) {   // 끝점은 국소 중앙값으로 판정할 수 없으므로 제외
+          if (Math.abs(z[i]) >= AN.madZ && Math.abs(res[i]) >= AN.outMinAmp * rng) {
+            push(2, 'outlier', {
+              col: c, val: fv(ys[i]), z: anZ(z[i]), scope: scopeOf(sub[i]),
+            }, 0.4, { type: 'scatter+line', x: blockCol, y: c, group: primaryCat, showLabels: true, labelCol: c });
+          }
+        }
+      }
+    }
+  }
+
+  /* 정렬: Tier 0(데이터) → Tier 1(교란 경고) → Tier 2(발견), 티어 내 점수순. 종류별 상한으로 소음 억제 */
+  ins.sort((a, b) => a.tier - b.tier || b.score - a.score);
+  const seen = {};
+  const kept = ins.filter(i => {
+    const cap = i.kind === 'outlier' ? AN.outMax : AN.maxPerKind;
+    seen[i.kind] = (seen[i.kind] || 0) + 1;
+    return seen[i.kind] <= cap;
+  });
+  return { profiles, insights: kept, meta: { nRows: total, nScan: rows.length, nCols: cols.length, nPairs, stride,
+    capped: profiles.filter(p => p.role === 'cont').length > AN.maxNumCols } };
+}
+
+/* ---- 인사이트에서 근거 차트 만들기 (기존 차트는 건드리지 않고 새로 추가) ---- */
+/* 인사이트 문장: 언어 종속 조각(방향어·"전체 행")은 여기서만 해석한다 */
+function anInsText(ins) {
+  const p = { ...ins.params };
+  if ('dirUp' in p) p.dir = t(p.dirUp ? 'an.dir.up' : 'an.dir.down');
+  for (const k of Object.keys(p)) if (p[k] === AN_ALL) p[k] = t('an.allRows');
+  return tf('an.ins.' + ins.kind, p);
+}
+function anChartTitle(ins) {
+  const p = ins.params;
+  if (ins.kind === 'group') return tf('an.ct.group', { c: p.c, g: p.g });
+  if (ins.kind === 'cross' || ins.kind === 'satur' || ins.kind === 'outlier') {
+    return tf('an.ct.trend', { c: p.c || p.y || p.col, x: p.d || p.x || '' });
+  }
+  return tf('an.ct.rel', { a: p.a, b: p.b });
+}
+function runInsightChart(ins) {
+  if (!ins.chart) return;
+  const cfg = addChart({ ...ins.chart, title: anChartTitle(ins) });
+  const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast(t('an.chartAdded'));
+}
+
+/* ---- 패널 ---- */
+function toggleAnalysis() {
+  const card = document.getElementById('analysisCard');
+  if (!allRows().length) { alert(t('an.emptyData')); return; }
+  if (!card.hidden && analysis) { card.hidden = true; return; }   // 결과가 낡았으면 닫지 말고 다시 계산
+  runAnalysis();
+}
+function runAnalysis() {
+  const btn = document.getElementById('btnAnalyze'), card = document.getElementById('analysisCard');
+  card.hidden = false;
+  btn.disabled = true; btn.textContent = t('an.computing');
+  requestAnimationFrame(() => {   // 한 프레임 양보해 버튼 상태가 보이도록
+    try { analysis = analyzeData(); anShowAll = false; renderAnalysis(); }
+    finally { btn.disabled = false; btn.textContent = t('btn.analyze'); }
+  });
+}
+const AN_KIND_KEY = { cont: 'an.k.cont', design: 'an.k.design', cat: 'an.k.cat', catmany: 'an.k.catmany',
+  id: 'an.k.id', flag: 'an.k.flag', mixed: 'an.k.mixed', const: 'an.k.const', empty: 'an.k.empty', source: 'an.k.source' };
+function renderAnalysis() {
+  const card = document.getElementById('analysisCard');
+  const ctrl = document.getElementById('anCtrl'), body = document.getElementById('anBody');
+  if (!card || card.hidden) return;
+  ctrl.innerHTML = ''; body.innerHTML = '';
+  if (!analysis) {
+    ctrl.append(el('button', { class: 'small', onclick: runAnalysis }, t('an.recompute')));
+    body.append(el('div', { class: 'hint' }, t('an.stale')));
+    return;
+  }
+  const { profiles, insights, meta } = analysis;
+  let note = tf('an.scan', { rows: meta.nRows.toLocaleString(), cols: meta.nCols, pairs: meta.nPairs });
+  if (meta.stride > 1) note += ' ' + tf('an.sampled', { n: meta.nScan.toLocaleString() });
+  if (meta.capped) note += ' ' + tf('an.capped', { n: AN.maxNumCols });
+  ctrl.append(
+    el('button', { class: 'small', onclick: runAnalysis }, t('an.recompute')),
+    el('button', { class: 'small', onclick: exportProfileCsv }, t('an.exportProfile')),
+    el('button', { class: 'small', onclick: () => { card.hidden = true; } }, t('an.close')),
+    el('span', { class: 'count' }, note),
+  );
+
+  /* 인사이트 */
+  const gIns = el('details', { class: 'grp', open: '' }, el('summary', {}, tf('an.insights', { n: insights.length })));
+  if (!insights.length) gIns.append(el('div', { class: 'hint' }, t('an.none')));
+  const shown = anShowAll ? insights : insights.slice(0, AN.maxShown);
+  for (const i of shown) {
+    gIns.append(el('div', { class: 'ins-row' },
+      el('span', { class: 'ins-badge t' + i.tier }, t('an.tier' + i.tier)),
+      el('span', { class: 'ins-text' }, anInsText(i)),
+      ...(i.chart ? [el('button', { class: 'small', onclick: () => runInsightChart(i) }, t('an.chartBtn'))] : []),
+    ));
+  }
+  if (insights.length > AN.maxShown) {
+    gIns.append(el('button', { class: 'small', onclick: () => { anShowAll = !anShowAll; renderAnalysis(); } },
+      anShowAll ? t('an.less') : tf('an.more', { n: insights.length - AN.maxShown })));
+  }
+
+  /* 컬럼 프로파일 */
+  const gProf = el('details', { class: 'grp' }, el('summary', {}, tf('an.profile', { n: profiles.length })));
+  const heads = ['an.h.col', 'an.h.kind', 'an.h.missing', 'an.h.unique', 'an.h.min', 'an.h.med', 'an.h.max', 'an.h.mean', 'an.h.sd', 'an.h.note'];
+  let html = '<thead><tr>' + heads.map(h => `<th>${esc(t(h))}</th>`).join('') + '</tr></thead><tbody>';
+  for (const p of profiles) {
+    const nu = p.num, num = v => (v === null || v === undefined) ? '' : esc(fmtBarVal(v));
+    const note = p.role === 'mixed' ? tf('an.note.mixed', { k: p.badN, sample: p.sample.join(', ') })
+      : p.top ? p.top.map(([v, n]) => `${v} (${n})`).join(', ') : '';
+    html += `<tr><td>${esc(p.col)}</td><td>${esc(t(AN_KIND_KEY[p.role] || p.role))}</td>`
+      + `<td>${p.missing || ''}</td><td>${p.unique}${p.uniqueCapped ? '+' : ''}</td>`
+      + `<td>${nu ? num(nu.min) : ''}</td><td>${nu ? num(nu.med) : ''}</td><td>${nu ? num(nu.max) : ''}</td>`
+      + `<td>${nu ? num(nu.mean) : ''}</td><td>${nu ? num(nu.sd) : ''}</td><td>${esc(note)}</td></tr>`;
+  }
+  const wrap = el('div', { id: 'anTableWrap', html: `<table class="data">${html}</tbody></table>` });
+  gProf.append(wrap);
+
+  body.append(gIns, gProf, el('div', { class: 'hint' }, t('an.disclaimer')));
+}
+function exportProfileCsv() {
+  if (!analysis) return;
+  const cols = ['column', 'kind', 'n', 'missing', 'unique', 'min', 'q1', 'median', 'q3', 'max', 'mean', 'sd'];
+  const rows = analysis.profiles.map(p => ({
+    column: p.col, kind: p.role, n: p.n, missing: p.missing, unique: p.unique,
+    min: p.num ? p.num.min : '', q1: p.num ? p.num.q1 : '', median: p.num ? p.num.med : '',
+    q3: p.num ? p.num.q3 : '', max: p.num ? p.num.max : '', mean: p.num ? p.num.mean : '', sd: p.num ? p.num.sd : '',
+  }));
+  const blob = new Blob(['﻿' + toCSV(rows, cols)], { type: 'text/csv;charset=utf-8' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-profile.csv' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 /* ================= dataset chips ================= */
 function renderChips() {
   const box = document.getElementById('datasetChips');
@@ -2409,6 +3097,8 @@ function showPresetMenu(cfg, mouseEv) {
 /* ================= wiring ================= */
 function onDataChanged(autoChart = true) {
   applyDerived();   // 계산 컬럼 재적용 (데이터·정의 변경 반영)
+  analysis = null;  // 분석 결과는 데이터에 종속 — 낡은 인사이트를 남기지 않는다
+  renderAnalysis();
   renderChips();
   renderDerived();
   tableState.page = 0;
@@ -2453,6 +3143,7 @@ document.getElementById('pasteAdd').addEventListener('click', () => {
 document.getElementById('modalBack').addEventListener('click', e => { if (e.target.id === 'modalBack') e.target.classList.remove('show'); });
 
 document.getElementById('btnAddChart').addEventListener('click', () => addChart());
+document.getElementById('btnAnalyze').addEventListener('click', toggleAnalysis);
 document.getElementById('btnExportSession').addEventListener('click', exportSession);
 document.getElementById('btnImportSession').addEventListener('click', () => {
   const inp = el('input', { type: 'file', accept: '.json' });
@@ -2489,7 +3180,7 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   LANG = LANG === 'ko' ? 'en' : 'ko';
   localStorage.setItem(LANG_KEY, LANG);
   applyLang();
-  refreshCharts(); renderTable(); renderChips();
+  refreshCharts(); renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
 });

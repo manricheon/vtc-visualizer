@@ -72,6 +72,7 @@ ours,4000,4.1,0.744,MMLU
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card — multiple charts per page |
 | **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired comparison per category) |
+| **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each row's `＋ Chart` builds the supporting chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, font |
@@ -149,6 +150,17 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.11 — automatic analysis panel
+- An **`Analyze` button** in the top bar: column profile (kind, missing, unique, min/median/max/mean/sd), automatic findings, and a profile CSV export.
+- Findings come in three tiers — **Data (integrity) → Caution (confounding) → Finding**: constant/empty columns, non-numeric values mixed into
+  numbers, duplicate rows, group-biased missingness, unmeasured combinations / Simpson's paradox and crossovers / correlations, group
+  differences, saturation points, outliers.
+- **Suppressing false findings is the core of it**: columns that are definitionally the same (e.g. cost = latency × 5e-4) collapse into one
+  representative, design knobs are never correlated against each other, and a pooled correlation that disagrees with the per-group ones is
+  reported as a warning instead of a number. Outliers are judged by MAD within repeated cells or on local trend residuals, and never auto-removed.
+- **No p-values and no "significant"** — reliability is shown as the raw difference plus direction consistency across conditions (e.g. 6 of 6 agree).
+- Results are never stored in the session and are discarded when the data changes. All finding sentences exist in both KO and EN.
 
 ### v0.10 — heatmap & dumbbell charts
 - **Heatmap**: a grid over two discrete axes colored by a value (e.g. X=frames, Y=gazing_ratio, color=accuracy) — a 2D sweep at a glance.

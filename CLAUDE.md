@@ -17,7 +17,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 | `README.en.md` | README.md의 영어 완역 — **내용 변경 시 두 README를 항상 함께 갱신** |
 | `GUIDE.md` | 시각화 가이드 (한국어): 차트 선택 기준·시나리오별 레시피·전달 원칙·팀 공유 — 기능 문서가 아니라 "언제/어떻게" 문서 |
 | `GUIDE.en.md` | GUIDE.md의 영어 완역 — **내용 변경 시 두 GUIDE를 항상 함께 갱신**. 레시피의 UI 라벨은 I18N 사전의 실제 문자열(ko/en)과 일치시킬 것 |
-| `assets/guide/*.png` | 가이드 레시피별 예시 캡처(r1~r7, 헤드리스 Chrome으로 `.plot` 요소만 2x 크롭) — 레시피 설정이나 차트 렌더링이 바뀌면 재캡처. 재생성 스크립트는 커밋하지 않음 |
+| `assets/guide/*.png` | 가이드 레시피별 예시 캡처(r1~r10, 헤드리스 Chrome으로 `.plot` 요소만 2x 크롭 — r10만 `#analysisCard` 크롭) — 레시피 설정이나 차트 렌더링이 바뀌면 재캡처. 재생성 스크립트는 커밋하지 않음 |
 | `assets/readme/*.gif` | README 상단 미리보기 GIF(hero·bars·dim-filter·facet, 헤드리스로 상태 시퀀스 캡처→gif-encoder-2 인코딩, 각 2MB 이하). UI 크게 바뀌면 재생성. 스크립트는 커밋 안 함 |
 | `CLAUDE.md` | 이 파일 |
 
@@ -30,7 +30,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **입력 계약(데이터 포맷)을 바꾸면 README.md와 README.en.md 양쪽의 "데이터 포맷"·"에이전트 요청문" 섹션을 함께 갱신** — 세 문서(계약·한/영 README)는 항상 동기화. 기능 추가/변경 시에도 두 README의 기능 표를 함께 갱신하고, **UI 라벨이 바뀌거나 레시피에 영향을 주면 GUIDE.md/GUIDE.en.md의 해당 레시피도 함께 갱신**.
 - 세션 하위 호환: `chartConfig`에 필드를 추가할 때는 `defaultChart()`에 기본값을 넣으면 된다
   (복원 시 `{...defaultChart(), ...saved}`로 병합되므로 이전 세션도 열린다). 기존 필드의 의미 변경/삭제는 금지.
-- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트.
+- **버전·변경이력**: 릴리스마다 ① `index.html`의 `APP_VERSION` 상수 상향(헤더·푸터 자동 표시) + ② 같은 이름 **git 태그**(v0.1, v0.2, …) main에 생성 + ③ **README.md·README.en.md의 "변경 이력/Changelog" 섹션에 항목 추가** + ④ 기능표/GUIDE 동기화. 별도 CHANGELOG 파일은 만들지 않음(9파일 규칙). 이력: v0.1 초기, v0.2 바 차트·가이드·프리셋, v0.3 범례(사분면·이름), v0.4 연속 색상·점 집계·강조흐리게·내보내기, v0.5 작은 다중 차트(facet)·계산 컬럼, v0.6 흐리게 필터, v0.6.1 계산 컬럼 드롭다운 즉시 반영, v0.7 차트 크기·배치(높이·전체/절반 폭), v0.8 다크 모드, v0.9 페이지 폭 토글(기본/넓게/최대 — `applyWidth`, 키 `vtc-visualizer:width`), v0.10 히트맵·덤벨 차트, v0.11 자동 분석 패널.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지.
@@ -91,6 +91,16 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `showPresetMenu()`(카드 `프리셋` 버튼 팝오버: 저장/적용/삭제/JSON 내보내기·가져오기)
 - **계산 컬럼**: `state.derived[]`(세션 저장, 입력 계약 아님 — 뷰 계층) → `applyDerived()`가 로드/변경 시 각 행에 파생 값 주입
   (`derivedApplied`로 직전 컬럼까지 제거해 삭제 반영). 종류: binary(A∘B), refdelta(키 매칭 기준행 대비 차이/유지율). UI는 `renderDerived()`(데이터 카드의 `#derivedPanel`)
+- **자동 분석**(v0.11): 헤더 `#btnAnalyze` → `toggleAnalysis()`/`runAnalysis()` → `analyzeData()` → `renderAnalysis()`(`#analysisCard`).
+  **세션에 저장하지 않는다** — 모듈 스코프 `let analysis`(캐시)만 두고 `save`/`exportSession`/`restoreSession`은 건드리지 않음. `onDataChanged`가 무효화.
+  인사이트는 `{tier, kind, params, score, chart}`로만 보관하고 문장은 렌더 시 `anInsText()`가 i18n 템플릿(`an.ins.*`)에 넣는다 —
+  **분석 시점에 언어 종속 문자열을 굽지 말 것**(방향어는 `dirUp` 불리언, "전체 행"은 `AN_ALL` 자리표시자로 전달). 임계값은 전부 `AN` 상수에.
+  순수 통계: `anDescribe`/`anPearson`/`anSpearman`/`anRobustZ`(수정 z, MAD=0이면 평균절대편차 폴백)/`anCV`. 컬럼 분류 `anProfile()` —
+  `id`(식별자·seed)·`design`(설계 노브)·`flag`·`cont`·`cat`·`mixed`·`const`·`empty`, 분류 결과가 곧 스캔 가드다(design×design 상관 금지, id는 전부 제외).
+  거짓 발견 방지 규칙(수정 시 반드시 유지): 정의상 같은 컬럼(비율/차이 CV<`defCV`, 또는 |r|≥`rDup`)은 `alias`로 대표 하나에 접고,
+  pooled 상관이 그룹별 중앙값과 어긋나면(`simpsonGap`) 수치 대신 `simpson` 경고, 그룹 간 우열이 블록마다 뒤집히면 평균 대신 `cross`,
+  이상치는 (모든 설계 노브가 같은) 셀 내부 또는 국소 추세 잔차에서만 판정하고 자동 제외 금지. **p값·"유의" 표현 금지**(원단위 차이 + 방향 일관성으로 대체).
+  성능: 프로파일은 전체 행, 스캔은 `maxRows` 초과 시 결정적 stride 표본. 근거 차트는 `addChart(override)`로 **새 차트만** 추가(기존 cfg 수정 금지).
 - **서버 연동**: `tryServerAutoload` — `api/files`/`api/file` (http로 열렸을 때만)
 
 새 차트 옵션 추가 절차: `defaultChart()`에 필드 → `buildCfgPanel`에 입력 UI → `buildTraces`/`buildLayout`에 반영 → 세션 저장은 자동.
