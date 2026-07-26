@@ -314,7 +314,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.13';
+const APP_VERSION = 'v0.13.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -593,6 +593,11 @@ const I18N = {
     'report.setup': '설정',
     'report.filters': '필터',
     'report.analysis': '자동 분석 요약',
+    'confirm.derivedInUse': '{name} — 아직 쓰는 곳이 있습니다.',
+    'confirm.derivedCharts': '차트: {list}',
+    'confirm.derivedDeps': '이 컬럼을 입력으로 쓰는 계산 컬럼: {list}',
+    'confirm.derivedProceed': '삭제하면 해당 차트의 축·필터 설정도 함께 지워지고, 이 컬럼을 쓰던 계산 컬럼은 값이 비게 됩니다. 계속할까요?',
+    'toast.derivedCleared': '{name} 삭제 — 차트 {n}개의 축·필터 설정을 함께 정리했습니다.',
     'toast.reportPartial': '리포트를 저장했습니다 (차트 {n}장). 이미지 생성 실패: {list}',
     'report.notDrawn': '(이 차트는 아직 그려지지 않아 이미지가 없습니다)',
     'toast.reportSaved': '리포트(.md)와 차트 PNG {n}장을 저장했습니다.',
@@ -882,6 +887,11 @@ const I18N = {
     'report.setup': 'Setup',
     'report.filters': 'Filters',
     'report.analysis': 'Automatic analysis summary',
+    'confirm.derivedInUse': '{name} — this column is still in use.',
+    'confirm.derivedCharts': 'Charts: {list}',
+    'confirm.derivedDeps': 'Computed columns that read it: {list}',
+    'confirm.derivedProceed': 'Deleting it also clears those charts\' axis and filter settings, and computed columns built on it will come out empty. Continue?',
+    'toast.derivedCleared': 'Deleted {name} — also cleared axis/filter settings on {n} chart(s).',
     'toast.reportPartial': 'Report saved ({n} charts). Image export failed for: {list}',
     'report.notDrawn': '(this chart has not been drawn yet, so there is no image)',
     'toast.reportSaved': 'Saved the report (.md) and {n} chart PNG(s).',
@@ -3350,6 +3360,49 @@ function renderChips() {
 }
 /* 계산 컬럼 패널 — 이항 연산 / 기준 대비 델타 */
 let derivedEditIdx = -1;
+/* 계산 컬럼을 지우면 그걸 축·필터로 쓰던 차트는 조용히 빈 그래프가 되고, 설정 패널은 "(선택)"으로 보이면서도
+   내부적으로는 사라진 컬럼을 붙들고 있었다. 지우기 전에 어디서 쓰는지 보여주고, 지운 뒤에는 참조까지 정리한다. */
+const DERIVED_REF_FIELDS = ['x', 'y', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ'];
+function derivedUsage(name) {
+  const charts = [];
+  state.charts.forEach((c, i) => {
+    const fields = DERIVED_REF_FIELDS.filter(k => c[k] === name);
+    const filters = (c.filters || []).filter(f => f.col === name).length;
+    if (fields.length || filters) charts.push({ cfg: c, label: c.title || tf('card.chartNum', { n: i + 1 }), fields, filters });
+  });
+  const deps = state.derived.filter(d => d.name !== name
+    && [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || [])].includes(name)).map(d => d.name);
+  return { charts, deps };
+}
+function clearDerivedRefs(name) {
+  let n = 0;
+  for (const c of state.charts) {
+    let touched = false;
+    for (const k of DERIVED_REF_FIELDS) if (c[k] === name) { c[k] = ''; touched = true; }
+    const before = (c.filters || []).length;
+    c.filters = (c.filters || []).filter(f => f.col !== name);
+    if (c.filters.length !== before) touched = true;
+    if (touched) n++;
+  }
+  return n;
+}
+function removeDerived(i, commit) {
+  const d = state.derived[i];
+  if (!d) return;
+  const use = derivedUsage(d.name);
+  if (use.charts.length || use.deps.length) {   // 되돌릴 수 없는 동작이므로 먼저 묻는다
+    const lines = [tf('confirm.derivedInUse', { name: d.name }), ''];
+    if (use.charts.length) lines.push(tf('confirm.derivedCharts', { list: use.charts.map(c => c.label).join(', ') }));
+    if (use.deps.length) lines.push(tf('confirm.derivedDeps', { list: use.deps.join(', ') }));
+    lines.push('', t('confirm.derivedProceed'));
+    if (!confirm(lines.join('\n'))) return;
+  }
+  state.derived.splice(i, 1);
+  derivedEditIdx = -1;
+  const cleared = clearDerivedRefs(d.name);
+  commit();
+  if (cleared) showToast(tf('toast.derivedCleared', { name: d.name, n: cleared }));
+}
 /* 편집 중 목록 순서가 바뀌면 인덱스가 다른 정의를 가리키게 된다 — 이름으로 다시 찾는다 */
 function editingName() { return derivedEditIdx >= 0 && state.derived[derivedEditIdx] ? state.derived[derivedEditIdx].name : null; }
 function retrackEdit(name) { derivedEditIdx = name ? state.derived.findIndex(d => d.name === name) : -1; }
@@ -3386,7 +3439,7 @@ function renderDerived() {
         if (i < state.derived.length - 1) { const editName = editingName(); state.derived.splice(i + 1, 0, state.derived.splice(i, 1)[0]); retrackEdit(editName); commit(); }
       } }, '↓'),
       el('button', { class: 'small', title: t('cfg.derivedEdit'), onclick: () => { derivedEditIdx = i; renderDerived(); } }, '✎'),
-      el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { state.derived.splice(i, 1); derivedEditIdx = -1; commit(); } }, '×'),
+      el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => removeDerived(i, commit) }, '×'),
     ));
   });
   // 추가 폼

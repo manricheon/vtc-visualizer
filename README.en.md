@@ -154,6 +154,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.13.1 — deleting computed columns
+- Deleting a computed column now **lists the charts and other computed columns that use it and asks first** — the action cannot be undone.
+- On delete the affected charts' axis and filter settings are **cleared too**, and a toast says what was cleared. Previously those settings kept pointing at a column that no longer existed: the chart went blank while its settings panel showed "(pick one)".
+- Columns nothing depends on are still deleted straight away, without a prompt.
+
 ### v0.13 — speed
 Measured the slow paths on large data and fixed them (numbers at 20k rows).
 - **Charts using a size column: 49.5s → 0.43s.** The size range was recomputed for every single point; it is now computed once per render (at 50k rows the chart effectively never appeared).

@@ -130,6 +130,7 @@ Want to see how each setting does **against a reference** (e.g. accuracy differe
 - **Delta vs reference**: **difference** or **retention %** vs the reference row with the same match keys (e.g. value=`accuracy`, reference = rows where `method`=`baseline`, match=`tokens` → "how many pt above baseline at the same tokens")
 
 A computed column can feed another one (use `↑`/`↓` in the list to fix the **calculation order**), and `✎` edits a definition.
+Deleting one with `×` first tells you which charts use it, and clears their axis and filter settings along with it.
 The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. Presets carry the definitions they need, so teammates get them too. If you don't need it, just collapse the panel — no effect on the view.
 
 ### ⑨ A whole 2D sweep in one picture — heatmap
