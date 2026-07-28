@@ -160,6 +160,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.16.1 — where presets and hiding collided
+- Applying a preset that uses a hidden column now **unhides that column**. No more half-state where the chart draws but the axis picker cannot offer the column again — the same treatment the preset's computed columns already got.
+- Fixed: a preset did not carry the computed column used on its **secondary Y axis**, so that axis came up empty for whoever received it.
+- What a preset application did on the side (restoring computed columns, unhiding) now rides **in the same notice**. Previously the toast was overwritten immediately and never seen.
+
 ### v0.16 — holding up when there are many columns
 **Hiding columns**
 - Unchecking a column in the table's `Columns n/m` button drops it from **the table, axis pickers, filters and the analysis at once**. No more scrolling a 40-entry dropdown to pick an axis.
