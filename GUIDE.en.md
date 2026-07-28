@@ -194,7 +194,7 @@ If nothing at all is reported, read the **scan scope** line at the top of the pa
 
 ### ⑫ Exporting a report — figures with their sentences
 
-Once the charts are polished, write one or two sentences into Settings → Style → **Caption** for each ("what this figure says") and press `Report MD`.
+Once the charts are polished, write one or two sentences into Settings → Style → **Caption** for each ("what this figure says") and pick `Export ▾` → `Report MD`.
 You get one markdown file plus the chart PNGs; every chart section carries its **caption, setup and the filters in effect**, and if the analysis has been run, its findings summary and caveat are appended.
 
 **Why the filter conditions must travel with the figure**: a conclusion that only holds for tokens ≤ 4000, screenshotted with the filter on and pasted without stating it, will be read as a conclusion about the whole dataset. The report writes that condition down for you.
@@ -210,6 +210,11 @@ When the point a marker referred to is gone, it is **hidden rather than left in 
 
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
+
+**When the columns keep piling up** — for logs that grow to 20-40 columns, switch off the ones you are not using right now
+via the table's `Columns n/m` button. A switched-off column leaves the table, axis pickers, filters and the analysis together,
+so the dropdowns get short again. The data is untouched, `Show all` brings everything back, and charts already drawn on a
+hidden column keep drawing. It also works as an analysis control: switch off a column you don't want scanned.
 
 ### ⑭ Choosing colors — where is the figure going?
 
@@ -233,7 +238,7 @@ A team on one palette gets consistent method colors across every document. Expor
 
 ## 4. Sharing with your team
 
-- **Share charts with their settings**: `Export session` (top bar) → one JSON file holds the data and every chart's configuration. The recipient restores the exact screen with `Import session`.
+- **Share charts with their settings**: `Export ▾` → `Export session` (top bar) → one JSON file holds the data and every chart's configuration. The recipient restores the exact screen with `Import session`.
 - **Presets vs sessions**: a session = data + charts; a **preset = chart settings only** (the `Presets` button on each card). When the data changes but the schema stays the same — weekly experiment logs, say — a saved preset redraws the same chart on new data in one click.
 - **Converting data**: whatever your format, paste the [agent prompt](README.en.md#converting-your-data-to-this-format-agent-prompt) from the README into any LLM together with your file.
 - **Offline distribution**: copying the single `index-offline.html` file is enough — it works identically with no internet.

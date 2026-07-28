@@ -102,6 +102,9 @@
     transition: background .15s, border-color .15s, padding .15s;
   }
   #dropzone.empty { padding: var(--sp-6) var(--sp-4); background: var(--page); }
+  /* 데이터가 들어온 뒤에는 한 줄로 물러난다 — 자리를 차지할 이유가 없다 */
+  #dropzone:not(.empty) { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); flex-wrap: wrap; padding: var(--sp-2) var(--sp-3); font-size: var(--fs-sm); }
+  #dropzone:not(.empty) .btns { margin-top: 0; }
   #dropzone.empty .btns { margin-top: var(--sp-4); }
   #dropzone .empty-hint { display: none; font-size: var(--fs-sm); margin-top: var(--sp-2); }
   #dropzone.empty .empty-hint { display: block; }
@@ -174,6 +177,7 @@
   #tableWrap { overflow: auto; max-height: 480px; border: 1px solid var(--grid); border-radius: 8px; }
   table.data { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
   table.data th, table.data td { padding: 5px 10px; border-bottom: 1px solid var(--grid); text-align: left; white-space: nowrap; }
+  table.data th.num, table.data td.num { text-align: right; }   /* 숫자는 자릿수를 맞춰 읽는다 */
   table.data th {
     position: sticky; top: 0; background: var(--surface-1); cursor: pointer;
     color: var(--ink-2); font-weight: 600; user-select: none; border-bottom: 1px solid var(--axis);
@@ -227,6 +231,14 @@
   #ptPopover .pp-row { display: flex; gap: 4px; }
   #ptPopover .pp-row button { flex: 1; text-align: center; border: 1px solid var(--border); }
   #ptPopover input[type="text"] { width: 100%; }
+  /* 컬럼 목록: 많을 수 있으므로 자체 스크롤 */
+  #ptPopover .pp-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+  #ptPopover .pp-check { display: flex; align-items: baseline; gap: var(--sp-2); padding: 3px 4px; border-radius: var(--radius); cursor: pointer; }
+  #ptPopover .pp-check:hover { background: var(--hover); }
+  #ptPopover .pp-check .cname { flex: 1; font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #ptPopover .pp-check .cuse { flex: 0 1 auto; font-size: var(--fs-xs); color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%; }
+  #ptPopover .pp-check.off .cname { color: var(--ink-muted); text-decoration: line-through; }
+  #btnCols.on { border-color: var(--accent); color: var(--accent); }
 
   /* ===== data table: include/exclude ===== */
   table.data th.chk, table.data td.chk { width: 30px; text-align: center; padding: 5px 6px; cursor: default; }
@@ -265,10 +277,7 @@
         <button id="btnAnalyze" data-i18n="btn.analyze"></button>
       </span>
       <span class="grp">
-        <button id="btnReport" data-i18n="btn.report"></button>
-        <button id="btnExportAll" data-i18n="btn.exportAll"></button>
-        <button id="btnExportSession" data-i18n="btn.exportSession"></button>
-        <button id="btnImportSession" data-i18n="btn.importSession"></button>
+        <button id="btnExportMenu" data-i18n="btn.exportMenu"></button>
       </span>
       <span class="grp view">
         <select id="selPalette" class="ghost" title=""></select>
@@ -312,6 +321,7 @@
     <div id="tableCtrl">
       <input type="search" id="tableSearch" data-i18n-ph="table.searchPh">
       <span class="count" id="tableCount"></span>
+      <button class="small" id="btnCols"></button>
       <button class="small" id="restoreExcl" hidden data-i18n="table.restoreExcl"></button>
       <button class="small" id="restoreMuted" hidden data-i18n="table.restoreMuted"></button>
       <button class="small" id="btnExportCsv" data-i18n="btn.exportCsv"></button>
@@ -348,7 +358,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.15';
+const APP_VERSION = 'v0.16';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -474,6 +484,11 @@ const I18N = {
     'section.rawData': '원본 데이터',
     'table.searchPh': '검색…',
     'table.restoreExcl': '제외 {n}행 모두 복원',
+    'table.columns': '컬럼 {n}/{m}',
+    'col.title': '표시할 컬럼',
+    'col.showAll': '모두 표시',
+    'col.usedOnly': '쓰는 것만',
+    'col.hiddenNote': '숨긴 컬럼은 표·축 선택·필터·자동 분석에서 빠집니다. 데이터는 그대로이고 이미 그린 차트도 유지됩니다.',
     'pager.prev': '◀ 이전',
     'pager.next': '다음 ▶',
     'modal.title': '데이터 직접 입력',
@@ -663,6 +678,7 @@ const I18N = {
     'cfg.derivedMoveUp': '위로 (계산 순서)', 'cfg.derivedMoveDown': '아래로 (계산 순서)',
     'toast.presetDerived': '프리셋에 딸린 계산 컬럼 {n}개를 함께 만들었습니다.',
     'btn.report': '리포트 MD',
+    'btn.exportMenu': '내보내기 ▾',
     'cfg.renderMode': '렌더링',
     'cfg.renderModeTitle': '점이 5천 개를 넘으면 자동으로 WebGL로 그립니다 (SVG 내보내기는 자동으로 벡터로 되돌림)',
     'opt.renderAuto': '자동', 'opt.renderSvg': '고품질 (SVG)', 'opt.renderGl': '고속 (WebGL)',
@@ -804,6 +820,11 @@ const I18N = {
     'section.rawData': 'Raw data',
     'table.searchPh': 'Search…',
     'table.restoreExcl': 'Restore all {n} excluded rows',
+    'table.columns': 'Columns {n}/{m}',
+    'col.title': 'Columns to show',
+    'col.showAll': 'Show all',
+    'col.usedOnly': 'In use only',
+    'col.hiddenNote': 'Hidden columns drop out of the table, axis pickers, filters and the analysis. The data is untouched and existing charts keep drawing.',
     'pager.prev': '◀ Prev',
     'pager.next': 'Next ▶',
     'modal.title': 'Paste data',
@@ -993,6 +1014,7 @@ const I18N = {
     'cfg.derivedMoveUp': 'Move up (calculation order)', 'cfg.derivedMoveDown': 'Move down (calculation order)',
     'toast.presetDerived': 'Also created {n} computed column(s) the preset needs.',
     'btn.report': 'Report MD',
+    'btn.exportMenu': 'Export ▾',
     'cfg.renderMode': 'Rendering',
     'cfg.renderModeTitle': 'Above 5,000 points the chart switches to WebGL automatically (SVG export temporarily switches back to vector)',
     'opt.renderAuto': 'Auto', 'opt.renderSvg': 'High quality (SVG)', 'opt.renderGl': 'Fast (WebGL)',
@@ -1133,6 +1155,7 @@ const state = {
   datasets: [],   // {id, name, rows:[{col:val}]}
   charts: [],     // [chartConfig]
   derived: [],    // 계산 컬럼 정의 [{name, kind, ...}] — 입력 파일이 아니라 뷰 계층(세션 상태)
+  hiddenCols: [], // 화면에서 감춘 컬럼명 — 데이터는 그대로 두고 목록에서만 뺀다(뷰 계층)
   nextId: 1,
 };
 /* 계산 컬럼: 정의대로 각 행에 파생 값을 주입 (기존 파생값은 먼저 제거해 재계산) */
@@ -1424,12 +1447,15 @@ function columns() {
   colCache = [...set];
   return colCache;
 }
-/* _source는 데이터셋이 2개 이상일 때만 노출 (1개면 헷갈리기만 함) */
+/* _source는 데이터셋이 2개 이상일 때만 노출 (1개면 헷갈리기만 함).
+   여기가 "화면에 보이는 컬럼"의 단일 관문이다 — 표·축/그룹 드롭다운·필터·자동 분석·계산 컬럼 입력·CSV 내보내기가 모두 이걸 쓴다.
+   반대로 `rowKeyCols()`는 `columns()`를 써야 한다: 숨김이 행 정체성을 흔들면 제외·흐리게·마커 앵커가 전부 어긋난다. */
 function visibleColumns() {
   const cols = columns();
-  return state.datasets.length > 1 ? cols : cols.filter(c => c !== '_source');
+  const shown = state.datasets.length > 1 ? cols : cols.filter(c => c !== '_source');
+  return state.hiddenCols.length ? shown.filter(c => !state.hiddenCols.includes(c)) : shown;
 }
-function numericColumns() {
+function numericColumnsAll() {
   if (numColCache) return numColCache;
   const cols = columns(), rows = allRows(), out = [];
   for (const c of cols) {
@@ -1444,6 +1470,13 @@ function numericColumns() {
   }
   numColCache = out;
   return out;
+}
+/* 위의 numericColumnsAll()은 데이터의 성질(캐시 대상)이고, 아래가 "화면에 보이는 숫자 컬럼"이다.
+   숨김은 hiddenCols가 바뀔 때마다 달라지므로 캐시하지 않고 매번 거른다(컬럼 수만큼이라 비용이 없다).
+   그리는 코드는 All 쪽을 써야 한다 — 숨겼다고 이미 그린 차트의 연속 색상이 꺼지면 안 된다. */
+function numericColumns() {
+  const all = numericColumnsAll();
+  return state.hiddenCols.length ? all.filter(c => !state.hiddenCols.includes(c)) : all;
 }
 function uniqueVals(col) {
   if (uniqCache.has(col)) return uniqCache.get(col);
@@ -1644,7 +1677,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
     } else {
       const hasLine = lineMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
-      const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumns().includes(cfg.colorBy);
+      const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumnsAll().includes(cfg.colorBy);
       const npts = pts.filter(r => !isMutedRow(cfg, r));   // 강조(일반)
       const mpts = pts.filter(r => isMutedRow(cfg, r));    // 흐리게(배경 맥락) — 클릭 흐리게 + 흐리게 필터
       // 흐리게 조각: 옅은 회색·저불투명도, 범례·추세 제외 (점·hover는 유지)
@@ -2706,7 +2739,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const fBox = el('div');
   const renderFilters = () => {
     fBox.innerHTML = '';
-    const nums = numericColumns();
+    const nums = numericColumnsAll();   // 이미 걸린 필터의 컬럼이 숨겨져도 연산자 UI가 바뀌면 안 된다
     cfg.filters.forEach((f, i) => {
       const isNum = f.col && nums.includes(f.col);
       const ops = !f.col ? [['=', '=']]
@@ -3092,11 +3125,14 @@ function renderTable() {
   const view = rows.slice(start, start + tableState.pageSize);
   const allIncluded = rows.every(r => !r._excluded);
 
+  /* 숫자 컬럼은 우측 정렬 — tabular-nums만으로는 자릿수가 맞지 않는다(150 vs 23412.3) */
+  const numSet = new Set(numericColumns());
+  const nc = c => numSet.has(c) ? ' class="num"' : '';
   let html = `<thead><tr><th class="chk" title="${esc(t('table.allIncludeTitle'))}"><input type="checkbox" id="chkAll"${allIncluded ? ' checked' : ''}></th>` + cols.map(c =>
-    `<th data-col="${esc(c)}">${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
+    `<th data-col="${esc(c)}"${nc(c)}>${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
   view.forEach((r, i) => {
     html += `<tr class="${r._excluded ? 'excl' : ''}${r._muted ? ' muted' : ''}"><td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'}></td>`
-      + cols.map(c => `<td>${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
+      + cols.map(c => `<td${nc(c)}>${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
   });
   table.innerHTML = html + '</tbody>';
   const rerenderCharts = () => { for (const c of state.charts) renderPlot(c); };
@@ -3129,6 +3165,50 @@ function renderTable() {
   mutedBtn.hidden = nMuted === 0;
   mutedBtn.textContent = tf('table.restoreMuted', { n: nMuted });
   document.getElementById('pgInfo').textContent = tf('pager.info', { page: pages ? tableState.page + 1 : 0, pages });
+  const colBtn = document.getElementById('btnCols');
+  const nAll = columns().filter(c => c !== '_source' || state.datasets.length > 1).length;
+  colBtn.hidden = !state.datasets.length;
+  colBtn.textContent = tf('table.columns', { n: cols.length, m: nAll });
+  colBtn.classList.toggle('on', state.hiddenCols.length > 0);
+}
+/* ---- 컬럼 표시/숨김 팝오버 ----
+   숨김은 삭제가 아니다: 참조를 끊지 않으므로 이미 그 컬럼으로 그린 차트는 계속 그려진다.
+   사용처 표시는 "숨기면 이 드롭다운에서 사라진다"는 안내일 뿐이다. */
+function showColumnsMenu(mouseEv) {
+  popover.innerHTML = '';
+  const all = columns().filter(c => c !== '_source' || state.datasets.length > 1);
+  const apply = () => { renderTable(); refreshCfgPanels(); analysisStale(); save(); };
+  const setHidden = list => { state.hiddenCols = list; apply(); showColumnsMenu(mouseEv); };
+  popover.append(el('div', { class: 'pp-title' }, t('col.title')));
+  const list = el('div', { class: 'pp-list' });
+  all.forEach(c => {
+    const hidden = state.hiddenCols.includes(c);
+    const use = colUsage(c);
+    const where = [...new Set(use.charts.map(u => u.label))].slice(0, 2).join(', ')
+      + (use.deps.length ? (use.charts.length ? ' · ' : '') + use.deps.join(', ') : '');
+    const row = el('label', { class: 'pp-check' + (hidden ? ' off' : '') },
+      el('input', {
+        type: 'checkbox', ...(hidden ? {} : { checked: '' }),
+        onchange: e => {   // 목록은 다시 그리지 않는다 — 여러 개를 연달아 끄고 켤 수 있게
+          state.hiddenCols = e.target.checked ? state.hiddenCols.filter(h => h !== c) : [...state.hiddenCols, c];
+          row.classList.toggle('off', !e.target.checked);
+          apply();
+        },
+      }),
+      el('span', { class: 'cname' }, c),
+      ...(where ? [el('span', { class: 'cuse' }, where)] : []),
+    );
+    list.append(row);
+  });
+  /* "쓰는 것만": 차트가 참조하는 컬럼 + 다른 계산 컬럼의 입력만 남긴다.
+     숫자만 남기는 단축은 두지 않았다 — 숨김이 도구 전체에 적용되므로 method 같은 그룹 컬럼이
+     통째로 사라져 그룹 지정이 조용히 불가능해진다. */
+  const used = all.filter(c => { const u = colUsage(c); return u.charts.length || u.deps.length; });
+  popover.append(list, el('div', { class: 'pp-row' },
+    el('button', { onclick: () => setHidden([]) }, t('col.showAll')),
+    ...(used.length ? [el('button', { onclick: () => setHidden(all.filter(c => !used.includes(c))) }, t('col.usedOnly'))] : []),
+  ), el('div', { class: 'pp-note' }, t('col.hiddenNote')));
+  placePopover(mouseEv);
 }
 
 /* ================= 자동 분석 (탐색용 스크리닝) =================
@@ -3869,8 +3949,9 @@ function renderChips() {
 let derivedEditIdx = -1;
 /* 계산 컬럼을 지우면 그걸 축·필터로 쓰던 차트는 조용히 빈 그래프가 되고, 설정 패널은 "(선택)"으로 보이면서도
    내부적으로는 사라진 컬럼을 붙들고 있었다. 지우기 전에 어디서 쓰는지 보여주고, 지운 뒤에는 참조까지 정리한다. */
-const DERIVED_REF_FIELDS = ['x', 'y', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ'];
-function derivedUsage(name) {
+const DERIVED_REF_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ'];
+/* 임의 컬럼의 사용처 — 계산 컬럼 삭제(참조를 끊는다)와 컬럼 숨김(끊지 않는다)이 함께 쓴다 */
+function colUsage(name) {
   const charts = [];
   state.charts.forEach((c, i) => {
     const fields = DERIVED_REF_FIELDS.filter(k => c[k] === name);
@@ -3881,6 +3962,7 @@ function derivedUsage(name) {
     && [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || [])].includes(name)).map(d => d.name);
   return { charts, deps };
 }
+const derivedUsage = colUsage;
 function clearDerivedRefs(name) {
   let n = 0;
   for (const c of state.charts) {
@@ -4018,7 +4100,8 @@ function renderDerived() {
     el('button', { class: 'small', onclick: () => {
       const name = nameInp.value.trim();
       if (!name) return alert(t('cfg.derivedName'));
-      const clash = name.startsWith('_') || (visibleColumns().includes(name) && !(editing && editing.name === name))
+      /* 이름 충돌은 columns() 기준 — 숨긴 컬럼과 같은 이름을 새로 만들 수 있으면 안 된다 */
+      const clash = name.startsWith('_') || (columns().includes(name) && !(editing && editing.name === name))
         || state.derived.some((d, j) => d.name === name && j !== derivedEditIdx);
       if (clash) return alert(t('cfg.derivedNameTaken'));
       if (editing) state.derived[derivedEditIdx] = { name, ...formBox._get() };
@@ -4038,7 +4121,7 @@ function save() {
   saveTimer = setTimeout(() => {
     try {
       const charts = state.charts.map(serializableChart);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, hiddenCols: state.hiddenCols, nextId: state.nextId }));
     } catch (e) {   // 쿼터 초과 — 조용히 넘기면 자동 저장이 꺼진 줄 모르고 작업하게 된다
       if (!quotaWarned) { quotaWarned = true; showToast(t('toast.quota')); }
     }
@@ -4070,6 +4153,7 @@ function restoreSession(s) {
   state.datasets = s.datasets || [];
   invalidateDataCaches();
   state.derived = s.derived || [];
+  state.hiddenCols = Array.isArray(s.hiddenCols) ? s.hiddenCols : [];   // 예전 세션엔 없다
   state.charts = (s.charts || []).map(c => {
     const m = { ...defaultChart(), ...c };
     if (m.baseline) {   // 구버전 세션 마이그레이션: 단일 baseline → baselines 배열
@@ -4087,7 +4171,7 @@ function restoreSession(s) {
 function exportSession() {
   const charts = state.charts.map(serializableChart);
   /* 프리셋과 보기 설정도 함께 — 받는 쪽이 파일 두 개를 따로 받지 않도록 */
-  const payload = { datasets: state.datasets, charts, derived: state.derived, nextId: state.nextId,
+  const payload = { datasets: state.datasets, charts, derived: state.derived, hiddenCols: state.hiddenCols, nextId: state.nextId,
     presets: loadPresets(), ui: { lang: LANG, theme: THEME, width: WIDTH, palette: PALETTE_THEME } };
   const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
@@ -4426,19 +4510,31 @@ document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (modal.classList.contains('show')) { modal.classList.remove('show'); return; }
   if (popover.classList.contains('show')) hidePopover();
 });
-document.getElementById('btnExportSession').addEventListener('click', exportSession);
-document.getElementById('btnImportSession').addEventListener('click', () => {
+function importSession() {
   const inp = el('input', { type: 'file', accept: '.json' });
   inp.addEventListener('change', async () => {
     try { restoreSession(JSON.parse(await inp.files[0].text())); save(); }
     catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
   });
   inp.click();
+}
+/* 내보내기 4종은 헤더에서 가장 넓은 자리를 차지했다 — 메뉴 하나로 접는다 */
+document.getElementById('btnExportMenu').addEventListener('click', e => {
+  popover.innerHTML = '';
+  const item = (label, fn) => el('button', { onclick: () => { hidePopover(); fn(); } }, label);
+  popover.append(
+    el('div', { class: 'pp-title' }, t('btn.exportMenu')),
+    item(t('btn.report'), exportReport),
+    item(t('btn.exportAll'), exportAllCharts),
+    item(t('btn.exportSession'), exportSession),
+    item(t('btn.importSession'), importSession),
+  );
+  placePopover(e);
 });
 document.getElementById('btnReset').addEventListener('click', () => {
   if (!confirm(t('confirm.resetAll'))) return;
   localStorage.removeItem(STORAGE_KEY);
-  state.datasets = []; state.charts = []; state.nextId = 1;
+  state.datasets = []; state.charts = []; state.nextId = 1; state.hiddenCols = [];
   invalidateDataCaches();
   onDataChanged(false); refreshCharts();
 });
@@ -4455,8 +4551,7 @@ document.getElementById('restoreMuted').addEventListener('click', () => {
   save();
 });
 document.getElementById('btnExportCsv').addEventListener('click', exportTableCsv);
-document.getElementById('btnExportAll').addEventListener('click', exportAllCharts);
-document.getElementById('btnReport').addEventListener('click', exportReport);
+document.getElementById('btnCols').addEventListener('click', e => showColumnsMenu(e));
 document.getElementById('tableSearch').addEventListener('input', e => { tableState.search = e.target.value; tableState.page = 0; renderTable(); });
 document.getElementById('pgPrev').addEventListener('click', () => { tableState.page = Math.max(0, tableState.page - 1); renderTable(); });
 document.getElementById('pgNext').addEventListener('click', () => { tableState.page += 1; renderTable(); });

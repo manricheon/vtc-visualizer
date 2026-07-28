@@ -104,10 +104,11 @@ ours,4000,4.1,0.744,MMLU
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
-| Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top bar, `Export CSV` (current filtered data) in the table |
+| Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
 | **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
-| Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts** |
-| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file) for sharing |
+| Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts**. Numeric columns are right-aligned so digits line up |
+| **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. **The data is untouched** and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
+| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
 
 ### Tip: which chart, when?
@@ -158,6 +159,18 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.16 — holding up when there are many columns
+**Hiding columns**
+- Unchecking a column in the table's `Columns n/m` button drops it from **the table, axis pickers, filters and the analysis at once**. No more scrolling a 40-entry dropdown to pick an axis.
+- **Hiding is not deleting.** The rows are untouched and no reference is cleared, so a chart already drawn on a hidden column keeps drawing. The list shows where each column is used (`Chart 1`, computed-column names).
+- There is deliberately no way to **delete** a column from the data. Rows are identified by the combination of their condition columns, so removing one would misalign exclusions, point labels and text-marker anchors. The original is in your file — reload it.
+
+**Table and chrome**
+- Numeric columns are right-aligned, so digits line up (`150` vs `23412.3`).
+- The four header export buttons collapsed into one `Export ▾` menu.
+- The file drop area shrinks to a single line once data is loaded.
+- Fixed alongside: a computed column used as the **secondary axis** was not detected when deleting it.
 
 ### v0.15 — annotations follow the data
 **Text markers are anchored to their point**
@@ -231,7 +244,7 @@ Measured the slow paths on large data and fixed them (numbers at 20k rows).
 
 **From charts to a report**
 - **Chart captions**: Settings → Style → Caption. Shown under the chart and carried into the report.
-- **`Report MD` button**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
+- **`Export ▾` → `Report MD`**: saves a markdown report (.md) together with the chart PNGs. Each chart section carries its **caption, chart setup (type/axes/group) and the filters in effect**, and if you ran the analysis, the **findings summary and its caveat** are appended.
 - **`Copy findings`**: copies the analysis findings as a markdown list (works in the offline file too).
 
 **Richer computed columns**
