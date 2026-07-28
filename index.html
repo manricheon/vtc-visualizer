@@ -358,7 +358,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.16.1';
+const APP_VERSION = 'v0.17';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -525,7 +525,14 @@ const I18N = {
     'pt.presetTitle': '차트 프리셋 — 클릭하면 이 차트에 적용',
     'pt.savePreset': '💾 현재 차트를 프리셋으로 저장…',
     'pt.presetNamePrompt': '프리셋 이름 (같은 이름은 덮어씀)',
-    'pt.noPresets': '저장된 프리셋이 없습니다.',
+    'pt.noPresets': '저장한 프리셋이 없습니다 — 위 기본 프리셋으로 시작하거나, 차트를 다듬은 뒤 저장하세요.',
+    'pt.starterTitle': '기본 (지금 데이터에 맞춰 적용)',
+    'pt.savedTitle': '저장한 프리셋',
+    'sp.avg': '항목별 평균 비교 (막대)',
+    'sp.sweep': '스윕 추세 (선)',
+    'sp.tradeoff': '비용–성능 트레이드오프 (Pareto)',
+    'sp.heat': '두 조건 격자 (히트맵)',
+    'sp.dist': '값 분포 (박스플롯)',
     'pt.presetExport': '⬇ 내보내기', 'pt.presetImport': '⬆ 가져오기',
     'pt.presetHint': '프리셋은 차트 설정만 저장합니다(데이터 제외). 같은 컬럼 이름을 쓰는 데이터라면 언제든 재적용할 수 있습니다.',
     'card.plotHint': '그래프 조작: 드래그 = 영역 확대 · 마우스 휠 = 줌 · 더블클릭 = 전체 보기 · 이동(팬)은 우상단 모드바의 십자 화살표 · 포인트 클릭 = 베이스라인/마커/제외 메뉴',
@@ -862,7 +869,14 @@ const I18N = {
     'pt.presetTitle': 'Chart presets — click to apply to this chart',
     'pt.savePreset': '💾 Save current chart as preset…',
     'pt.presetNamePrompt': 'Preset name (same name overwrites)',
-    'pt.noPresets': 'No saved presets.',
+    'pt.noPresets': 'No presets saved yet — start from a built-in above, or polish a chart and save it.',
+    'pt.starterTitle': 'Built-in (fitted to the current data)',
+    'pt.savedTitle': 'Saved presets',
+    'sp.avg': 'Average per item (bar)',
+    'sp.sweep': 'Sweep trend (line)',
+    'sp.tradeoff': 'Cost-performance trade-off (Pareto)',
+    'sp.heat': 'Two-condition grid (heatmap)',
+    'sp.dist': 'Value distribution (box plot)',
     'pt.presetExport': '⬇ Export', 'pt.presetImport': '⬆ Import',
     'pt.presetHint': 'Presets store chart settings only (no data) — re-apply them to any data using the same column names.',
     'card.plotHint': 'Chart controls: drag = zoom to area · mouse wheel = zoom · double-click = reset view · pan via the crosshair icon in the top-right mode bar · click a point = baseline/marker/exclude menu',
@@ -2295,7 +2309,9 @@ function buildLayout(cfg, gd, traces) {
 function renderPlot(cfg) {
   const div = plotDivs[cfg.id];
   if (!div) return;
-  if (!cfg.x || !cfg.y || !allRows().length) {
+  /* 분포 차트(히스토그램·박스)는 값 컬럼 하나로 그린다 — X를 요구하면 X가 비었을 때 빈 화면이 된다 */
+  const needsX = cfg.type !== 'histogram' && cfg.type !== 'box';
+  if ((needsX && !cfg.x) || !cfg.y || !allRows().length) {
     Plotly.purge(div);
     div.innerHTML = `<div style="padding:40px;color:#898781;text-align:center">${esc(t('plot.placeholder'))}</div>`;
     div._vizBound = false;   // purge가 이벤트 에미터를 제거하므로 재바인딩 필요
@@ -4434,6 +4450,49 @@ function showFilterCopyMenu(src, ev) {
   }
   placePopover(ev);
 }
+/* ---- 기본 프리셋 ----
+   남의 데이터에 어떤 컬럼이 있는지 알 수 없으므로 컬럼 이름을 박아 둘 수 없다.
+   대신 GUIDE 레시피를 "역할"(그룹·스윕 노브·점수·비용)로 적어 두고, 열 때마다 지금 데이터에 맞춘다.
+   역할이 채워지지 않는 레시피는 목록에 아예 띄우지 않는다 — 눌렀더니 빈 차트가 되는 것이 가장 나쁘다. */
+function starterRoles() {
+  const nums = numericColumns(), cols = visibleColumns();
+  const cats = cols.filter(c => !nums.includes(c));
+  const rows = allRows().length;
+  const lv = c => uniqueVals(c).length;
+  const score = nums.find(c => /score|acc|f1|auc|bleu|rouge|prec|recall|quality|iou|map\b/i.test(c))
+    || nums.find(c => lv(c) > Math.max(3, rows / 4)) || nums[0] || '';
+  const cost = nums.find(c => c !== score && /token|budget|latency|time|cost|frame|step|size|param|mem|fps|throughput/i.test(c))
+    || nums.find(c => c !== score) || '';
+  const design = nums.find(c => { const u = lv(c); return u >= 3 && u <= Math.max(3, Math.min(12, rows / 2)); }) || '';
+  const cat = cats.find(c => { const u = lv(c); return u >= 2 && u <= 12; }) || '';
+  return { score, cost, design, cat };
+}
+const STARTER_PRESETS = [
+  { key: 'avg', need: ['cat', 'score'], make: r => ({
+      type: 'bar', x: r.cat, y: r.score, group: r.cat,
+      barAgg: 'mean', barError: 'std', barSort: 'desc', barText: 'value' }) },
+  { key: 'sweep', need: ['design', 'score'], make: r => ({
+      type: 'scatter+line', x: r.design, y: r.score, group: r.cat,
+      xScale: logFits(r.design) ? 'log' : 'linear', trend: 'none' }) },
+  { key: 'tradeoff', need: ['cost', 'score'], make: r => ({
+      type: 'scatter', x: r.cost, y: r.score, group: r.cat, pareto: true, paretoDir: 'min-x-max-y' }) },
+  { key: 'heat', need: ['cat', 'design', 'score'], make: r => ({
+      type: 'heatmap', x: r.cat, y: r.design, heatZ: r.score, heatAgg: 'mean', heatText: 'value' }) },
+  { key: 'dist', need: ['score'], make: r => ({ type: 'box', y: r.score, group: r.cat }) },
+];
+/* 2배씩 늘어나는 스윕은 로그축에서 등간격이 된다 — 값이 그런 모양일 때만 켠다 */
+function logFits(col) {
+  if (!col) return false;
+  const v = uniqueVals(col).filter(n => typeof n === 'number' && n > 0);
+  return v.length >= 3 && v[v.length - 1] / v[0] >= 8;
+}
+function starterList() {
+  if (!allRows().length) return [];
+  const r = starterRoles();
+  return STARTER_PRESETS
+    .filter(s => s.need.every(k => r[k]) && (s.key !== 'tradeoff' || r.cost !== r.score))
+    .map(s => ({ key: s.key, cfg: s.make(r) }));
+}
 function showPresetMenu(cfg, mouseEv) {
   popover.innerHTML = '';
   const names = Object.keys(loadPresets()).sort((a, b) => a.localeCompare(b));
@@ -4446,7 +4505,16 @@ function showPresetMenu(cfg, mouseEv) {
       hidePopover();
     } }, t('pt.savePreset')),
   );
-  if (!names.length) popover.append(el('div', { class: 'pp-note' }, t('pt.noPresets')));
+  const starters = starterList();
+  if (starters.length) {
+    popover.append(el('div', { class: 'pp-title' }, t('pt.starterTitle')));
+    starters.forEach(s => popover.append(el('button', {
+      title: chartSpecText({ ...defaultChart(), ...s.cfg }),
+      onclick: () => { applyPreset(cfg, s.cfg); hidePopover(); },
+    }, '▷ ' + t('sp.' + s.key))));
+  }
+  if (names.length) popover.append(el('div', { class: 'pp-title' }, t('pt.savedTitle')));
+  else popover.append(el('div', { class: 'pp-note' }, t('pt.noPresets')));
   names.forEach(n => {
     popover.append(el('div', { class: 'pp-row' },
       el('button', { onclick: () => { applyPreset(cfg, loadPresets()[n]); hidePopover(); } }, '▶ ' + n),
