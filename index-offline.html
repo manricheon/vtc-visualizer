@@ -367,7 +367,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.17';
+const APP_VERSION = 'v0.17.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -4463,18 +4463,31 @@ function showFilterCopyMenu(src, ev) {
    남의 데이터에 어떤 컬럼이 있는지 알 수 없으므로 컬럼 이름을 박아 둘 수 없다.
    대신 GUIDE 레시피를 "역할"(그룹·스윕 노브·점수·비용)로 적어 두고, 열 때마다 지금 데이터에 맞춘다.
    역할이 채워지지 않는 레시피는 목록에 아예 띄우지 않는다 — 눌렀더니 빈 차트가 되는 것이 가장 나쁘다. */
+const SP_SCORE_RE = /score|acc|f1|auc|bleu|rouge|prec|recall|quality|iou|map\b|rate|ratio|win/i;
+const SP_COST_RE = /token|budget|latency|time|cost|frame|step|size|param|mem|fps|throughput|flops|energy|watt/i;
+let starterRoleCache = null;
 function starterRoles() {
-  const nums = numericColumns(), cols = visibleColumns();
-  const cats = cols.filter(c => !nums.includes(c));
-  const rows = allRows().length;
-  const lv = c => uniqueVals(c).length;
-  const score = nums.find(c => /score|acc|f1|auc|bleu|rouge|prec|recall|quality|iou|map\b/i.test(c))
-    || nums.find(c => lv(c) > Math.max(3, rows / 4)) || nums[0] || '';
-  const cost = nums.find(c => c !== score && /token|budget|latency|time|cost|frame|step|size|param|mem|fps|throughput/i.test(c))
-    || nums.find(c => c !== score) || '';
-  const design = nums.find(c => { const u = lv(c); return u >= 3 && u <= Math.max(3, Math.min(12, rows / 2)); }) || '';
-  const cat = cats.find(c => { const u = lv(c); return u >= 2 && u <= 12; }) || '';
-  return { score, cost, design, cat };
+  /* 종류는 **값의 분포**가 정하고(anProfile — 이름을 보지 않는다), 이름은 같은 종류 안에서
+     "둘 중 어느 게 점수고 어느 게 비용인가"를 고르는 데만 쓴다.
+     도메인 약어만 쓰는 데이터에서도 범주 컬럼과 스윕 노브는 제대로 잡힌다. */
+  const key = dataVer + '|' + state.hiddenCols.join(',');
+  if (starterRoleCache && starterRoleCache.key === key) return starterRoleCache.roles;
+  const rows = allRows();
+  const prof = rows.length ? anProfile(rows, visibleColumns()) : [];
+  const of = role => prof.filter(p => p.role === role).map(p => p.col);
+  const conts = of('cont'), designs = of('design');
+  const nums = [...conts, ...designs];                     // 연속량이 없으면 스윕 노브라도 값 축으로 쓴다
+  const cats = [...of('cat'), ...of('flag')].filter(c => c !== '_source');
+  const score = conts.find(c => SP_SCORE_RE.test(c))
+    || conts.find(c => !SP_COST_RE.test(c)) || nums[0] || '';
+  /* 비용 축은 연속량을 먼저 본다 — 스윕 노브를 X로 쓰면 스윕 레시피와 같은 그림이 되어 버린다 */
+  const cost = conts.find(c => c !== score && SP_COST_RE.test(c))
+    || designs.find(c => c !== score && SP_COST_RE.test(c))
+    || conts.find(c => c !== score) || nums.find(c => c !== score) || '';
+  const design = designs.find(c => c !== score) || '';
+  const roles = { score, cost, design, cat: cats[0] || '' };
+  starterRoleCache = { key, roles };
+  return roles;
 }
 const STARTER_PRESETS = [
   { key: 'avg', need: ['cat', 'score'], make: r => ({

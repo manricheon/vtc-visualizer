@@ -109,7 +109,7 @@ ours,4000,4.1,0.744,MMLU
 | Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts**. Numeric columns are right-aligned so digits line up |
 | **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. **The data is untouched** and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
-| **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They **assume no column names** — roles (category, sweep knob, score, cost) are matched against your current data, and a recipe whose roles cannot be filled is simply not listed |
+| **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They **assume no column names** — roles (category, sweep knob, score, cost) are matched against your current data by **value distribution**, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
 
 ### Tip: which chart, when?
@@ -160,6 +160,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.17.1 — right even when the names mean nothing
+- Role matching for the built-in presets moved **from name patterns to value distribution**, reusing the same column classification the analysis engine uses: categories, sweep knobs, continuous measures and identifiers are told apart by their values, and names only decide which of two continuous columns is the score and which is the cost.
+- So data named `zeta` and `kv` gets sensible axes, and a `seed_id` never ends up on one.
+- The trade-off preset now prefers a continuous column (latency and such) over a sweep knob for X — using the knob just reproduces the sweep preset.
 
 ### v0.17 — something to click on first open
 - The card's `Preset` button now offers **five built-ins** (average per item, sweep trend, trade-off, two-condition grid, value distribution), so an empty preset list is no longer a dead end.
