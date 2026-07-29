@@ -100,6 +100,7 @@ ours,4000,4.1,0.744,MMLU
 | Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
 | Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
 | **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
+| **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
 | **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
@@ -161,6 +162,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.19 — looking at files separately
+- With two or more files loaded, every chart gets a **`Data` dropdown** choosing which one it draws. Only that file's rows are used, and **the column lists narrow to that file** — no more picking a column the selected file does not have.
+- Since it is per chart, **two unrelated datasets can sit side by side** on one page. `(all)` goes back to the merged view.
+- Switching files **clears the axis/group/filter settings that no longer apply** and says which ones. Deleting the file a chart points at returns it to `(all)` with the same cleanup.
+- Splitting by file was already possible via the `_source` column (as a facet, group or filter). This is a shortcut on top of that — for overlaying files in one chart, facet by `_source` is still the way.
 
 ### v0.18 — one column for a combination of conditions
 - Computed columns gained a **`Label join`** kind: rather than computing a value it joins values from several columns into a text column — `selector` + `frames` → `sal-v3.1 · 16frm`.

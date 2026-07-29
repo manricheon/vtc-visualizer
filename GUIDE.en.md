@@ -212,6 +212,11 @@ When the point a marker referred to is gone, it is **hidden rather than left in 
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
+**With several files open** — the `Data` dropdown at the top of a chart's settings picks which file it draws, and the column
+lists narrow to that file, so unrelated schemas can sit open together with each chart pointing somewhere different.
+To **compare files with the same schema**, leave it on `(all)` and facet by `_source` (one small chart per file) or set group
+(color) to `_source` (overlaid).
+
 **When the columns keep piling up** — for logs that grow to 20-40 columns, switch off the ones you are not using right now
 via the table's `Columns n/m` button. A switched-off column leaves the table, axis pickers, filters and the analysis together,
 so the dropdowns get short again. The data is untouched, `Show all` brings everything back, and charts already drawn on a
