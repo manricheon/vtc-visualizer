@@ -163,6 +163,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.20 — filters say what they are doing
+- Each filter now shows **how many rows it currently matches**, in words — `6 of 24 rows match — the other 18 are dropped` — and the count follows along while you type the value.
+- **Which side fades in Dim mode** is now explicit. Both modes keep the **matching** side, so `method = baseline` + Dim leaves baseline solid. To fade baseline instead, flip the operator to `≠` — the sentence says so.
+- The mode names became `Drop others` / `Dim others`, so the target is clear from the name alone.
+- The cramped filter row is fixed too: the controls have minimum widths and wrap onto a second line when the panel is narrow.
+
 ### v0.19 — looking at files separately
 - With two or more files loaded, every chart gets a **`Data` dropdown** choosing which one it draws. Only that file's rows are used, and **the column lists narrow to that file** — no more picking a column the selected file does not have.
 - Since it is per chart, **two unrelated datasets can sit side by side** on one page. `(all)` goes back to the merged view.

@@ -157,10 +157,15 @@
   .row select, .row input[type="text"] { flex: 1; min-width: 60px; }
   .row input[type="number"] { width: 74px; }
   .hint { color: var(--ink-muted); font-size: var(--fs-xs); line-height: 1.55; margin: var(--sp-1) 0; }
-  .filter-row { display: flex; gap: 4px; margin: 4px 0; align-items: center; }
-  .filter-row select { flex: 1; min-width: 40px; }
-  .filter-row .op { flex: none; width: 62px; }
-  .filter-row input { flex: 1; width: 50px; min-width: 40px; }
+  /* 컨트롤 4개를 좁은 패널에 밀어 넣으면 어디를 골라야 할지 알 수 없다 — 좁으면 줄로 접히게 둔다 */
+  .filter-block { border-left: 2px solid var(--grid); padding-left: var(--sp-2); margin: var(--sp-2) 0; }
+  .filter-row { display: flex; gap: 4px; margin: 4px 0; align-items: center; flex-wrap: wrap; }
+  .filter-row select { flex: 1 1 96px; min-width: 96px; }
+  .filter-row .op { flex: 0 1 auto; min-width: 74px; width: auto; }
+  .filter-row input { flex: 1 1 96px; min-width: 80px; }
+  .filter-row button.small { flex: none; }
+  .filter-rule { font-size: var(--fs-xs); color: var(--ink-muted); margin: 2px 0 0 2px; line-height: 1.5; }
+  .filter-rule b { color: var(--ink-2); font-weight: 600; }
   .filter-vals { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 2px 0 8px 6px; }
   .filter-vals label.inline { font-size: 12px; gap: 4px; }
   .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
@@ -367,7 +372,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.19';
+const APP_VERSION = 'v0.20';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -572,9 +577,12 @@ const I18N = {
     'opt.noneParen': '(없음)', 'opt.select': '(선택)', 'opt.column': '(컬럼)', 'opt.selectValue': '(값 선택)', 'opt.auto': '(자동)',
     'cfg.filterColFirst': '← 컬럼 먼저',
     'cfg.filterValuePh': '값',
-    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다. 예: method = ensemble, tokens ≥ 2000. 방식을 "흐리게"로 바꾸면 제외 대신 옅게 표시(강조)합니다.',
-    'opt.filterExclude': '제외', 'opt.filterDim': '흐리게',
-    'cfg.filterModeTitle': '제외 = 조건 밖 행 제거 · 흐리게 = 조건 밖 행을 옅게 배경 처리',
+    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 두 방식 다 조건에 맞는 쪽을 남기며, 제거 대신 옅게 두려면 \'조건 밖 흐리게\'를 고르세요.',
+    'opt.filterExclude': '조건 밖 제거', 'opt.filterDim': '조건 밖 흐리게',
+    'cfg.filterModeTitle': '두 모드 다 "조건에 맞는 쪽"을 남깁니다 — 제거는 나머지를 빼고, 흐리게는 나머지를 옅게 둡니다. 반대로 하고 싶으면 연산자를 뒤집으세요(= ↔ ≠).',
+    'cfg.filterRuleExc': '맞는 행 <b>{hit}</b> / {total} — 나머지 {rest}행은 <b>빠집니다</b>.',
+    'cfg.filterRuleDim': '맞는 행 <b>{hit}</b>행이 진하게, 나머지 <b>{rest}</b>행이 흐려집니다. 반대로 하려면 연산자를 뒤집으세요(= ↔ ≠).',
+    'cfg.filterRuleEmpty': '값을 고르기 전까지는 아무 행도 거르지 않습니다.',
     'cfg.addFilter': '＋ 필터 추가',
     'cfg.xLabel': 'X 레이블',
     'cfg.yLabel': 'Y 레이블',
@@ -926,9 +934,12 @@ const I18N = {
     'opt.noneParen': '(None)', 'opt.select': '(select)', 'opt.column': '(column)', 'opt.selectValue': '(select value)', 'opt.auto': '(auto)',
     'cfg.filterColFirst': '← pick a column first',
     'cfg.filterValuePh': 'value',
-    'cfg.filterHint': 'Only rows matching all conditions are plotted. e.g. method = ensemble, tokens ≥ 2000. Switch the mode to "Dim" to fade (highlight) instead of removing.',
-    'opt.filterExclude': 'Exclude', 'opt.filterDim': 'Dim',
-    'cfg.filterModeTitle': 'Exclude = drop non-matching rows · Dim = fade non-matching rows into the background',
+    'cfg.filterHint': 'Only rows matching every condition are drawn (e.g. method = ensemble, tokens ≥ 2000). Both modes keep the matching side — pick \'Dim others\' to fade the rest instead of dropping it.',
+    'opt.filterExclude': 'Drop others', 'opt.filterDim': 'Dim others',
+    'cfg.filterModeTitle': 'Both modes keep the matching side — one drops the rest, the other fades it. To invert, flip the operator (= ↔ ≠).',
+    'cfg.filterRuleExc': '<b>{hit}</b> of {total} rows match — the other {rest} are <b>dropped</b>.',
+    'cfg.filterRuleDim': '<b>{hit}</b> matching rows stay solid, the other <b>{rest}</b> fade. To invert, flip the operator (= ↔ ≠).',
+    'cfg.filterRuleEmpty': 'Nothing is filtered until you pick a value.',
     'cfg.addFilter': '＋ Add filter',
     'cfg.xLabel': 'X label',
     'cfg.yLabel': 'Y label',
@@ -1566,6 +1577,15 @@ function matchFilter(f, r) {
     case '포함': return String(v).includes(String(f.value));
     default: return true;
   }
+}
+/* 이 필터 하나가 지금 무엇을 하고 있는지 — 맞는 행 수까지 세어 보여준다.
+   "조건에 맞는 쪽을 남기고/진하게" 규칙이라 = 와 ≠ 중 어느 쪽이 흐려지는지 헷갈리기 쉽다. */
+function filterRuleInfo(cfg, f) {
+  const base = allRows().filter(r => !r._excluded).filter(r => !cfg.dataset || r._source === cfg.dataset);
+  const others = (cfg.filters || []).filter(x => x !== f && x.mode !== 'dim');
+  const pool = others.length ? base.filter(r => others.every(x => matchFilter(x, r))) : base;
+  const hit = pool.filter(r => matchFilter(f, r)).length;
+  return { hit, total: pool.length, rest: pool.length - hit };
 }
 function applyFilters(rows, filters) {
   // 제외 모드 필터만 행을 제거한다 (흐리게 모드는 행을 남김 — 렌더 단계에서 옅게 표시)
@@ -2845,6 +2865,18 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     const nums = numericColumnsAll();   // 이미 걸린 필터의 컬럼이 숨겨져도 연산자 UI가 바뀌면 안 된다
     cfg.filters.forEach((f, i) => {
       const isNum = f.col && nums.includes(f.col);
+      /* 규칙 문장은 값 입력 중에도 따라와야 하는데 행을 다시 그리면 포커스가 날아간다 — 이 줄만 제자리에서 갱신한다 */
+      const ruleEl = el('div', { class: 'filter-rule' });
+      const syncRule = () => {
+        if (!f.col) { ruleEl.innerHTML = ''; return; }
+        const empty = f.value === '' || f.value === null || f.value === undefined
+          || (Array.isArray(f.value) && !f.value.length);
+        if (empty) { ruleEl.textContent = t('cfg.filterRuleEmpty'); return; }
+        const info = filterRuleInfo(cfg, f);
+        ruleEl.innerHTML = f.mode === 'dim'
+          ? tf('cfg.filterRuleDim', { hit: info.hit, rest: info.rest })
+          : tf('cfg.filterRuleExc', { hit: info.hit, total: info.total, rest: info.rest });
+      };
       const ops = !f.col ? [['=', '=']]
         : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['in', t('op.select')]]
         : [['in', t('op.select')], ['=', '='], ['≠', '≠'], ['포함', t('op.contains')]];
@@ -2854,7 +2886,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       if (!f.col) {
         valueCtrl = el('input', { type: 'text', disabled: '', placeholder: t('cfg.filterColFirst') });
       } else if (isNum && f.op !== 'in') {
-        valueCtrl = el('input', { type: 'number', step: 'any', value: f.value !== undefined ? f.value : '', placeholder: t('cfg.filterValuePh'), oninput: e => { f.value = e.target.value; rp(); } });
+        valueCtrl = el('input', { type: 'number', step: 'any', value: f.value !== undefined ? f.value : '', placeholder: t('cfg.filterValuePh'), oninput: e => { f.value = e.target.value; rp(); syncRule(); } });
       } else if (f.op === 'in') {
         if (!Array.isArray(f.value)) f.value = [];
         const sel = f.value;
@@ -2864,13 +2896,14 @@ function buildCfgPanel(cfg, panel, nameSpan) {
             el('input', { type: 'checkbox', ...(sel.includes(v) ? { checked: '' } : {}), onchange: e => {
               if (e.target.checked) { if (!sel.includes(v)) sel.push(v); }
               else { const j = sel.indexOf(v); if (j >= 0) sel.splice(j, 1); }
-              rp();
+              rp(); syncRule();
             } }), v));
         });
       } else {
-        valueCtrl = select([['', t('opt.selectValue')], ...uniqueVals(f.col).map(v => [String(v), String(v)])], f.value, v => { f.value = v; rp(); });
+        valueCtrl = select([['', t('opt.selectValue')], ...uniqueVals(f.col).map(v => [String(v), String(v)])], f.value, v => { f.value = v; rp(); syncRule(); });
       }
-      fBox.append(el('div', { class: 'filter-row' },
+      const block = el('div', { class: 'filter-block' });
+      block.append(el('div', { class: 'filter-row' },
         select([['', t('opt.column')], ...chartColumns(cfg)], f.col, v => {
           f.col = v;
           const numCol = nums.includes(v);
@@ -2880,10 +2913,13 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         }),
         select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
         ...(valueCtrl ? [valueCtrl] : []),
-        select([['exclude', t('opt.filterExclude')], ['dim', t('opt.filterDim')]], f.mode || 'exclude', v => { f.mode = v; rp(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
+        select([['exclude', t('opt.filterExclude')], ['dim', t('opt.filterDim')]], f.mode || 'exclude', v => { f.mode = v; rp(); syncRule(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
         el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
       ));
-      if (valsBox) fBox.append(valsBox);
+      if (valsBox) block.append(valsBox);
+      syncRule();
+      block.append(ruleEl);
+      fBox.append(block);
     });
     gFilter.querySelector('summary').textContent = tf('cfg.filterCount', { n: cfg.filters.length });
   };
