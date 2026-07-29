@@ -577,11 +577,14 @@ const I18N = {
     'opt.noneParen': '(없음)', 'opt.select': '(선택)', 'opt.column': '(컬럼)', 'opt.selectValue': '(값 선택)', 'opt.auto': '(자동)',
     'cfg.filterColFirst': '← 컬럼 먼저',
     'cfg.filterValuePh': '값',
-    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 두 방식 다 조건에 맞는 쪽을 남기며, 제거 대신 옅게 두려면 \'조건 밖 흐리게\'를 고르세요.',
+    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 방식은 어느 쪽(조건 밖 / 맞는 것)에 무엇(제거 / 흐리게)을 할지 네 가지 중에 고릅니다.',
     'opt.filterExclude': '조건 밖 제거', 'opt.filterDim': '조건 밖 흐리게',
-    'cfg.filterModeTitle': '두 모드 다 "조건에 맞는 쪽"을 남깁니다 — 제거는 나머지를 빼고, 흐리게는 나머지를 옅게 둡니다. 반대로 하고 싶으면 연산자를 뒤집으세요(= ↔ ≠).',
+    'opt.filterExcludeIn': '맞는 것 제거', 'opt.filterDimIn': '맞는 것 흐리게',
+    'cfg.filterModeTitle': '조건 밖 / 맞는 것 중 어느 쪽에, 제거 / 흐리게 중 무엇을 할지 고릅니다.',
     'cfg.filterRuleExc': '맞는 행 <b>{hit}</b> / {total} — 나머지 {rest}행은 <b>빠집니다</b>.',
-    'cfg.filterRuleDim': '맞는 행 <b>{hit}</b>행이 진하게, 나머지 <b>{rest}</b>행이 흐려집니다. 반대로 하려면 연산자를 뒤집으세요(= ↔ ≠).',
+    'cfg.filterRuleDim': '맞는 행 <b>{hit}</b>행이 진하게, 나머지 <b>{rest}</b>행이 흐려집니다.',
+    'cfg.filterRuleExcIn': '맞는 행 <b>{hit}</b>행이 <b>빠지고</b>, 나머지 {rest}행이 남습니다.',
+    'cfg.filterRuleDimIn': '맞는 행 <b>{hit}</b>행이 <b>흐려지고</b>, 나머지 {rest}행이 진하게 남습니다.',
     'cfg.filterRuleEmpty': '값을 고르기 전까지는 아무 행도 거르지 않습니다.',
     'cfg.addFilter': '＋ 필터 추가',
     'cfg.xLabel': 'X 레이블',
@@ -934,11 +937,14 @@ const I18N = {
     'opt.noneParen': '(None)', 'opt.select': '(select)', 'opt.column': '(column)', 'opt.selectValue': '(select value)', 'opt.auto': '(auto)',
     'cfg.filterColFirst': '← pick a column first',
     'cfg.filterValuePh': 'value',
-    'cfg.filterHint': 'Only rows matching every condition are drawn (e.g. method = ensemble, tokens ≥ 2000). Both modes keep the matching side — pick \'Dim others\' to fade the rest instead of dropping it.',
+    'cfg.filterHint': 'Only rows matching every condition are drawn (e.g. method = ensemble, tokens ≥ 2000). The mode picks which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed).',
     'opt.filterExclude': 'Drop others', 'opt.filterDim': 'Dim others',
-    'cfg.filterModeTitle': 'Both modes keep the matching side — one drops the rest, the other fades it. To invert, flip the operator (= ↔ ≠).',
+    'opt.filterExcludeIn': 'Drop matching', 'opt.filterDimIn': 'Dim matching',
+    'cfg.filterModeTitle': 'Pick which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed).',
     'cfg.filterRuleExc': '<b>{hit}</b> of {total} rows match — the other {rest} are <b>dropped</b>.',
-    'cfg.filterRuleDim': '<b>{hit}</b> matching rows stay solid, the other <b>{rest}</b> fade. To invert, flip the operator (= ↔ ≠).',
+    'cfg.filterRuleDim': '<b>{hit}</b> matching rows stay solid, the other <b>{rest}</b> fade.',
+    'cfg.filterRuleExcIn': '<b>{hit}</b> matching rows are <b>dropped</b>; the other {rest} stay.',
+    'cfg.filterRuleDimIn': '<b>{hit}</b> matching rows <b>fade</b>; the other {rest} stay solid.',
     'cfg.filterRuleEmpty': 'Nothing is filtered until you pick a value.',
     'cfg.addFilter': '＋ Add filter',
     'cfg.xLabel': 'X label',
@@ -1587,14 +1593,27 @@ function filterRuleInfo(cfg, f) {
   const hit = pool.filter(r => matchFilter(f, r)).length;
   return { hit, total: pool.length, rest: pool.length - hit };
 }
-function applyFilters(rows, filters) {
-  // 제외 모드 필터만 행을 제거한다 (흐리게 모드는 행을 남김 — 렌더 단계에서 옅게 표시)
-  const excl = filters.filter(f => f.mode !== 'dim');
-  return rows.filter(r => excl.every(f => matchFilter(f, r)));
+/* 값이 채워진 필터만 실제로 동작한다 — 미완성 필터는 통과(matchFilter도 true를 준다).
+   "맞는 것"에 동작하는 모드(excludeIn/dimIn)는 이 판정이 없으면 미완성 필터가 전부를 지워 버린다. */
+function filterActive(f) {
+  if (!f.col) return false;
+  if (Array.isArray(f.value)) return f.value.length > 0;
+  return f.value !== '' && f.value !== null && f.value !== undefined;
 }
-/* 흐리게(강조 안 함) 판정: 흐리게 모드 필터에 하나라도 안 맞으면 배경 처리 */
+/* 모드는 "어느 쪽에 무엇을 하는가" 네 가지다 — 조건 밖/맞는 것 × 제거/흐리게.
+   두 방향을 다 두는 이유: "조건에 맞는 쪽을 남긴다"와 "고른 행에 동작을 적용한다"가
+   둘 다 자연스러운 읽기라서, 한쪽만 두면 반대로 이해한 사람이 조용히 틀린 그림을 얻는다. */
+function applyFilters(rows, filters) {
+  const excl = filters.filter(f => (f.mode || 'exclude') === 'exclude' || f.mode === 'excludeIn');
+  if (!excl.length) return rows;
+  return rows.filter(r => excl.every(f => f.mode === 'excludeIn'
+    ? (!filterActive(f) || !matchFilter(f, r))   // 맞는 것을 뺀다
+    : matchFilter(f, r)));                        // 조건 밖을 뺀다 (기본)
+}
+/* 흐리게(강조 안 함) 판정 */
 function isDimmed(cfg, r) {
-  return (cfg.filters || []).some(f => f.mode === 'dim' && !matchFilter(f, r));
+  return (cfg.filters || []).some(f => f.mode === 'dim' ? !matchFilter(f, r)
+    : f.mode === 'dimIn' ? (filterActive(f) && matchFilter(f, r)) : false);
 }
 function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 
@@ -2873,9 +2892,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           || (Array.isArray(f.value) && !f.value.length);
         if (empty) { ruleEl.textContent = t('cfg.filterRuleEmpty'); return; }
         const info = filterRuleInfo(cfg, f);
-        ruleEl.innerHTML = f.mode === 'dim'
-          ? tf('cfg.filterRuleDim', { hit: info.hit, rest: info.rest })
-          : tf('cfg.filterRuleExc', { hit: info.hit, total: info.total, rest: info.rest });
+        const key = { dim: 'cfg.filterRuleDim', dimIn: 'cfg.filterRuleDimIn', excludeIn: 'cfg.filterRuleExcIn' }[f.mode] || 'cfg.filterRuleExc';
+        ruleEl.innerHTML = tf(key, { hit: info.hit, total: info.total, rest: info.rest });
       };
       const ops = !f.col ? [['=', '=']]
         : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['in', t('op.select')]]
@@ -2913,7 +2931,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         }),
         select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
         ...(valueCtrl ? [valueCtrl] : []),
-        select([['exclude', t('opt.filterExclude')], ['dim', t('opt.filterDim')]], f.mode || 'exclude', v => { f.mode = v; rp(); syncRule(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
+        select([['exclude', t('opt.filterExclude')], ['excludeIn', t('opt.filterExcludeIn')],
+          ['dim', t('opt.filterDim')], ['dimIn', t('opt.filterDimIn')]], f.mode || 'exclude',
+          v => { f.mode = v; rp(); syncRule(); }, { class: 'op', title: t('cfg.filterModeTitle') }),
         el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.filters.splice(i, 1); renderFilters(); rp(); } }, '×'),
       ));
       if (valsBox) block.append(valsBox);
@@ -4399,7 +4419,8 @@ function filterText(cfg) {
     if (f.op === 'in') {
       if (Array.isArray(f.value) && f.value.length) parts.push(`${f.col} ∈ {${f.value.join(', ')}}`);
     } else if (f.value !== '' && f.value !== null && f.value !== undefined) {
-      parts.push(`${f.col} ${f.op} ${f.value}${f.mode === 'dim' ? ` (${t('opt.filterDim')})` : ''}`);
+      const modeKey = { excludeIn: 'opt.filterExcludeIn', dim: 'opt.filterDim', dimIn: 'opt.filterDimIn' }[f.mode];
+      parts.push(`${f.col} ${f.op} ${f.value}${modeKey ? ` (${t(modeKey)})` : ''}`);
     }
   }
   return parts.join(' · ');

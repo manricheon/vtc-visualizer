@@ -165,8 +165,8 @@ The version shows next to the title (top-right) and in the footer, matching the 
 
 ### v0.20 — filters say what they are doing
 - Each filter now shows **how many rows it currently matches**, in words — `6 of 24 rows match — the other 18 are dropped` — and the count follows along while you type the value.
-- **Which side fades in Dim mode** is now explicit. Both modes keep the **matching** side, so `method = baseline` + Dim leaves baseline solid. To fade baseline instead, flip the operator to `≠` — the sentence says so.
-- The mode names became `Drop others` / `Dim others`, so the target is clear from the name alone.
+- **You pick which side is affected.** There are now four modes — `Drop others` (default) · `Drop matching` · `Dim others` · `Dim matching`. `method = baseline` + `Dim matching` fades baseline; `Dim others` does the opposite. Previously only one direction existed, which was easy to read backwards.
+- The names state the target, and the sentence confirms it with live row counts — a wrong pick shows up in the numbers first.
 - The cramped filter row is fixed too: the controls have minimum widths and wrap onto a second line when the panel is narrow.
 
 ### v0.19 — looking at files separately
