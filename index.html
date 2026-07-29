@@ -358,7 +358,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.17.1';
+const APP_VERSION = 'v0.18';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -659,6 +659,11 @@ const I18N = {
     'cfg.derivedHint': '기존 컬럼으로 새 컬럼을 계산합니다 (원본 파일은 안 바뀜 · 세션에 저장). 차트 축·필터로 바로 사용 가능.',
     'cfg.derivedValue': '값', 'cfg.derivedRefIs': '기준 =', 'cfg.derivedMatch': '매칭', 'cfg.derivedAdd': '＋ 계산 컬럼 추가',
     'opt.derivedBinary': '이항 연산 (A∘B)', 'opt.derivedRef': '기준 대비 델타',
+    'opt.derivedConcat': '라벨 조합',
+    'cfg.derivedPre': '앞에', 'cfg.derivedPost': '뒤에',
+    'cfg.derivedPartAdd': '＋ 조각',
+    'cfg.derivedSep': '구분자', 'cfg.derivedSepPh': '구분자',
+    'cfg.derivedConcatHint': '값을 계산하지 않고 여러 컬럼의 값을 이어 붙여 문자열 컬럼을 만듭니다 (예: selector + frames → "sal-v3.1 · 16frm"). 그룹·분할·필터·막대 X축으로 바로 쓸 수 있습니다. 값이 없는 조각은 건너뜁니다.',
     'opt.derivedDelta': '차이(−)', 'opt.derivedRetention': '유지율(%)',
     'toast.undo': '실행 취소',
     'pt.addTextMarker': '💬 텍스트 마커 추가',
@@ -1003,6 +1008,11 @@ const I18N = {
     'cfg.derivedHint': 'Compute a new column from existing ones (the source file is untouched · saved in the session). Usable directly as an axis or filter.',
     'cfg.derivedValue': 'value', 'cfg.derivedRefIs': 'reference =', 'cfg.derivedMatch': 'match', 'cfg.derivedAdd': '＋ Add computed column',
     'opt.derivedBinary': 'Binary op (A∘B)', 'opt.derivedRef': 'Delta vs reference',
+    'opt.derivedConcat': 'Label join',
+    'cfg.derivedPre': 'before', 'cfg.derivedPost': 'after',
+    'cfg.derivedPartAdd': '＋ Part',
+    'cfg.derivedSep': 'Separator', 'cfg.derivedSepPh': 'sep',
+    'cfg.derivedConcatHint': 'Joins values from several columns into a text column instead of computing anything (e.g. selector + frames → "sal-v3.1 · 16frm"). Usable straight away as a group, facet, filter or bar X axis. Parts with no value are skipped.',
     'opt.derivedDelta': 'Difference (−)', 'opt.derivedRetention': 'Retention (%)',
     'toast.undo': 'Undo',
     'pt.addTextMarker': '💬 Add text marker',
@@ -1190,6 +1200,20 @@ function applyDerived() {
         r[def.name] = (typeof a === 'number' && typeof b === 'number')
           ? roundv(op === '-' ? a - b : op === '+' ? a + b : op === '*' ? a * b : op === '/' ? (b ? a / b : null) : op === 'ratio' ? (b ? a / b * 100 : null) : null)
           : null;
+      }
+    } else if (def.kind === 'concat') {
+      /* 계산이 아니라 **라벨 만들기** — 여러 컬럼 값을 규칙대로 이어 붙여 문자열 컬럼을 만든다.
+         결과는 문자열이라 그룹·분할·필터·막대 X축으로 바로 쓰인다. */
+      const parts = def.parts || [];
+      const sep = def.sep === undefined ? ' · ' : def.sep;
+      for (const r of rows) {
+        const seg = [];
+        for (const pt of parts) {
+          const v = r[pt.col];
+          if (v === null || v === undefined || v === '') continue;   // 값이 없는 조각은 건너뛴다(구분자만 남지 않게)
+          seg.push((pt.pre || '') + String(v) + (pt.post || ''));
+        }
+        r[def.name] = seg.length ? seg.join(sep) : null;
       }
     } else if (def.kind === 'norm' || def.kind === 'rank' || def.kind === 'groupagg' || def.kind === 'bin') {
       /* 그룹(선택) 안에서 계산 — by가 비면 전체가 하나의 그룹 */
@@ -3510,6 +3534,7 @@ function analyzeData() {
        (예전에는 binary 외에는 valueCol만 봐서 z-score 컬럼이 원본과 "함께 움직인다"로 보고됐다) */
     const parents = d.kind === 'binary' ? [d.a, d.b]
       : d.kind === 'refdelta' ? [d.valueCol, d.refCol, ...(d.keys || [])]
+      : d.kind === 'concat' ? (d.parts || []).map(pt => pt.col)
       : [d.col, d.by];
     for (const pa of parents) if (pa) derivedPairs.add([d.name, pa].sort().join(AN_SEP));
   }
@@ -3985,7 +4010,7 @@ function colUsage(name) {
     if (fields.length || filters) charts.push({ cfg: c, label: c.title || tf('card.chartNum', { n: i + 1 }), fields, filters });
   });
   const deps = state.derived.filter(d => d.name !== name
-    && [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || [])].includes(name)).map(d => d.name);
+    && derivedInputs(d).includes(name)).map(d => d.name);
   return { charts, deps };
 }
 const derivedUsage = colUsage;
@@ -4021,8 +4046,16 @@ function removeDerived(i, commit) {
 /* 편집 중 목록 순서가 바뀌면 인덱스가 다른 정의를 가리키게 된다 — 이름으로 다시 찾는다 */
 function editingName() { return derivedEditIdx >= 0 && state.derived[derivedEditIdx] ? state.derived[derivedEditIdx].name : null; }
 function retrackEdit(name) { derivedEditIdx = name ? state.derived.findIndex(d => d.name === name) : -1; }
+/* 계산 컬럼이 입력으로 쓰는 컬럼 — kind가 늘 때 여기 한 곳만 고치면 된다 */
+function derivedInputs(d) {
+  return [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || []), ...(d.parts || []).map(pt => pt.col)];
+}
 function derivedDesc(d) {
   const within = d.by ? ` [${d.by}${t('cfg.derivedWithinShort')}]` : '';
+  if (d.kind === 'concat') {
+    const sep = d.sep === undefined ? ' · ' : d.sep;
+    return `${d.name} = ${(d.parts || []).map(pt => `${pt.pre || ''}[${pt.col}]${pt.post || ''}`).join(sep)}`;
+  }
   if (d.kind === 'binary') {
     const opSym = { '-': '−', '+': '+', '*': '×', '/': '÷', ratio: '÷×100%' }[d.op];
     return `${d.name} = ${d.a} ${opSym} ${d.bConst !== undefined && d.bConst !== '' ? d.bConst : d.b}`;
@@ -4060,7 +4093,7 @@ function renderDerived() {
   // 추가 폼
   const editing = derivedEditIdx >= 0 && derivedEditIdx < state.derived.length ? state.derived[derivedEditIdx] : null;
   const nameInp = el('input', { type: 'text', placeholder: t('cfg.derivedName'), style: 'width:120px', value: editing ? editing.name : '' });
-  const kindSel = select([['binary', t('opt.derivedBinary')], ['refdelta', t('opt.derivedRef')],
+  const kindSel = select([['binary', t('opt.derivedBinary')], ['concat', t('opt.derivedConcat')], ['refdelta', t('opt.derivedRef')],
     ['norm', t('opt.derivedNorm')], ['rank', t('opt.derivedRank')], ['bin', t('opt.derivedBin')], ['groupagg', t('opt.derivedGroupAgg')]],
     editing ? editing.kind : 'binary', () => renderForm());
   const formBox = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:4px' });
@@ -4081,6 +4114,32 @@ function renderDerived() {
         ? { kind: 'binary', a: a.value, op: op.value, b: '', bConst: cnum.value }
         : { kind: 'binary', a: a.value, op: op.value, b: b.value };
       formBox.append(a, op, b, cnum);
+    } else if (kindSel.value === 'concat') {
+      /* 라벨 조합 — 조각(컬럼 + 앞뒤 텍스트) 여러 개와 구분자. 값 계산이 아니라 이름 붙이기다. */
+      const partsBox = el('div', { style: 'display:flex;flex-direction:column;gap:3px;width:100%' });
+      const sepInp = el('input', { type: 'text', style: 'width:64px', placeholder: t('cfg.derivedSepPh'),
+        value: E.sep === undefined ? ' · ' : E.sep, title: t('cfg.derivedSep') });
+      let parts = (E.parts && E.parts.length ? E.parts : [{ col: cols[0] || '', pre: '', post: '' }]).map(pt => ({ ...pt }));
+      const drawParts = () => {
+        partsBox.innerHTML = '';
+        parts.forEach((pt, pi) => {
+          const colSel = select(cols.map(c => [c, c]), pt.col || cols[0], v => { pt.col = v; });
+          const pre = el('input', { type: 'text', style: 'width:56px', placeholder: t('cfg.derivedPre'), value: pt.pre || '' });
+          const post = el('input', { type: 'text', style: 'width:56px', placeholder: t('cfg.derivedPost'), value: pt.post || '' });
+          pre.addEventListener('input', () => { pt.pre = pre.value; });
+          post.addEventListener('input', () => { pt.post = post.value; });
+          partsBox.append(el('div', { class: 'series-row' }, pre, colSel, post,
+            el('button', { class: 'small danger', title: t('btn.removeItem'),
+              onclick: () => { if (parts.length > 1) { parts.splice(pi, 1); drawParts(); } } }, '×')));
+        });
+        partsBox.append(el('div', { class: 'series-row' },
+          el('button', { class: 'small', onclick: () => { parts.push({ col: cols[0] || '', pre: '', post: '' }); drawParts(); } }, t('cfg.derivedPartAdd')),
+          el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.derivedSep')), sepInp));
+      };
+      drawParts();
+      formBox._get = () => ({ kind: 'concat', sep: sepInp.value,
+        parts: parts.filter(pt => pt.col).map(pt => ({ col: pt.col, pre: pt.pre || '', post: pt.post || '' })) });
+      formBox.append(partsBox, el('div', { class: 'hint' }, t('cfg.derivedConcatHint')));
     } else if (kindSel.value === 'norm') {
       const col = select(numOpts, E.col || nums[0], () => {});
       const mode = select([['minmax', t('opt.normMinmax')], ['max', t('opt.normMax')], ['z', t('opt.normZ')]], E.mode || 'minmax', () => {});
@@ -4354,7 +4413,7 @@ function presetDerivedFor(cfg) {
     const d = state.derived.find(x => x.name === name);
     if (!d || seen.has(name)) return;
     seen.add(name);
-    [d.a, d.b, d.col, d.by, d.valueCol, d.refCol, ...(d.keys || [])].filter(Boolean).forEach(add);   // 체인 의존성까지
+    derivedInputs(d).filter(Boolean).forEach(add);   // 체인 의존성까지
     out.push(d);
   };
   used.forEach(add);

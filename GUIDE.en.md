@@ -130,6 +130,7 @@ Want to see how each setting does **against a reference** (e.g. accuracy differe
 - **Rank**: position inside a group (e.g. the ranking of methods at each budget)
 - **Bin**: cut a continuous column into N bins; the labels are strings, so they work directly as groups, filters or colors
 - **Group aggregate**: attach a group's mean/sum to every row; combined with the reference delta this gives "how far is this row from its group average"
+- **Label join**: not a computation but a naming step — values from several columns are joined into a text column, with text before/after each part and a separator between them (`method` + `frames` → `baseline · 8frm`; `selector` + `frames` → `sal-v3.1 · 16frm`). **One condition combination becomes one item**, so it drops onto a bar X axis, a group or a facet to give you "one row per setup". Sorting is alphabetical, so prefix with `01_` and such when you want a specific order.
 - **Delta vs reference**: **difference** or **retention %** vs the reference row with the same match keys (e.g. value=`accuracy`, reference = rows where `method`=`baseline`, match=`tokens` → "how many pt above baseline at the same tokens")
 
 A computed column can feed another one (use `↑`/`↓` in the list to fix the **calculation order**), and `✎` edits a definition.

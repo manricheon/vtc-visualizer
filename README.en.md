@@ -100,6 +100,7 @@ ours,4000,4.1,0.744,MMLU
 | Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
 | Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
 | **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
+| **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
@@ -160,6 +161,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.18 — one column for a combination of conditions
+- Computed columns gained a **`Label join`** kind: rather than computing a value it joins values from several columns into a text column — `selector` + `frames` → `sal-v3.1 · 16frm`.
+- Each part takes **text before and after** (`16` → `16frm`), the parts are joined by a **separator** you choose, and you can add as many parts as you need.
+- Because the result is text it drops straight into **group (color), facet, filter and the bar X axis**, so "one row per condition combination" is a couple of clicks away.
+- Parts with no value are skipped, so you never get a lone separator; if every part is empty the row has no value.
 
 ### v0.17.1 — right even when the names mean nothing
 - Role matching for the built-in presets moved **from name patterns to value distribution**, reusing the same column classification the analysis engine uses: categories, sweep knobs, continuous measures and identifiers are told apart by their values, and names only decide which of two continuous columns is the score and which is the cost.
