@@ -363,7 +363,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.21';
+const APP_VERSION = 'v0.21.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -654,7 +654,8 @@ const I18N = {
     'cfg.trendHint': '시리즈별로 같은 색의 추세선이 그려집니다 (3점 이상 필요). 오차 밴드는 피팅 잔차 표준편차(σ) 기준 음영입니다.',
     'cfg.paretoDir': '방향', 'cfg.paretoName': '파레토 프런티어',
     'cfg.paretoFade': '지배당한 점 흐리게',
-    'cfg.paretoHint': '프런티어는 그룹과 무관하게 전체 점에서 계산합니다 — 선 위의 점이 "고를 이유가 있는" 설정입니다. 흐리게를 켜면 나머지가 배경으로 물러나고, 범례 견본이 옅은 시리즈는 프런티어에 오른 점이 하나도 없다는 뜻입니다.',
+    'cfg.paretoStyle': '선 모양', 'cfg.paretoWidthTitle': '프런티어 선 굵기',
+    'cfg.paretoHint': '프런티어는 그룹과 무관하게 전체 점에서 계산합니다 — 선 위의 점이 "고를 이유가 있는" 설정입니다. 흐리게를 켜면 나머지가 배경으로 물러나고, 범례 견본이 옅은 시리즈는 프런티어에 오른 점이 하나도 없다는 뜻입니다. 선 색은 테마 잉크로 고정입니다 — 시리즈 색을 주면 그 그룹의 선처럼 읽힙니다.',
     'opt.paretoMinMax': 'X작을수록·Y클수록 좋음', 'opt.paretoMaxMax': 'X클수록·Y클수록 좋음', 'opt.paretoMinMin': 'X작을수록·Y작을수록 좋음', 'opt.paretoMaxMin': 'X클수록·Y작을수록 좋음',
     'pt.removeBaseline': '📍 베이스라인 제거',
     'pt.addBaseline': '📍 베이스라인 추가',
@@ -1016,7 +1017,8 @@ const I18N = {
     'cfg.trendHint': 'A trendline of the same color is drawn per series (needs 3+ points). The error band shades ±kσ of the fit residual.',
     'cfg.paretoDir': 'Direction', 'cfg.paretoName': 'Pareto frontier',
     'cfg.paretoFade': 'Fade dominated points',
-    'cfg.paretoHint': 'The frontier is computed over all points regardless of group — the ones it touches are the configurations worth choosing. Fading pushes the rest into the background; a faded legend swatch means that series put nothing on the frontier.',
+    'cfg.paretoStyle': 'Line style', 'cfg.paretoWidthTitle': 'Frontier line width',
+    'cfg.paretoHint': 'The frontier is computed over all points regardless of group — the ones it touches are the configurations worth choosing. Fading pushes the rest into the background; a faded legend swatch means that series put nothing on the frontier. The line colour stays theme ink on purpose — a series colour would read as that group\'s line.',
     'opt.paretoMinMax': 'Lower X · Higher Y is better', 'opt.paretoMaxMax': 'Higher X · Higher Y is better', 'opt.paretoMinMin': 'Lower X · Lower Y is better', 'opt.paretoMaxMin': 'Higher X · Lower Y is better',
     'pt.removeBaseline': '📍 Remove baseline',
     'pt.addBaseline': '📍 Add baseline',
@@ -1337,6 +1339,7 @@ function defaultChart() {
     textMarkers: [],
     pareto: false, paretoDir: 'min-x-max-y',
     paretoFade: false,          // 지배당한 점을 배경으로 물림 (프런티어 위 점만 진하게)
+    paretoDash: 'solid', paretoWidth: 2,   // 프런티어 선 모양·굵기 (색은 테마 잉크 고정 — 아래 주석 참고)
     trendStat: 'auto',          // auto | none — 추세선 적합도(R²·기울기) 배지 표시
     trend: 'none',              // none | linear | poly2 | log | exp | power | movavg
     trendDash: 'dash', trendWidth: 1.5,
@@ -2172,7 +2175,9 @@ function paretoTrace(cfg, front) {
   return {
     name: t('cfg.paretoName'), type: 'scatter', mode: 'lines', _pareto: true,
     x: front.map(p => p.x), y: front.map(p => p.y),
-    line: { color: CHROME.ink2, width: 2, shape: 'hv' },
+    /* 색은 열어 두지 않는다 — 프런티어는 특정 시리즈의 것이 아니라 전체에 대한 판정이라,
+       시리즈 색을 주면 그 그룹의 선처럼 읽힌다. 모양·굵기만 고를 수 있게 한다. */
+    line: { color: CHROME.ink2, width: cfg.paretoWidth || 2, dash: cfg.paretoDash || 'solid', shape: 'hv' },
     hoverinfo: 'skip', showlegend: true,
   };
 }
@@ -3156,6 +3161,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row('Pareto', el('input', { type: 'checkbox', ...(cfg.pareto ? { checked: '' } : {}), onchange: e => { cfg.pareto = e.target.checked; rp(); } })),
     row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })),
     row(t('cfg.paretoFade'), el('input', { type: 'checkbox', ...(cfg.paretoFade ? { checked: '' } : {}), onchange: e => { cfg.paretoFade = e.target.checked; rp(); } })),
+    row(t('cfg.paretoStyle'), select(DASHES(), cfg.paretoDash || 'solid', v => { cfg.paretoDash = v; rp(); }),
+        el('input', { type: 'number', value: cfg.paretoWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.paretoWidthTitle'),
+          oninput: e => { cfg.paretoWidth = Number(e.target.value) || 2; rp(); } })),
     ...(cfg.pareto ? [el('div', { class: 'hint' }, t('cfg.paretoHint'))] : []),
   );
 

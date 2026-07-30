@@ -163,6 +163,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.21.1 — choosing the frontier line style
+- The frontier line's **style (solid / dashed / dotted / dash-dot) and width** are now selectable (Advanced → Pareto). The default stays solid at width 2.
+- On `Scatter + line` charts the series lines are solid too, so switching the frontier back to dashed keeps them apart.
+- **The colour is deliberately not exposed.** The frontier is a verdict about all the points, not about one series, so a series colour would read as that group's line. It stays theme ink and follows light/dark only.
+
 ### v0.21 — a readable Pareto chart
 - **The frontier is now a solid ink line instead of a grey dashed one.** It shared a tone with the baselines and sank into the background, and you could not tell which points it touched. Now the points it touches read as the candidates.
 - **`Fade dominated points`** is a new option (Advanced → under Pareto). With it on, only the points on the frontier stay solid and the rest recede. Faded points keep their series color, so group identity is still readable.
