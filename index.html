@@ -363,7 +363,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.20';
+const APP_VERSION = 'v0.20.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -652,7 +652,7 @@ const I18N = {
     'cfg.errorBand': '오차 밴드',
     'opt.band1': '±1σ 음영', 'opt.band2': '±2σ 음영',
     'cfg.trendHint': '시리즈별로 같은 색의 추세선이 그려집니다 (3점 이상 필요). 오차 밴드는 피팅 잔차 표준편차(σ) 기준 음영입니다.',
-    'cfg.paretoDir': '방향',
+    'cfg.paretoDir': '방향', 'cfg.paretoName': '파레토 프런티어',
     'opt.paretoMinMax': 'X작을수록·Y클수록 좋음', 'opt.paretoMaxMax': 'X클수록·Y클수록 좋음', 'opt.paretoMinMin': 'X작을수록·Y작을수록 좋음', 'opt.paretoMaxMin': 'X클수록·Y작을수록 좋음',
     'pt.removeBaseline': '📍 베이스라인 제거',
     'pt.addBaseline': '📍 베이스라인 추가',
@@ -1012,7 +1012,7 @@ const I18N = {
     'cfg.errorBand': 'Error band',
     'opt.band1': '±1σ shading', 'opt.band2': '±2σ shading',
     'cfg.trendHint': 'A trendline of the same color is drawn per series (needs 3+ points). The error band shades ±kσ of the fit residual.',
-    'cfg.paretoDir': 'Direction',
+    'cfg.paretoDir': 'Direction', 'cfg.paretoName': 'Pareto frontier',
     'opt.paretoMinMax': 'Lower X · Higher Y is better', 'opt.paretoMaxMax': 'Higher X · Higher Y is better', 'opt.paretoMinMin': 'Lower X · Lower Y is better', 'opt.paretoMaxMin': 'Higher X · Lower Y is better',
     'pt.removeBaseline': '📍 Remove baseline',
     'pt.addBaseline': '📍 Add baseline',
@@ -1863,7 +1863,8 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       });
     });
   }
-  if (cfg.pareto && cfg.type !== 'bar') traces.push(paretoTrace(cfg, rows));
+  /* facet에서는 그리지 않는다 — 전체 데이터로 계산한 선이 첫 패널에만 얹혀 다른 패널을 오해하게 만든다 */
+  if (cfg.pareto && cfg.type !== 'bar' && !cfg.facetBy) traces.push(paretoTrace(cfg, rows));
   return traces;
 }
 /* 같은 X 값의 행들을 하나의 막대로 집계 (barAgg). mean이면 std/sem도 계산 */
@@ -2109,9 +2110,24 @@ function buildDumbbell(cfg) {
   });
   return traces;
 }
+/* 파레토 프런티어 — **화면에 그려진 점을 기준으로** 계산한다.
+   원본 행으로 계산하면 점 집계(ptAgg)를 켠 순간 선이 어느 점도 지나지 않는다(실제로 그랬다).
+   흐리게 처리한 맥락 행은 추세선과 같은 이유로 제외한다 — 강조에서 빼 둔 점이 경계를 정하면 안 된다. */
 function paretoTrace(cfg, rows) {
   const [xd, yd] = { 'min-x-max-y': [-1, 1], 'max-x-max-y': [1, 1], 'min-x-min-y': [-1, -1], 'max-x-min-y': [1, -1] }[cfg.paretoDir];
-  const pts = rows.map(r => ({ x: r[cfg.x], y: r[cfg.y] })).filter(p => typeof p.x === 'number' && typeof p.y === 'number');
+  const live = rows.filter(r => !isMutedRow(cfg, r));
+  let pts = [];
+  if (cfg.ptAgg !== 'none') {   // 집계 모드: 시리즈별로 같은 X를 요약한 점이 화면의 점이다
+    for (const def of seriesDefs(cfg)) {
+      const own = live.filter(def.match).map(r => ({ x: r[cfg.x], y: r[cfg.y] }));
+      if (!own.length) continue;
+      const agg = aggregateBars(own, cfg.ptAgg);
+      agg.xs.forEach((x, i) => pts.push({ x, y: agg.ys[i] }));
+    }
+  } else {
+    pts = live.map(r => ({ x: r[cfg.x], y: r[cfg.y] }));
+  }
+  pts = pts.filter(p => typeof p.x === 'number' && typeof p.y === 'number');
   pts.sort((a, b) => xd * (b.x - a.x) || yd * (b.y - a.y));   // best-x first, tie: best-y first
   const front = [];
   let best = -Infinity;
@@ -2119,7 +2135,7 @@ function paretoTrace(cfg, rows) {
     if (yd * p.y > best) { front.push(p); best = yd * p.y; }
   }
   return {
-    name: 'Pareto frontier', type: 'scatter', mode: 'lines',
+    name: t('cfg.paretoName'), type: 'scatter', mode: 'lines', _pareto: true,
     x: front.map(p => p.x), y: front.map(p => p.y),
     line: { color: CHROME.muted, width: 1.5, dash: 'dash', shape: 'hv' },
     hoverinfo: 'skip', showlegend: true,
@@ -2441,7 +2457,7 @@ function renderPlot(cfg) {
       gd._vizBound = true;
       gd.on('plotly_click', ev => {
         const p = ev.points && ev.points[0];
-        if (!p || p.data.name === 'Pareto frontier') return;
+        if (!p || p.data._pareto) return;   // 프런티어 선은 데이터 점이 아니다 (이름은 번역되므로 플래그로 판정)
         const c = state.charts.find(ch => ch.id === cfg.id);
         if (!c) return;
         if (tmPending && tmPending.chartId === c.id) applyReanchor(c, p);   // "다시 지정" 대기 중

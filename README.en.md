@@ -163,6 +163,13 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.20.1 — Pareto re-checked
+- **With point aggregation on, the frontier was drawn in the wrong place.** The visible points were means while the frontier came from the raw rows, so the dashed line passed through none of them. It now follows **the points actually drawn**.
+- **Dimmed rows no longer define the frontier** — the same reason trend lines already skip them: a point pushed into the background should not set the boundary.
+- **Not drawn in facet mode.** A frontier computed over all the data used to sit on the first panel only, inviting a wrong reading of the others (same treatment as baselines, markers and labels).
+- The legend said `Pareto frontier` even in Korean; it now follows the language.
+- The frontier computation itself (all four directions) was checked against an independent implementation and is **correct**.
+
 ### v0.20 — filters say what they are doing
 - Each filter now shows **how many rows it currently matches**, in words — `6 of 24 rows match — the other 18 are dropped` — and the count follows along while you type the value.
 - **You pick which side is affected.** There are now four modes — `Drop others` (default) · `Drop matching` · `Dim others` · `Dim matching`. `method = baseline` + `Dim matching` fades baseline; `Dim others` does the opposite. Previously only one direction existed, which was easy to read backwards.
