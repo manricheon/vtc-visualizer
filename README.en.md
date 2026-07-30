@@ -163,6 +163,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.21 — a readable Pareto chart
+- **The frontier is now a solid ink line instead of a grey dashed one.** It shared a tone with the baselines and sank into the background, and you could not tell which points it touched. Now the points it touches read as the candidates.
+- **`Fade dominated points`** is a new option (Advanced → under Pareto). With it on, only the points on the frontier stay solid and the rest recede. Faded points keep their series color, so group identity is still readable.
+- A faded legend swatch means that series **put nothing on the frontier** — a method that is dominated everywhere is visible at a glance.
+- The frontier is computed **over all points regardless of group** (as it always was): the points it touches are the configurations worth choosing.
+
 ### v0.20.1 — Pareto re-checked
 - **With point aggregation on, the frontier was drawn in the wrong place.** The visible points were means while the frontier came from the raw rows, so the dashed line passed through none of them. It now follows **the points actually drawn**.
 - **Dimmed rows no longer define the frontier** — the same reason trend lines already skip them: a point pushed into the background should not set the boundary.
