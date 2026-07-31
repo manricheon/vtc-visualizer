@@ -163,6 +163,10 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.22 — half-width cards and the figures in the docs
+- **Fixed the header buttons folding in half-width cards.** `Reset view` broke into two lines that spilled out of the button box. The buttons now keep their width and the header gains a second row when space runs out.
+- **All 14 figures in the docs were re-shot.** Twelve commits had changed the UI since v0.16 while the images stood still — the Pareto figure in particular still showed the grey dashed frontier, contradicting the text beside it.
+
 ### v0.21.2 — and its colour
 - The frontier line's **colour** is selectable too. **Left blank it follows the theme** as before (light/dark automatically); set it and it stays that colour.
 - Once a colour is set, an `Auto` button appears next to it to go back to the theme — a colour input cannot hold an empty value, so the way back needs its own control.
