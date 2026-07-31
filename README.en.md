@@ -163,6 +163,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.21.2 — and its colour
+- The frontier line's **colour** is selectable too. **Left blank it follows the theme** as before (light/dark automatically); set it and it stays that colour.
+- Once a colour is set, an `Auto` button appears next to it to go back to the theme — a colour input cannot hold an empty value, so the way back needs its own control.
+- **If you use both themes, leaving it blank is the better default:** a fixed colour stays fixed in dark mode and may lose contrast on one of them.
+
 ### v0.21.1 — choosing the frontier line style
 - The frontier line's **style (solid / dashed / dotted / dash-dot) and width** are now selectable (Advanced → Pareto). The default stays solid at width 2.
 - On `Scatter + line` charts the series lines are solid too, so switching the frontier back to dashed keeps them apart.

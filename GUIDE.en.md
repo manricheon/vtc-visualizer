@@ -74,7 +74,7 @@ A doubling sweep becomes evenly spaced on a log X axis, straightening the trend.
 
 ![Latency–accuracy scatter — Pareto staircase and upper-left baseline shading](assets/guide/r3-pareto.png)
 
-Only points on the Pareto staircase are rational choices; everything else is dominated. When there are too many points to tell apart, switch on `Fade dominated points`: only the candidates stay solid, and a faded legend swatch means that method put nothing on the frontier. The frontier is computed across all points regardless of group, so several methods usually appear on it. On charts whose series lines are solid (`Scatter + line`), switch `Line style` to dashed to keep the frontier distinct.
+Only points on the Pareto staircase are rational choices; everything else is dominated. When there are too many points to tell apart, switch on `Fade dominated points`: only the candidates stay solid, and a faded legend swatch means that method put nothing on the frontier. The frontier is computed across all points regardless of group, so several methods usually appear on it. On charts whose series lines are solid (`Scatter + line`), switch `Line style` to dashed to keep the frontier distinct. The colour is selectable too, but if you use both light and dark, leaving it blank so it follows the theme is the safer choice.
 Points inside the baseline shading (upper-left = faster **and** more accurate) are the settings worth switching to.
 
 ### ④ Cost breakdown — "Who contributes what to total cost per budget?"
