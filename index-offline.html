@@ -656,6 +656,10 @@ const I18N = {
     'cfg.restoreHiddenLabels': '숨긴 레이블 {n}개 모두 복원',
     'cfg.textMarkerGlobal': '텍스트 마커 (전체 스타일)',
     'cfg.addNote': '＋ 고정 메모',
+    'cfg.addMarker': '＋ 텍스트 마커',
+    'pt.markerPickRow': '마커를 붙일 행',
+    'pt.markerNeedsAxes': 'X축·Y축을 먼저 고르세요.',
+    'pt.markerTooMany': '행이 {n}개라 목록으로 고르기 어렵습니다({max}개까지). 그래프의 점을 클릭해 만드세요.',
     'cfg.addNoteHint': '데이터 점과 무관하게 차트 한구석에 붙는 메모 — 데이터가 바뀌어도 자리를 지킵니다.',
     'cfg.tmPinned': '고정',
     'cfg.tmStaleAxis': '축이 바뀜',
@@ -1035,6 +1039,10 @@ const I18N = {
     'cfg.restoreHiddenLabels': 'Restore all {n} hidden labels',
     'cfg.textMarkerGlobal': 'Text markers (global style)',
     'cfg.addNote': '＋ Pinned note',
+    'cfg.addMarker': '＋ Text marker',
+    'pt.markerPickRow': 'Row to anchor the marker to',
+    'pt.markerNeedsAxes': 'Pick an X and Y axis first.',
+    'pt.markerTooMany': '{n} rows is too many to pick from a list (limit {max}). Click a point on the chart instead.',
     'cfg.addNoteHint': 'A note pinned to a corner of the chart, tied to no data point — it stays put when the data changes.',
     'cfg.tmPinned': 'pinned',
     'cfg.tmStaleAxis': 'axis changed',
@@ -2616,6 +2624,14 @@ const popover = document.createElement('div');
 popover.id = 'ptPopover';
 document.body.append(popover);
 document.addEventListener('pointerdown', e => { if (!popover.contains(e.target)) hidePopover(); }, true);
+/* Tab으로 빠져나가도 닫는다. 검사를 한 턴 미루는 이유: 목록을 다시 그리는 경로(컬럼 메뉴의 `모두 표시` 등)는
+   innerHTML을 갈아 끼우는 동안 잠깐 포커스를 잃는다 — 그 순간에 닫으면 방금 누른 메뉴가 사라진다.
+   포커스가 되돌아왔는지 다음 턴에 보고 판단한다. 되돌리지는 않는다(포커스는 이미 사용자가 옮긴 곳에 있다). */
+popover.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (popover.classList.contains('show') && !popover.contains(document.activeElement)) hidePopover();
+  }, 0);
+});
 /* 팝오버를 연 요소 — 닫을 때 포커스를 여기로 되돌린다.
    되돌리는 것은 **Escape로 닫을 때만**이다: 바깥을 클릭해 닫혔는데 포커스를 끌어오면 방금 누른 것을 빼앗는다. */
 let ppOpener = null;
@@ -2753,6 +2769,47 @@ function showNotePopover(c, mouseEv) {
   popover.append(el('div', { class: 'pp-title' }, t('pt.note')), inp,
     el('div', { class: 'pp-row' }, el('button', { onclick: add }, t('btn.add')), el('button', { onclick: hidePopover }, t('btn.cancel'))));
   placePopover(mouseEv); inp.focus();
+}
+/* 점에 묶인 텍스트 마커를 **클릭 없이** 만든다 — 클릭이 본질인 동작이지만 키보드로도 닿아야 한다.
+   점 대신 행을 고른다: 앵커는 어차피 행 정체성(`rk`)이므로 같은 것을 다른 입구로 고르는 셈이다. */
+const MARKER_PICK_MAX = 300;   // 이보다 많으면 드롭다운이 쓸 물건이 못 된다 — 그때는 클릭이 맞다
+function showMarkerAddPopover(c, mouseEv) {
+  popover.innerHTML = '';
+  const kcols = rowKeyCols();
+  const rows = chartRows(c).filter(r => r[c.x] !== null && r[c.x] !== undefined && r[c.y] !== null && r[c.y] !== undefined);
+  if (!c.x || !c.y) {
+    popover.append(el('div', { class: 'pp-title' }, t('pt.textMarker')), el('div', { class: 'pp-note' }, t('pt.markerNeedsAxes')),
+      el('div', { class: 'pp-row' }, el('button', { onclick: hidePopover }, t('btn.cancel'))));
+    placePopover(mouseEv, t('pt.textMarker'));
+    return;
+  }
+  if (rows.length > MARKER_PICK_MAX) {
+    popover.append(el('div', { class: 'pp-title' }, t('pt.textMarker')),
+      el('div', { class: 'pp-note' }, tf('pt.markerTooMany', { n: rows.length, max: MARKER_PICK_MAX })),
+      el('div', { class: 'pp-row' }, el('button', { onclick: hidePopover }, t('btn.cancel'))));
+    placePopover(mouseEv, t('pt.textMarker'));
+    return;
+  }
+  const label = r => (kcols.map(k => r[k]).filter(v => v !== null && v !== undefined && v !== '').join(' · ') || '?')
+    + ` (${r[c.x]}, ${r[c.y]})`;
+  const pick = select(rows.map((r, i) => [String(i), label(r)]), '0', () => {});
+  pick.setAttribute('aria-label', t('pt.markerPickRow'));
+  const inp = el('input', { type: 'text', placeholder: t('pt.textPlaceholder'), 'aria-label': t('pt.textMarker') });
+  const add = () => {
+    const txt = inp.value.trim();
+    const r = rows[Number(pick.value)];
+    if (txt && r) {
+      c.textMarkers.push({ x: r[c.x], y: r[c.y], text: txt, ax: 40, ay: -40, rk: rowKey(r, kcols), xc: c.x, yc: c.y });
+      c._tmStaleShown = undefined;
+      renderPlot(c); refreshPanels(c); save();
+    }
+    hidePopover();
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') add(); if (e.key === 'Escape') hidePopover(); });
+  popover.append(el('div', { class: 'pp-title' }, t('pt.textMarker')),
+    el('div', { class: 'pp-note' }, t('pt.markerPickRow')), pick, inp,
+    el('div', { class: 'pp-row' }, el('button', { onclick: add }, t('btn.add')), el('button', { onclick: hidePopover }, t('btn.cancel'))));
+  placePopover(mouseEv, t('pt.textMarker')); pick.focus();
 }
 function showMarkerEditPopover(c, idx, mouseEv) {
   const m = c.textMarkers[idx];
@@ -3212,7 +3269,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     }
     markerBox.innerHTML = '';
     markerBox.append(
-      el('div', { class: 'row' }, el('button', { class: 'small', onclick: e => showNotePopover(cfg, e) }, t('cfg.addNote'))),
+      el('div', { class: 'row' },
+        el('button', { class: 'small', onclick: e => showNotePopover(cfg, e) }, t('cfg.addNote')),
+        el('button', { class: 'small', onclick: e => showMarkerAddPopover(cfg, e) }, t('cfg.addMarker'))),
       el('div', { class: 'hint' }, t('cfg.addNoteHint')),
     );
     if (cfg.textMarkers.length) {

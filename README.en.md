@@ -91,7 +91,7 @@ ours,4000,4.1,0.744,MMLU
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
-| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed |
+| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
 | **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
 | **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
 | **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
@@ -173,7 +173,8 @@ The version shows next to the title (top-right) and in the footer, matching the 
 - **Fade (de-emphasise) now has a checkbox in the table.** Clicking a point was previously the only way to reach it at all.
 - **Baselines can be added by value** from the settings panel (`＋ Add` in the baseline group). Clicking could only place one on an existing data point, so a line at exactly `0.80` was impossible.
 - Table headers **take focus and sort on Enter**, announce their sort direction, and keep focus after sorting.
-- Popovers and the modal **move focus inside when opened and return it to the button that opened them on Escape.** Tab no longer leaks out of the modal.
+- Popovers and the modal **move focus inside when opened and return it to the button that opened them on Escape.** Tabbing out of a popover closes it, and Tab no longer leaks out of the modal.
+- **Text markers can be created by picking a row** (Settings → Point labels → `＋ Text marker`). Clicking a point is the natural gesture, but the anchor is a row either way — this is the same choice through a different door. Past 300 rows it points you back to clicking.
 - The body is wrapped in a `main` landmark, there is a **skip-to-charts** link, and every chart card carries a name.
 - **Settings groups remember whether they were open** — no more re-expanding them after every reload.
 - Settings search also matches **option names** (e.g. `log`), and says so instead of going blank when nothing matches. Series style lists fold up once there are more than six series.
