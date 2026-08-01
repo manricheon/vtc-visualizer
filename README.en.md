@@ -34,6 +34,8 @@ Any of these three:
    python visualizer.py results/ --host 0.0.0.0   # reach it from another machine (exposes the folder)
    ```
 
+   Tick `Watch folder` on the page and changes to those files load by themselves.
+
    Subfolders are included too (they show up as relative paths like `sub/run1.csv`).
    Hidden folders (`.git`, `.venv`, …) and symlinks pointing outside the folder are skipped, and the list stops at 500 files.
 
@@ -107,6 +109,9 @@ ours,4000,4.1,0.744,MMLU
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
 | **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
+| **Melt (wide → long)** | The `⇲` button on a dataset chip: turns a file whose columns are spread sideways (`baseline, ours, ablation`) into **one row per measurement** as a new dataset. The original is untouched, and the new name column works as a group/facet/filter straight away |
+| **Watch folder** | The `Watch folder` checkbox, shown when running via `visualizer.py`: **reloads files as they change**. Leave it on while a run is in progress — exclusions and fading survive, and a file that briefly disappears is not dropped from the screen |
+| **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
 | **Join across files** | Computed columns → kind `Look up from another file`: finds a value in another file **by key and attaches it as one column** (e.g. `params_b` from `models.csv` onto `runs.csv`). Only columns present in **both** files are offered as keys, and picking one immediately tells you **how many rows will find a match**. Several matches fold via first/mean/sum/min/max/count. **Rows are never multiplied** |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
@@ -173,6 +178,11 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.27 — how data gets in, and out
+- **Sideways CSVs are accepted now.** The input contract assumes long form (one row per measurement), so a file with `baseline, ours, ablation` as columns was **stopped at the door** — axes, groups and filters all assume one column means one thing. The `⇲` button on a dataset chip melts it into a new dataset, leaving the original alone.
+- **Watch folder**: leave it on during a run and new results arrive by themselves. Reloading goes through the existing path, so **exclusions and fading you marked by hand are kept**. A file that briefly disappears (mid-write, mid-rename) is not removed from the screen — you didn't delete it, and there would be no way back.
+- **Share as one HTML file**: a session JSON is only useful to someone who already has the tool. Exporting a single file with the data and settings baked in means the recipient just double-clicks. Build it from `index-offline.html` and it needs no internet either.
 
 ### v0.26 — figures you can actually submit
 - **Export size is now yours to set.** Exports were the on-screen size at 3×, so hitting a paper or report spec meant fixing it up elsewhere. Presets cover **1-column (85mm), 2-column (170mm) and slides**, or set mm/inch plus dpi yourself.
