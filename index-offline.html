@@ -149,13 +149,16 @@
   }
   .chart-card .cfg.hidden { display: none; }
   .cfg-search { width: 100%; margin: 0 0 8px; font-size: 12.5px; }
+  .cfg-noresult { margin: 0 0 var(--sp-2); }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
   .chart-card .plot-hint { padding: 5px 12px; font-size: 11px; color: var(--ink-muted); border-top: 1px solid var(--grid); }
   details.grp { margin-bottom: var(--sp-2); border-bottom: 1px solid var(--grid); padding-bottom: var(--sp-2); }
   details.grp summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: var(--fs-sm); padding: var(--sp-1) 0; user-select: none; letter-spacing: .01em; }
+  /* 시리즈가 많을 때만 쓰는 한 겹 더 접기 — 검색은 `details.grp`만 훑으므로 일부러 그 클래스를 안 쓴다 */
+  details.sub-grp > summary { cursor: pointer; color: var(--ink-muted); font-size: var(--fs-xs); padding: var(--sp-1) 0; user-select: none; }
   .row { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-2) 0; flex-wrap: wrap; }
-  .row > span.lbl { width: 78px; flex: none; color: var(--ink-muted); font-size: var(--fs-sm); }
+  .row > .lbl { width: 78px; flex: none; color: var(--ink-muted); font-size: var(--fs-sm); }
   .row select, .row input[type="text"] { flex: 1; min-width: 60px; }
   .row input[type="number"] { width: 74px; }
   .hint { color: var(--ink-muted); font-size: var(--fs-xs); line-height: 1.55; margin: var(--sp-1) 0; }
@@ -203,6 +206,11 @@
   #pager { display: flex; gap: 8px; align-items: center; margin-top: 8px; color: var(--ink-muted); font-size: 12px; }
 
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  /* 건너뛰기 링크 — 포커스를 받을 때만 나타난다(첫 tabbable이어야 하므로 <body> 맨 앞) */
+  .skip { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--card); color: var(--ink);
+          border: 1px solid var(--accent); border-radius: var(--radius); padding: var(--sp-2) var(--sp-3); }
+  .skip:focus { left: var(--sp-3); top: var(--sp-3); }
+  #charts:focus { outline: none; }
   #dropzone.empty { border-color: var(--accent); }
 
   /* ===== analysis panel ===== */
@@ -258,6 +266,7 @@
 
   /* ===== data table: include/exclude ===== */
   table.data th.chk, table.data td.chk { width: 30px; text-align: center; padding: 5px 6px; cursor: default; }
+  table.data th.mutcol { width: auto; font-size: var(--fs-xs); font-weight: 500; }
   table.data tr.excl td:not(.chk) { opacity: 0.4; }
   table.data tr.muted td:not(.chk) { opacity: 0.55; font-style: italic; }
 
@@ -283,6 +292,7 @@
 </style>
 </head>
 <body>
+<a href="#charts" class="skip" data-i18n="a11y.skip"></a>
 <div class="wrap">
   <header class="app">
     <h1>VTC Visualizer <span id="appVersion" class="ver"></span></h1>
@@ -305,6 +315,7 @@
     </nav>
   </header>
 
+  <main>
   <section class="card">
     <h2 data-i18n="section.dataInput"></h2>
     <div id="dropzone">
@@ -329,13 +340,13 @@
     <div id="anBody"></div>
   </section>
 
-  <div id="charts"></div>
+  <div id="charts" tabindex="-1"></div>
   <div id="emptyCharts" data-i18n="emptyCharts.text"></div>
 
   <section class="card">
     <h2 data-i18n="section.rawData"></h2>
     <div id="tableCtrl">
-      <input type="search" id="tableSearch" data-i18n-ph="table.searchPh">
+      <input type="search" id="tableSearch" data-i18n-ph="table.searchPh" data-i18n-aria="table.searchPh">
       <span class="count" id="tableCount"></span>
       <button class="small" id="btnCols"></button>
       <button class="small" id="restoreExcl" hidden data-i18n="table.restoreExcl"></button>
@@ -349,15 +360,16 @@
       <button class="small" id="pgNext" data-i18n="pager.next"></button>
     </div>
   </section>
+  </main>
 
   <footer>VTC Visualizer <span class="footer-ver"></span> — <span data-i18n="footer.text"></span> © mrc</footer>
 </div>
 
 <div id="modalBack">
-  <div id="pasteModal">
-    <strong data-i18n="modal.title"></strong>
-    <div class="row"><span class="lbl" data-i18n="modal.datasetName"></span><input type="text" id="pasteName" data-i18n-ph="modal.datasetNamePh"></div>
-    <textarea id="pasteText" data-i18n-ph="modal.pasteTextPh"></textarea>
+  <div id="pasteModal" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
+    <strong id="pasteTitle" data-i18n="modal.title"></strong>
+    <div class="row"><label class="lbl" for="pasteName" data-i18n="modal.datasetName"></label><input type="text" id="pasteName" data-i18n-ph="modal.datasetNamePh"></div>
+    <textarea id="pasteText" data-i18n-ph="modal.pasteTextPh" data-i18n-aria="modal.pasteTextLabel"></textarea>
     <div class="row" style="justify-content:flex-end">
       <button id="pasteCancel" data-i18n="btn.cancel"></button>
       <button id="pasteAdd" class="primary" data-i18n="btn.add"></button>
@@ -374,7 +386,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.23';
+const APP_VERSION = 'v0.24';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -551,7 +563,7 @@ const I18N = {
     'sp.dist': '값 분포 (박스플롯)',
     'pt.presetExport': '⬇ 내보내기', 'pt.presetImport': '⬆ 가져오기',
     'pt.presetHint': '프리셋은 차트 설정만 저장합니다(데이터 제외). 같은 컬럼 이름을 쓰는 데이터라면 언제든 재적용할 수 있습니다.',
-    'card.plotHint': '그래프 조작: 드래그 = 영역 확대 · 마우스 휠 = 줌 · 더블클릭 = 전체 보기 · 이동(팬)은 우상단 모드바의 십자 화살표 · 포인트 클릭 = 베이스라인/마커/제외 메뉴',
+    'card.plotHint': '드래그 = 영역 확대 · 휠 = 줌 · 더블클릭 = 전체 보기 · 포인트 클릭 = 메뉴 (팬은 모드바의 십자 화살표)',
     'card.copySuffix': ' (복사)',
     'btn.delete': '삭제',
     'cfg.data': '데이터',
@@ -610,6 +622,8 @@ const I18N = {
     'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
     'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
     'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
+    'cfg.seriesColor': '색',
+    'cfg.seriesCount': '시리즈 스타일 ({n})',
     'cfg.markerSize': '마커 크기',
     'cfg.lineWidth': '선 굵기',
     'cfg.lineType': '선 종류',
@@ -706,6 +720,19 @@ const I18N = {
     'pt.sizePlaceholder': '크기',
     'btn.save': '저장',
     'table.allIncludeTitle': '전체 포함/제외',
+    'cfg.searchNone': '"{q}"에 맞는 설정이 없습니다. 검색어를 지우면 전체가 다시 보입니다.',
+    'cfg.addBaseline': '＋ 추가',
+    'cfg.addBaselineX': '베이스라인 x 값',
+    'cfg.addBaselineY': '베이스라인 y 값',
+    'cfg.addBaselineDir': '베이스라인 방향',
+    'cfg.addBaselineNeed': '고른 방향에 필요한 값을 넣어 주세요 (가로선=y, 세로선=x, 십자=둘 다).',
+    'table.mutedCol': '흐리게',
+    'table.mutedColTitle': '체크하면 그 행을 지우지 않고 옅게 물러나게 합니다 (강조 안 함)',
+    'table.includeRow': '{row} — 그래프에 포함',
+    'table.muteRow': '{row} — 흐리게',
+    'a11y.skip': '차트로 건너뛰기',
+    'modal.pasteTextLabel': '붙여넣을 데이터',
+    'pt.deletePreset': '프리셋 삭제: {name}',
     'table.count': '{total}행 · {cols}컬럼 (전체 {all}행{excl})',
     'table.exclSuffix': ', 그래프 제외 {n}행',
     'pager.info': '{page} / {pages} 페이지',
@@ -915,7 +942,7 @@ const I18N = {
     'sp.dist': 'Value distribution (box plot)',
     'pt.presetExport': '⬇ Export', 'pt.presetImport': '⬆ Import',
     'pt.presetHint': 'Presets store chart settings only (no data) — re-apply them to any data using the same column names.',
-    'card.plotHint': 'Chart controls: drag = zoom to area · mouse wheel = zoom · double-click = reset view · pan via the crosshair icon in the top-right mode bar · click a point = baseline/marker/exclude menu',
+    'card.plotHint': 'Drag = zoom to area · wheel = zoom · double-click = reset · click a point = menu (pan via the crosshair in the mode bar)',
     'card.copySuffix': ' (copy)',
     'btn.delete': 'Delete',
     'cfg.data': 'Data',
@@ -974,6 +1001,8 @@ const I18N = {
     'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
     'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
     'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
+    'cfg.seriesColor': 'Colour',
+    'cfg.seriesCount': 'Series styles ({n})',
     'cfg.markerSize': 'Marker size',
     'cfg.lineWidth': 'Line width',
     'cfg.lineType': 'Line style',
@@ -1070,6 +1099,19 @@ const I18N = {
     'pt.sizePlaceholder': 'Size',
     'btn.save': 'Save',
     'table.allIncludeTitle': 'Include/exclude all',
+    'cfg.searchNone': 'No setting matches "{q}". Clear the box to see them all again.',
+    'cfg.addBaseline': '＋ Add',
+    'cfg.addBaselineX': 'Baseline x value',
+    'cfg.addBaselineY': 'Baseline y value',
+    'cfg.addBaselineDir': 'Baseline direction',
+    'cfg.addBaselineNeed': 'Enter the value the chosen direction needs (horizontal = y, vertical = x, cross = both).',
+    'table.mutedCol': 'Fade',
+    'table.mutedColTitle': 'Check to fade the row into the background instead of removing it (de-emphasise)',
+    'table.includeRow': '{row} — include in charts',
+    'table.muteRow': '{row} — fade out',
+    'a11y.skip': 'Skip to charts',
+    'modal.pasteTextLabel': 'Data to paste',
+    'pt.deletePreset': 'Delete preset: {name}',
     'table.count': '{total} rows · {cols} cols (of {all}{excl})',
     'table.exclSuffix': ', {n} excluded from chart',
     'pager.info': 'Page {page} / {pages}',
@@ -1219,6 +1261,7 @@ function applyLang() {
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(elx => { elx.textContent = t(elx.getAttribute('data-i18n')); });
   document.querySelectorAll('[data-i18n-ph]').forEach(elx => { elx.placeholder = t(elx.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(elx => { elx.setAttribute('aria-label', t(elx.getAttribute('data-i18n-aria'))); });
   const langBtn = document.getElementById('btnLangToggle');
   if (langBtn) langBtn.textContent = t('lang.toggle');
 }
@@ -2573,8 +2616,16 @@ const popover = document.createElement('div');
 popover.id = 'ptPopover';
 document.body.append(popover);
 document.addEventListener('pointerdown', e => { if (!popover.contains(e.target)) hidePopover(); }, true);
-function hidePopover() { popover.classList.remove('show'); popover.innerHTML = ''; }
-function placePopover(mouseEv) {
+/* 팝오버를 연 요소 — 닫을 때 포커스를 여기로 되돌린다.
+   되돌리는 것은 **Escape로 닫을 때만**이다: 바깥을 클릭해 닫혔는데 포커스를 끌어오면 방금 누른 것을 빼앗는다. */
+let ppOpener = null;
+function hidePopover(restore) {
+  popover.classList.remove('show'); popover.innerHTML = '';
+  popover.removeAttribute('role'); popover.removeAttribute('aria-label');
+  const o = ppOpener; ppOpener = null;
+  if (restore === true && o && o.isConnected && o.focus) o.focus();
+}
+function placePopover(mouseEv, label) {
   /* 키보드로 버튼을 눌러도(clientX=0) 구석에 뜨지 않게 — 좌표가 없으면 누른 요소 기준으로 붙인다 */
   let cx = mouseEv && mouseEv.clientX, cy = mouseEv && mouseEv.clientY;
   const anchor = mouseEv && (mouseEv.getBoundingClientRect ? mouseEv : mouseEv.currentTarget);   // 이벤트 또는 요소
@@ -2585,7 +2636,15 @@ function placePopover(mouseEv) {
   const x = Math.min((cx || 200) + 6, window.innerWidth - 230);
   const y = Math.min((cy || 200) + 6, window.innerHeight - 140);
   popover.style.left = x + 'px'; popover.style.top = y + 'px';
+  popover.setAttribute('role', 'dialog');
+  const title = label || (popover.querySelector('.pp-title') || {}).textContent;
+  if (title) popover.setAttribute('aria-label', title);
   popover.classList.add('show');
+  if (anchor && anchor.getBoundingClientRect && anchor.focus) ppOpener = anchor;
+  else if (document.activeElement && document.activeElement !== document.body) ppOpener = document.activeElement;
+  /* 팝오버는 <body> 끝에 붙어 있어 Tab 순서가 트리거를 따라오지 않는다 — 열 때 안으로 넣어 준다 */
+  const first = popover.querySelector('button,select,input,textarea,a[href]');
+  if (first) first.focus();
 }
 function showPointPopover(c, gd, p, mouseEv) {
   popover.innerHTML = '';
@@ -2740,6 +2799,7 @@ function showToast(msg, actionLabel, action) {
 
 /* ================= chart card UI ================= */
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+let ctlSeq = 0;   // 설정 컨트롤 id 일련번호 — `<label for>`로 잇기 위해서만 쓴다(패널을 다시 지어도 겹치지 않게 전역)
 function el(tag, attrs = {}, ...children) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -2768,11 +2828,18 @@ function colSelect(cfg, key, opts) {
   return select(items, cfg[key], v => { cfg[key] = v; if (onChange) onChange(); renderPlot(cfg); save(); });
 }
 
+/* 카드 이름은 화면 글자이자 그 `<section>`의 접근 이름이다 — 한 곳에서 같이 갱신한다 */
+function setCardName(nameSpan, text) {
+  nameSpan.textContent = text;
+  const card = nameSpan.closest('.chart-card');
+  if (card) card.setAttribute('aria-label', text);
+}
 function renderChartCard(cfg) {
   const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : ''), 'data-chart': cfg.id });
 
   const chartNo = state.charts.indexOf(cfg) + 1;
   const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
+  card.setAttribute('aria-label', nameSpan.textContent);
   const cfgPanel = el('div', { class: 'cfg' });
   const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
@@ -2828,9 +2895,12 @@ function applyChartSize(cfg) {
 /* details 그룹 접힘 상태를 차트별로 기억한다 (`_` 접두사라 세션에는 저장되지 않는다) */
 /* 설정 그룹이 8개라 옵션 하나 찾기가 번거롭다 — 라벨로 걸러 보여준다 */
 function cfgSearchBox(panel) {
-  const inp = el('input', { type: 'search', class: 'cfg-search', 'data-i18n-ph': 'cfg.searchPh', placeholder: t('cfg.searchPh') });
+  const inp = el('input', { type: 'search', class: 'cfg-search', 'data-i18n-ph': 'cfg.searchPh', placeholder: t('cfg.searchPh'), 'aria-label': t('cfg.searchPh') });
+  const none = el('div', { class: 'hint cfg-noresult', hidden: '' });
   inp.addEventListener('input', () => {
     const q = inp.value.trim().toLowerCase();
+    grpSilent = true;   // 검색이 여닫는 것은 사용자의 선택이 아니다 — 기본 펼침으로 저장하지 않는다
+    let shown = 0;
     panel.querySelectorAll('details.grp').forEach(g => {
       if (!q) {
         g.hidden = false;
@@ -2841,8 +2911,9 @@ function cfgSearchBox(panel) {
       if (g._preSearchOpen === undefined) g._preSearchOpen = g.open;
       let hit = 0;
       g.querySelectorAll('.row').forEach(r => {
+        /* 라벨만 보면 "로그"(축 스케일의 **선택지** 이름)처럼 흔한 말이 안 잡힌다 — 행 전체 글자도 본다 */
         const lbl = r.querySelector('.lbl');
-        const match = (lbl ? lbl.textContent : r.textContent).toLowerCase().includes(q);
+        const match = ((lbl ? lbl.textContent + ' ' : '') + r.textContent).toLowerCase().includes(q);
         r.hidden = !match;
         if (match) hit++;
       });
@@ -2850,16 +2921,33 @@ function cfgSearchBox(panel) {
       g.hidden = !hit && !inTitle;
       g.open = hit > 0 || inTitle;
       if (inTitle && !hit) g.querySelectorAll('.row').forEach(r => { r.hidden = false; });
+      if (!g.hidden) shown++;
     });
+    /* `toggle`은 비동기로 온다 — 같은 턴에 풀면 검색이 여닫은 것까지 기본값으로 저장된다 */
+    setTimeout(() => { grpSilent = false; }, 0);
+    /* 하나도 안 맞으면 패널이 통째로 비어 고장난 것처럼 보였다 */
+    none.hidden = !q || shown > 0;
+    none.textContent = q ? tf('cfg.searchNone', { q: inp.value.trim() }) : '';
   });
-  return inp;
+  return el('div', { class: 'cfg-search-box' }, inp, none);
 }
+/* 차트별 `_open`은 세션에 저장되지 않는다(차트 UI 상태 규칙) — 그래서 새로고침하면 매번 다시 펼쳐야 했다.
+   마지막으로 연 그룹을 **이 브라우저의 기본값**으로 따로 기억해 그 자리를 메운다. 스키마는 그대로다. */
+const GRP_KEY = 'vtc-visualizer:groups';
+let groupPrefs = (() => { try { return JSON.parse(localStorage.getItem(GRP_KEY)) || {}; } catch (e) { return {}; } })();
+let grpSilent = false;   // 검색이 프로그램으로 여닫는 동안에는 기본값을 갱신하지 않는다
 function restoreGroupState(cfg, panel) {
   cfg._open = cfg._open || {};
   panel.querySelectorAll('details.grp[data-g]').forEach(d => {
     const k = d.getAttribute('data-g');
-    if (cfg._open[k] !== undefined) d.open = cfg._open[k];
-    d.addEventListener('toggle', () => { cfg._open[k] = d.open; });
+    const want = cfg._open[k] !== undefined ? cfg._open[k] : groupPrefs[k];
+    if (want !== undefined) d.open = want;
+    d.addEventListener('toggle', () => {
+      if (grpSilent) return;
+      cfg._open[k] = d.open;
+      groupPrefs[k] = d.open;
+      try { localStorage.setItem(GRP_KEY, JSON.stringify(groupPrefs)); } catch (e) { /* 저장 불가여도 동작은 그대로 */ }
+    });
   });
 }
 function buildCfgPanel(cfg, panel, nameSpan) {
@@ -2870,7 +2958,31 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const isDist = cfg.type === 'histogram' || cfg.type === 'box';
   const rp = () => { renderPlot(cfg); save(); };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
-  const row = (label, ...ctrl) => el('div', { class: 'row' }, el('span', { class: 'lbl' }, label), ...ctrl);
+  /* 라벨은 컨트롤이 **정확히 하나일 때만** `for`로 잇는다.
+     둘 이상인 행(축 범위 min/max, 추세 모양+굵기 …)에서 하나에만 이으면 나머지를 조용히 잘못 이름 짓는다 —
+     이름이 없는 것보다 나쁘다. 그때는 각 컨트롤이 자기 title/placeholder/앞 라벨을 붙인 aria-label을 받는다.
+     감싼 `<label class="inline">` 안의 체크박스는 이미 이름이 있으므로 건드리지 않는다. */
+  const row = (label, ...ctrl) => {
+    const own = el('span', { class: 'lbl' }, label);
+    const box = el('div', { class: 'row' }, own, ...ctrl);
+    const ins = [...box.querySelectorAll('input,select,textarea')].filter(c => !c.closest('label'));
+    if (ins.length === 1) {
+      if (!ins[0].id) ins[0].id = 'vzc' + (++ctlSeq);
+      box.replaceChild(el('label', { class: 'lbl', for: ins[0].id }, label), own);
+      return box;
+    }
+    const nearLbl = c => {   // 행 자신의 라벨은 빼고, 바로 앞에 붙은 보조 라벨만 찾는다
+      for (let p = c.previousElementSibling; p && p !== own; p = p.previousElementSibling)
+        if (p.classList.contains('lbl')) return p.textContent;
+      return '';
+    };
+    ins.forEach((c, i) => {
+      if (c.getAttribute('aria-label')) return;
+      const name = c.getAttribute('title') || c.getAttribute('placeholder') || nearLbl(c);
+      c.setAttribute('aria-label', name ? `${label} — ${name}` : `${label} (${i + 1})`);
+    });
+    return box;
+  };
 
   /* --- 데이터 --- */
   const gData = el('details', { class: 'grp', open: '', 'data-g': 'data' }, el('summary', {}, t('cfg.data')));
@@ -3033,32 +3145,40 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   /* --- 스타일 --- */
   const gStyle = el('details', { class: 'grp', 'data-g': 'style' }, el('summary', {}, t('cfg.style')));
   const seriesBox = el('div');
+  const SERIES_FOLD = 6;   // 이보다 많으면 스타일 그룹이 시리즈 목록으로 뒤덮인다
   const renderSeries = () => {
     seriesBox.innerHTML = '';
     if (!allRows().length) return;
-    seriesDefs(cfg).forEach((def) => {
+    const defs = seriesDefs(cfg);
+    /* 시리즈가 많으면 스타일 그룹 안에서 한 번 더 접는다 — 컨트롤이 시리즈당 최대 6개씩 늘어난다 */
+    const into = defs.length > SERIES_FOLD
+      ? seriesBox.appendChild(el('details', { class: 'sub-grp' }, el('summary', {}, tf('cfg.seriesCount', { n: defs.length }))))
+      : seriesBox;
+    defs.forEach((def) => {
       const name = def.name;
       const st = seriesStyle(cfg, def);
       const upd = patch => { cfg.seriesStyles[name] = { ...cfg.seriesStyles[name], ...patch }; rp(); };
+      /* 시리즈 줄은 같은 컨트롤이 반복된다 — 어느 시리즈인지는 이름을 붙여야만 알 수 있다 */
+      const named = (e, key) => { e.setAttribute('aria-label', `${name} — ${t(key)}`); return e; };
       const labelInput = el('input', { type: 'text', class: 'slabel', value: cfg.seriesLabels[name] || '', placeholder: name, title: t('cfg.seriesLabelTitle'),
         oninput: e => { const v = e.target.value.trim(); if (v) cfg.seriesLabels[name] = v; else delete cfg.seriesLabels[name]; rp(); } });
-      seriesBox.append(el('div', { class: 'series-block' },
+      into.append(el('div', { class: 'series-block' },
         el('div', { class: 'series-row' },
-          el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }),
-          labelInput,
+          named(el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }), 'cfg.seriesColor'),
+          named(labelInput, 'cfg.seriesLabelTitle'),
         ),
         ...(isBar ? [] : [el('div', { class: 'series-row sub' },   // 막대는 색만 의미 있음
-          select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }),
-          el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }),
-          select(DASHES(), st.dash, v => upd({ dash: v }), { title: t('cfg.lineType') }),
-          el('input', { type: 'number', value: st.lwidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.lineWidth'), oninput: e => upd({ lwidth: Number(e.target.value) || cfg.lineWidth }) }),
+          named(select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }), 'cfg.markerShapeTitle'),
+          named(el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }), 'cfg.markerSizeTitle'),
+          named(select(DASHES(), st.dash, v => upd({ dash: v }), { title: t('cfg.lineType') }), 'cfg.lineType'),
+          named(el('input', { type: 'number', value: st.lwidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.lineWidth'), oninput: e => upd({ lwidth: Number(e.target.value) || cfg.lineWidth }) }), 'cfg.lineWidth'),
         )]),
       ));
     });
   };
   renderSeries();
   gStyle.append(
-    row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; nameSpan.textContent = cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }); rp(); } })),
+    row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; setCardName(nameSpan, cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 })); rp(); } })),
     row(t('cfg.caption'), capInput(cfg)),
     row(t('cfg.renderMode'), select([['auto', t('opt.renderAuto')], ['svg', t('opt.renderSvg')], ['gl', t('opt.renderGl')]], cfg.renderMode || 'auto', v => { cfg.renderMode = v; rp(); }, { title: t('cfg.renderModeTitle') })),
     row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
@@ -3121,7 +3241,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         el('input', { type: 'color', value: m.color || cfg.tmColor || cfg.fontColor || CHROME.ink, title: t('cfg.tmMarkerColorTitle'), oninput: e => { m.color = e.target.value; rp(); } }),
         el('input', { type: 'text', value: m.text, style: 'flex:1', oninput: e => { m.text = e.target.value; rp(); } }),
         ...tail,
-        el('button', { class: 'small danger', onclick: () => { cfg.textMarkers.splice(i, 1); cfg._tmStaleShown = undefined; renderLabelLists(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.textMarkers.splice(i, 1); cfg._tmStaleShown = undefined; renderLabelLists(); rp(); } }, '×'),
       ));
     });
   };
@@ -3143,21 +3263,40 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     baseBox.innerHTML = '';
     cfg.baselines.forEach((b, i) => {
       const dir = b.dir || 'both';
+      /* 한쪽만 넣은 선(x 없는 가로선 등)은 "(null, 0.8)"로 보이면 안 된다 */
+      const bname = dir === 'h' ? `y = ${b.y}` : dir === 'v' ? `x = ${b.x}` : `(${b.x}, ${b.y})`;
       baseBox.append(el('div', { class: 'series-row' },
-        el('span', { class: 'sname', title: `(${b.x}, ${b.y})` }, `(${b.x}, ${b.y})`),
+        el('span', { class: 'sname', title: bname }, bname),
         select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], dir, v => { b.dir = v; renderBaseList(); rp(); }),
         // 사분면 음영은 십자(both)일 때만 의미가 있음
         ...(dir === 'both' ? [select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); })] : []),
-        el('button', { class: 'small danger', onclick: () => { cfg.baselines.splice(i, 1); renderBaseList(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.baselines.splice(i, 1); renderBaseList(); rp(); } }, '×'),
       ));
     });
     gBase.querySelector('summary').textContent = tf('cfg.baselineCount', { n: cfg.baselines.length });
   };
   renderBaseList();
   cfg._refreshLists = () => { renderBaseList(); renderLabelLists(); };
+  /* 베이스라인은 여태 포인트 클릭으로만 만들 수 있었다 — 값을 직접 넣는 길이 없으면 키보드로는 도달 불가다.
+     (그리고 "정확히 0.80"처럼 데이터 점에 없는 기준선은 클릭으로 만들 수가 없었다.) */
+  const blX = el('input', { type: 'number', step: 'any', placeholder: 'x', 'aria-label': t('cfg.addBaselineX') });
+  const blY = el('input', { type: 'number', step: 'any', placeholder: 'y', 'aria-label': t('cfg.addBaselineY') });
+  const blDir = select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], 'both', () => {});
+  blDir.setAttribute('aria-label', t('cfg.addBaselineDir'));
+  const addBaseline = () => {
+    const dir = blDir.value;
+    const x = blX.value === '' ? null : Number(blX.value), y = blY.value === '' ? null : Number(blY.value);
+    /* 방향이 요구하는 값이 없으면 아무 선도 그려지지 않는다 — 조용히 넘기지 말고 알린다 */
+    if ((dir !== 'h' && x === null) || (dir !== 'v' && y === null)) { alert(t('cfg.addBaselineNeed')); return; }
+    cfg.baselines.push({ x, y, shade: 'none', dir });
+    blX.value = ''; blY.value = '';
+    renderBaseList(); rp(); blX.focus();
+  };
   gBase.append(
     el('div', { class: 'hint' }, t('cfg.baselineHint')),
     baseBox,
+    el('div', { class: 'series-row' }, blX, blY, blDir,
+      el('button', { class: 'small', onclick: addBaseline }, t('cfg.addBaseline'))),
   );
 
   /* --- 고급 --- */
@@ -3319,14 +3458,14 @@ function relabelCards() {
     const hint = card.querySelector('.plot-hint');
     if (hint) hint.textContent = t('card.plotHint');
     const nameSpan = card.querySelector('.head .name');
-    if (nameSpan && !cfg.title) nameSpan.textContent = tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 });
+    if (nameSpan && !cfg.title) setCardName(nameSpan, tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }));
   }
 }
 /* 제목 없는 카드의 "차트 N"은 순서에 따라 달라지므로 순서가 바뀌면 다시 매긴다 */
 function renumberCards() {
   state.charts.forEach((c, i) => {
     const nameSpan = cardOf(c) && cardOf(c).querySelector('.head .name');
-    if (nameSpan && !c.title) nameSpan.textContent = tf('card.chartNum', { n: i + 1 });
+    if (nameSpan && !c.title) setCardName(nameSpan, tf('card.chartNum', { n: i + 1 }));
   });
 }
 /* 카드 하나만 추가 — 전체 재생성은 설정 패널 접힘·줌·스크롤을 모두 날린다 */
@@ -3382,24 +3521,48 @@ function renderTable() {
   /* 숫자 컬럼은 우측 정렬 — tabular-nums만으로는 자릿수가 맞지 않는다(150 vs 23412.3) */
   const numSet = new Set(numericColumns());
   const nc = c => numSet.has(c) ? ' class="num"' : '';
-  let html = `<thead><tr><th class="chk" title="${esc(t('table.allIncludeTitle'))}"><input type="checkbox" id="chkAll"${allIncluded ? ' checked' : ''}></th>` + cols.map(c =>
-    `<th data-col="${esc(c)}"${nc(c)}>${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
+  /* 정렬 방향은 화살표 글자만이 아니라 aria-sort로도 알린다 */
+  const sortOf = c => tableState.sortCol !== c ? 'none' : (tableState.sortDir > 0 ? 'ascending' : 'descending');
+  const kcols = rowKeyCols();
+  let html = `<thead><tr><th class="chk" title="${esc(t('table.allIncludeTitle'))}"><input type="checkbox" id="chkAll"${allIncluded ? ' checked' : ''} aria-label="${esc(t('table.allIncludeTitle'))}"></th>`
+    + `<th class="chk mutcol" title="${esc(t('table.mutedColTitle'))}">${esc(t('table.mutedCol'))}</th>`
+    + cols.map(c =>
+    `<th data-col="${esc(c)}"${nc(c)} tabindex="0" aria-sort="${sortOf(c)}">${esc(c)}${tableState.sortCol === c ? (tableState.sortDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
   view.forEach((r, i) => {
-    html += `<tr class="${r._excluded ? 'excl' : ''}${r._muted ? ' muted' : ''}"><td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'}></td>`
+    const rk = esc(kcols.map(c => r[c]).filter(v => v !== null && v !== undefined && v !== '').join(' · ') || String(start + i + 1));
+    html += `<tr class="${r._excluded ? 'excl' : ''}${r._muted ? ' muted' : ''}">`
+      + `<td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'} aria-label="${esc(tf('table.includeRow', { row: rk }))}"></td>`
+      + `<td class="chk"><input type="checkbox" data-m="${i}"${r._muted ? ' checked' : ''} aria-label="${esc(tf('table.muteRow', { row: rk }))}"></td>`
       + cols.map(c => `<td${nc(c)}>${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
   });
   table.innerHTML = html + '</tbody>';
   const rerenderCharts = () => { for (const c of state.charts) renderPlot(c); };
-  table.querySelectorAll('th[data-col]').forEach(th => th.addEventListener('click', () => {
+  const sortBy = th => {
     const c = th.dataset.col;
     if (tableState.sortCol === c) tableState.sortDir *= -1;
     else { tableState.sortCol = c; tableState.sortDir = 1; }
     renderTable();
-  }));
-  table.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => {
+    /* 표를 다시 그리면 포커스가 사라진다 — 같은 컬럼의 헤더로 되돌려 준다(키보드로 연속 정렬하려면 필수) */
+    const back = document.querySelector(`#dataTable th[data-col="${CSS.escape(c)}"]`);
+    if (back) back.focus();
+  };
+  table.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => sortBy(th));
+    th.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortBy(th); } });
+  });
+  /* 표를 다시 그리면 방금 누른 체크박스가 사라진다 — 같은 자리로 포커스를 되돌린다 */
+  const afterToggle = sel => { renderTable(); rerenderCharts(); analysisStale(); save();
+    const back = document.querySelector('#dataTable tbody input[' + sel + ']'); if (back) back.focus(); };
+  table.querySelectorAll('tbody input[data-i]').forEach(cb => cb.addEventListener('change', () => {
     const r = view[Number(cb.dataset.i)];
     if (cb.checked) delete r._excluded; else r._excluded = true;
-    renderTable(); rerenderCharts(); analysisStale(); save();
+    afterToggle(`data-i="${cb.dataset.i}"`);
+  }));
+  /* 흐리게는 여태 포인트 클릭 말고는 경로가 없었다 — 표에서도 켜고 끌 수 있어야 키보드로 닿는다 */
+  table.querySelectorAll('tbody input[data-m]').forEach(cb => cb.addEventListener('change', () => {
+    const r = view[Number(cb.dataset.m)];
+    if (cb.checked) r._muted = true; else delete r._muted;
+    afterToggle(`data-m="${cb.dataset.m}"`);
   }));
   const chkAll = table.querySelector('#chkAll');
   if (chkAll) chkAll.addEventListener('change', () => {
@@ -4800,7 +4963,7 @@ function showPresetMenu(cfg, mouseEv) {
   names.forEach(n => {
     popover.append(el('div', { class: 'pp-row' },
       el('button', { onclick: () => { applyPreset(cfg, loadPresets()[n]); hidePopover(); } }, '▶ ' + n),
-      el('button', { class: 'danger', style: 'flex:0 0 auto', onclick: () => {
+      el('button', { class: 'danger', style: 'flex:0 0 auto', title: tf('pt.deletePreset', { name: n }), onclick: () => {
         const all = loadPresets(); delete all[n]; savePresets(all); showPresetMenu(cfg, mouseEv);
       } }, '×'),
     ));
@@ -4863,17 +5026,32 @@ document.getElementById('btnOpenFolder').addEventListener('click', () => documen
 document.getElementById('fileInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
 document.getElementById('folderInput').addEventListener('change', e => { loadFiles([...e.target.files]); e.target.value = ''; });
 
-document.getElementById('btnPaste').addEventListener('click', () => {
+/* 모달은 열면 포커스를 안으로 넣고, Tab이 뒤 페이지로 새지 않게 가두고, 닫으면 연 버튼으로 되돌린다 */
+let modalOpener = null;
+function closeModal() {
+  document.getElementById('modalBack').classList.remove('show');
+  const o = modalOpener; modalOpener = null;
+  if (o && o.isConnected) o.focus();
+}
+document.getElementById('btnPaste').addEventListener('click', e => {
+  modalOpener = e.currentTarget;
   document.getElementById('modalBack').classList.add('show');
   document.getElementById('pasteText').focus();
 });
-document.getElementById('pasteCancel').addEventListener('click', () => document.getElementById('modalBack').classList.remove('show'));
+document.getElementById('pasteModal').addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const f = [...e.currentTarget.querySelectorAll('button,input,textarea,select')].filter(x => !x.disabled);
+  if (!f.length) return;
+  const edge = e.shiftKey ? f[0] : f[f.length - 1];
+  if (document.activeElement === edge) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
+});
+document.getElementById('pasteCancel').addEventListener('click', closeModal);
 document.getElementById('pasteAdd').addEventListener('click', () => {
   const name = document.getElementById('pasteName').value.trim() || `pasted-${state.datasets.length + 1}`;
   const text = document.getElementById('pasteText').value;
   try {
     addDataset(name, parseAny(text, name));
-    document.getElementById('modalBack').classList.remove('show');
+    closeModal();
     document.getElementById('pasteText').value = ''; document.getElementById('pasteName').value = '';
   } catch (e) { alert(tf('err.parseFailedGeneric', { msg: e.message })); }
 });
@@ -4893,8 +5071,8 @@ document.getElementById('btnExample').addEventListener('click', () => {
 document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (e.key !== 'Escape') return;
   const modal = document.getElementById('modalBack');
-  if (modal.classList.contains('show')) { modal.classList.remove('show'); return; }
-  if (popover.classList.contains('show')) hidePopover();
+  if (modal.classList.contains('show')) { closeModal(); return; }
+  if (popover.classList.contains('show')) hidePopover(true);
 });
 function importSession() {
   const inp = el('input', { type: 'file', accept: '.json' });

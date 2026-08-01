@@ -71,6 +71,7 @@ A doubling sweep becomes evenly spaced on a log X axis, straightening the trend.
 > Type=`Scatter`, X axis=`latency_ms`, Y axis=`accuracy`, Group (color)=`method`
 > Advanced → check Pareto, Direction=`Lower X · Higher Y is better`
 > **Click** your reference point (e.g. baseline's production setting) → `📍 Add baseline` → in the settings baseline list, shading=`Upper left`
+> (to draw one at a value no data point sits on, type x·y into `＋ Add` in Settings → Baselines)
 
 ![Latency–accuracy scatter — Pareto staircase and upper-left baseline shading](assets/guide/r3-pareto.png)
 
@@ -238,7 +239,7 @@ A team on one palette gets consistent method colors across every document. Expor
 1. **One chart, one message** — want to say two things? Duplicate into two charts.
 2. **Emphasis only works when it's scarce** — labels, markers, shading go on the protagonist only.
 3. **Color follows the entity** — the same method keeps the same color across every chart. The tool enforces this automatically (filters don't repaint survivors); keep the principle when overriding series colors by hand.
-4. **Put the reference in the picture** — "better/worse" only means something against a baseline. Click your reference point and pin it as dotted lines.
+4. **Put the reference in the picture** — "better/worse" only means something against a baseline. Click your reference point, or type its value into Settings → Baselines, and pin it as dotted lines.
 5. **Don't hide uncertainty** — if you have repeated measurements, turning on error bars/bands is what makes the chart honest.
 6. **Units live in axis labels** — the column-name convention (`latency_ms`, `cost_usd`) shows up on the axes as-is; refine via Axes → X/Y label when ambiguous.
 

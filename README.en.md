@@ -112,7 +112,8 @@ ours,4000,4.1,0.744,MMLU
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
 | Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
 | **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
-| Raw data | Bottom table: search, click-to-sort, per-dataset delete, **uncheck a row to exclude it from charts**. Numeric columns are right-aligned so digits line up |
+| Raw data | Bottom table: search, click-to-sort (**or Enter on the header**), per-dataset delete, **uncheck a row to exclude it from charts**, **`Fade` column to de-emphasise it**. Numeric columns are right-aligned so digits line up |
+| **Keyboard & accessibility** | Usable without a mouse: a **skip-to-charts** link on the first Tab, a real label on every settings control, popovers and the modal move focus inside on open and back to the opening button on Escape (Tab cannot leak out of the modal), table headers sort on Enter. **Fade** — previously point-click only — has a table column, and **baselines can be added by value** from the settings panel |
 | **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. **The data is untouched** and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
 | **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They **assume no column names** — roles (category, sweep knob, score, cost) are matched against your current data by **value distribution**, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
@@ -166,6 +167,16 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.24 — reachable by keyboard, a less crowded panel
+- **The tool now works without a mouse.** Until now most settings controls had a visible label but no programmatic one (zero `<label>` associations), popovers could not be tabbed into, and sorting the table was click-only.
+- **Fade (de-emphasise) now has a checkbox in the table.** Clicking a point was previously the only way to reach it at all.
+- **Baselines can be added by value** from the settings panel (`＋ Add` in the baseline group). Clicking could only place one on an existing data point, so a line at exactly `0.80` was impossible.
+- Table headers **take focus and sort on Enter**, announce their sort direction, and keep focus after sorting.
+- Popovers and the modal **move focus inside when opened and return it to the button that opened them on Escape.** Tab no longer leaks out of the modal.
+- The body is wrapped in a `main` landmark, there is a **skip-to-charts** link, and every chart card carries a name.
+- **Settings groups remember whether they were open** — no more re-expanding them after every reload.
+- Settings search also matches **option names** (e.g. `log`), and says so instead of going blank when nothing matches. Series style lists fold up once there are more than six series.
 
 ### v0.23 — subfolder autoload and launcher cleanup
 - **Autoload now reaches into subfolders.** Split your results across `results/a/run1.csv` and they all load at once, listed as relative paths.
