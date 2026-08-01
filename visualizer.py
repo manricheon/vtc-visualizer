@@ -5,6 +5,7 @@ Usage | 사용법:
     python visualizer.py                  # start server + open browser
     python visualizer.py logs/            # autoload csv/json from logs/
     python visualizer.py --port 8765
+    python visualizer.py logs/ --host 0.0.0.0   # reachable from the network (exposes the folder)
     python visualizer.py logs/ --offline  # same, but serve the offline build (no CDN)
     python visualizer.py build-offline    # build index-offline.html with Plotly inlined
 
@@ -15,6 +16,7 @@ this script is an optional helper for folder autoload and the offline build.
 import argparse
 import json
 from typing import Optional
+import os
 import re
 import sys
 import threading
@@ -28,6 +30,40 @@ ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "index.html"
 OFFLINE = ROOT / "index-offline.html"
 DATA_EXTS = {".csv", ".tsv", ".json"}
+MAX_LIST = 500   # autoload list cap — a huge tree would stall the browser reading every file
+
+
+def _inside(base: Path, target: Path) -> bool:
+    """Is target within base? (Path.is_relative_to needs 3.9 — keep the 3.8 fallback.)"""
+    try:
+        return target.is_relative_to(base)
+    except AttributeError:
+        return base == target or base in target.parents
+    except ValueError:
+        return False
+
+
+def _data_files(base: Path) -> "list":
+    """Data files under base, as relative paths.
+
+    Hidden folders and symlinks that leave the folder are skipped: .git/.venv/.ipynb_checkpoints
+    are full of .json that nobody wants autoloaded, and following links can escape the folder or
+    loop forever. A link that resolves outside is also refused by /api/file, so listing it would
+    only advertise a file the browser cannot open.
+    """
+    out = []
+    for root, dirs, names in os.walk(base, followlinks=False):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        for name in sorted(names):
+            if name.startswith(".") or Path(name).suffix.lower() not in DATA_EXTS:
+                continue
+            p = Path(root) / name
+            if p.is_symlink() and not _inside(base, p.resolve()):
+                continue
+            out.append(str(p.relative_to(base)).replace("\\", "/"))
+            if len(out) >= MAX_LIST:
+                return sorted(out)
+    return sorted(out)
 
 
 def build_offline() -> None:
@@ -72,28 +108,14 @@ class Handler(BaseHTTPRequestHandler):
             page = OFFLINE if (self.use_offline and OFFLINE.exists()) else INDEX
             self._send(200, page.read_bytes(), "text/html; charset=utf-8")
         elif path == "/api/files":
-            files = []
-            if self.data_dir:
-                base = self.data_dir.resolve()
-                files = sorted(
-                    str(p.relative_to(base)).replace("\\", "/")
-                    for p in base.rglob("*")
-                    if p.is_file() and p.suffix.lower() in DATA_EXTS
-                )
+            files = _data_files(self.data_dir.resolve()) if self.data_dir else []
             self._send(200, json.dumps(files).encode(), "application/json")
         elif path == "/api/file":
             name = urllib.parse.parse_qs(parsed.query).get("name", [""])[0]
             if self.data_dir and name:
                 base = self.data_dir.resolve()
                 target = (base / name).resolve()
-                try:
-                    is_inside = target.is_relative_to(base)
-                except AttributeError:
-                    is_inside = base in target.parents
-                except ValueError:
-                    is_inside = False
-
-                if target.is_file() and is_inside and target.suffix.lower() in DATA_EXTS:
+                if target.is_file() and _inside(base, target) and target.suffix.lower() in DATA_EXTS:
                     sfx = target.suffix.lower()
                     ctype = "text/csv; charset=utf-8" if sfx == ".csv" else \
                             "application/json; charset=utf-8" if sfx == ".json" else \
@@ -117,6 +139,8 @@ def serve(data_dir: "Optional[Path]", port: int, host: str = "127.0.0.1", offlin
     url = f"http://{host}:{port}/"
     where = f" (data folder: {data_dir})" if data_dir else ""
     where += " [offline build]" if offline else ""
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        print(f"Warning: bound to {host} — anyone on this network can read {data_dir or ROOT}.")
     print(f"VTC Visualizer — {url}{where}\nStop: Ctrl+C")
     threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
@@ -150,4 +174,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
