@@ -386,7 +386,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.24';
+const APP_VERSION = 'v0.25';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -742,6 +742,11 @@ const I18N = {
     'pager.info': '{page} / {pages} 페이지',
     'chips.rows': '{n}행',
     'opt.derivedNorm': '정규화', 'opt.derivedRank': '순위', 'opt.derivedBin': '구간화', 'opt.derivedGroupAgg': '그룹 집계',
+    'opt.derivedLookup': '다른 파일에서 가져오기', 'opt.lookupFirst': '첫 값',
+    'cfg.lookupNoKeys': '두 파일에 공통으로 있는 컬럼이 없습니다 — 맞출 키가 없습니다.',
+    'cfg.lookupPickKey': '맞출 키를 하나 이상 고르세요.',
+    'cfg.lookupMatch': '다른 파일의 {total}행 중 {hit}행이 짝을 찾습니다 (못 찾은 행은 빈 값).',
+    'cfg.lookupHint': '다른 파일의 값을 키로 찾아 **컬럼 하나**로 붙입니다. 행은 늘지 않습니다(메타 붙이기). 컬럼 여러 개를 가져오려면 정의를 여러 개 만드세요.',
     'opt.derivedConst': '숫자 직접 입력', 'opt.derivedWhole': '전체',
     'opt.normMinmax': '0~1 정규화', 'opt.normMax': '최대값 대비 %', 'opt.normZ': 'z-score',
     'opt.rankAsc': '작은 값이 1위', 'opt.rankDesc': '큰 값이 1위',
@@ -1125,6 +1130,11 @@ const I18N = {
     'pager.info': 'Page {page} / {pages}',
     'chips.rows': '{n} rows',
     'opt.derivedNorm': 'Normalize', 'opt.derivedRank': 'Rank', 'opt.derivedBin': 'Bin', 'opt.derivedGroupAgg': 'Group aggregate',
+    'opt.derivedLookup': 'Look up from another file', 'opt.lookupFirst': 'First value',
+    'cfg.lookupNoKeys': 'The two files share no column — there is nothing to match on.',
+    'cfg.lookupPickKey': 'Pick at least one key to match on.',
+    'cfg.lookupMatch': '{hit} of {total} rows in the other files find a match (unmatched rows get a blank).',
+    'cfg.lookupHint': 'Finds a value in another file by key and attaches it as **one column**. Rows are never multiplied (this is for attaching metadata). To bring over several columns, make several definitions.',
     'opt.derivedConst': 'Enter a number', 'opt.derivedWhole': 'whole data',
     'opt.normMinmax': '0–1 normalize', 'opt.normMax': '% of max', 'opt.normZ': 'z-score',
     'opt.rankAsc': 'smallest = 1', 'opt.rankDesc': 'largest = 1',
@@ -1364,6 +1374,35 @@ function applyDerived() {
         r[def.name] = (typeof v === 'number' && typeof bv === 'number')
           ? roundv(def.mode === 'retention' ? (bv ? v / bv * 100 : null) : v - bv) : null;
       }
+    } else if (def.kind === 'lookup') {
+      /* 파일 간 결합 — 다른 파일의 값을 키로 찾아 **컬럼 하나로** 붙인다.
+         **행은 절대 늘리지 않는다**: 행이 늘면 `rowKeyCols()`가 만드는 행 정체성이 깨져
+         제외·흐리게·포인트 레이블·텍스트 마커 앵커가 전부 어긋난다.
+         메타(파라미터·가격 등) 붙이기가 사실상 전부이고, 그건 행 증가 없이 된다. */
+      const keys = def.keys || [];
+      const key = r => keys.map(k => String(r[k])).join('');
+      const src = new Map();
+      if (keys.length) {
+        for (const r of rows) {
+          if (r._source !== def.from) continue;
+          const k = key(r);
+          if (!src.has(k)) src.set(k, []);
+          src.get(k).push(r[def.col]);
+        }
+      }
+      for (const r of rows) {
+        const hits = keys.length ? src.get(key(r)) : null;
+        if (!hits || !hits.length) { r[def.name] = null; continue; }
+        if (def.agg === 'count') { r[def.name] = hits.length; continue; }
+        if (def.agg === 'first' || !def.agg) { r[def.name] = hits[0] === undefined ? null : hits[0]; continue; }
+        const nums = hits.filter(v => typeof v === 'number');
+        if (!nums.length) { r[def.name] = null; continue; }
+        let out = nums[0];
+        if (def.agg === 'sum' || def.agg === 'mean') { out = nums.reduce((a, b) => a + b, 0); if (def.agg === 'mean') out /= nums.length; }
+        else if (def.agg === 'min') { for (const v of nums) if (v < out) out = v; }
+        else if (def.agg === 'max') { for (const v of nums) if (v > out) out = v; }
+        r[def.name] = roundv(out);
+      }
     }
   }
   derivedApplied = state.derived.map(d => d.name);
@@ -1499,7 +1538,13 @@ let rowKeyColsCache = null;
 function rowKeyCols() {
   if (rowKeyColsCache && rowKeyColsCache.ver === dataVer) return rowKeyColsCache.cols;
   const rows = allRows(), out = [];
+  /* 계산 컬럼은 정체성에 넣지 않는다 — 데이터에서 **다시 만들어지는** 값이라 순환이다.
+     실제로 깨졌다: 파일을 다시 넣으면 `addDataset`이 옛 행의 파생값과 아직 계산되지 않은 새 행을
+     비교하게 되어 제외·흐리게 표시가 통째로 사라졌다. (숨긴 컬럼과는 다른 이야기다 —
+     숨김은 원본 컬럼을 화면에서만 뺀 것이므로 `columns()` 기준을 그대로 쓴다.) */
+  const derivedNames = new Set(state.derived.map(d => d.name));
   for (const c of columns()) {
+    if (derivedNames.has(c)) continue;
     if (c === '_source') { out.push(c); continue; }
     const vals = new Set();
     let numeric = 0, seen = 0;
@@ -3961,6 +4006,7 @@ function analyzeData() {
        (예전에는 binary 외에는 valueCol만 봐서 z-score 컬럼이 원본과 "함께 움직인다"로 보고됐다) */
     const parents = d.kind === 'binary' ? [d.a, d.b]
       : d.kind === 'refdelta' ? [d.valueCol, d.refCol, ...(d.keys || [])]
+      : d.kind === 'lookup' ? [d.col, ...(d.keys || [])]   // 붙여 온 값은 원본 컬럼과 같은 값이다 — 자명한 상관
       : d.kind === 'concat' ? (d.parts || []).map(pt => pt.col)
       : [d.col, d.by];
     for (const pa of parents) if (pa) derivedPairs.add([d.name, pa].sort().join(AN_SEP));
@@ -4491,6 +4537,7 @@ function derivedDesc(d) {
   if (d.kind === 'rank') return `${d.name} = ${d.col} ${d.desc ? t('opt.rankDesc') : t('opt.rankAsc')}${within}`;
   if (d.kind === 'bin') return `${d.name} = ${d.col} → ${d.bins}${t('cfg.derivedBins')}${within}`;
   if (d.kind === 'groupagg') return `${d.name} = ${d.by} ${t('cfg.derivedWithinShort')} ${d.col} ${d.agg}`;
+  if (d.kind === 'lookup') return `${d.name} = ${d.from} · ${d.col} @ ${(d.keys || []).join('·')}${d.agg && d.agg !== 'first' ? ` (${d.agg})` : ''}`;
   return `${d.name} = ${d.valueCol} ${d.mode === 'retention' ? '÷' : '−'} (${d.refCol}=${d.refVal}${(d.keys || []).length ? ', ' + d.keys.join('·') : ''})`;
 }
 function renderDerived() {
@@ -4521,7 +4568,9 @@ function renderDerived() {
   const editing = derivedEditIdx >= 0 && derivedEditIdx < state.derived.length ? state.derived[derivedEditIdx] : null;
   const nameInp = el('input', { type: 'text', placeholder: t('cfg.derivedName'), style: 'width:120px', value: editing ? editing.name : '' });
   const kindSel = select([['binary', t('opt.derivedBinary')], ['concat', t('opt.derivedConcat')], ['refdelta', t('opt.derivedRef')],
-    ['norm', t('opt.derivedNorm')], ['rank', t('opt.derivedRank')], ['bin', t('opt.derivedBin')], ['groupagg', t('opt.derivedGroupAgg')]],
+    ['norm', t('opt.derivedNorm')], ['rank', t('opt.derivedRank')], ['bin', t('opt.derivedBin')], ['groupagg', t('opt.derivedGroupAgg')],
+    /* 결합은 파일이 둘 이상일 때만 뜻이 있다 — 하나뿐이면 자기 자신을 붙이는 셈이다 */
+    ...(state.datasets.length > 1 ? [['lookup', t('opt.derivedLookup')]] : [])],
     editing ? editing.kind : 'binary', () => renderForm());
   const formBox = el('div', { style: 'display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:4px' });
   const numOpts = nums.map(c => [c, c]);
@@ -4592,6 +4641,46 @@ function renderDerived() {
       const by = select(cols.map(c => [c, c]), E.by || catOpts[0] || cols[0], () => {});
       formBox._get = () => ({ kind: 'groupagg', col: col.value, agg: agg.value, by: by.value });
       formBox.append(col, agg, el('span', {}, t('cfg.derivedWithin')), by);
+    } else if (kindSel.value === 'lookup') {
+      /* 파일 간 결합 — 다른 파일에서 키로 값을 찾아 컬럼 하나로 붙인다(행은 늘지 않는다).
+         정의 하나 = 컬럼 하나다. 메타를 넷 붙이려면 정의를 넷 만든다 —
+         `derivedApplied`·이름 충돌 검사·`colUsage`가 전부 "정의 1 = 이름 1"을 전제한다. */
+      const dsOpts = state.datasets.map(d => [d.name, d.name]);
+      const from = select(dsOpts, E.from || state.datasets[0].name, () => { refreshCols(); syncHint(); });
+      const colSel = select([], '', () => syncHint());
+      const agg = select([['first', t('opt.lookupFirst')], ['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')],
+        ['min', t('opt.aggMin')], ['max', t('opt.aggMax')], ['count', t('opt.aggCount')]], E.agg || 'first', () => {});
+      const keysBox = el('span', { style: 'display:inline-flex;gap:6px;flex-wrap:wrap' });
+      const hint = el('div', { class: 'hint', style: 'width:100%' });
+      const refreshCols = () => {
+        const avail = datasetColumns(from.value).filter(c => c !== '_source');
+        const keep = colSel.value;
+        colSel.innerHTML = '';
+        avail.forEach(c => colSel.append(el('option', { value: c }, c)));
+        colSel.value = avail.includes(E.col) && keep === '' ? E.col : (avail.includes(keep) ? keep : (avail[0] || ''));
+        /* 키 후보는 **양쪽에 다 있는 컬럼**만 — 한쪽에만 있는 컬럼으로 맞추면 한 행도 안 붙는다 */
+        keysBox.innerHTML = '';
+        const others = new Set(state.datasets.filter(d => d.name !== from.value).flatMap(d => datasetColumns(d.name)));
+        cols.filter(c => avail.includes(c) && others.has(c)).forEach(c => keysBox.append(el('label', { class: 'inline' },
+          el('input', { type: 'checkbox', 'data-k': c, ...((E.keys || []).includes(c) ? { checked: '' } : {}),
+            onchange: () => syncHint() }), c)));
+        if (!keysBox.children.length) keysBox.append(el('span', { class: 'hint' }, t('cfg.lookupNoKeys')));
+      };
+      /* 짝이 몇 행에 붙는지 미리 센다 — 0행이면 조용히 빈 컬럼이 생기는 것이 가장 나쁘다 */
+      const syncHint = () => {
+        const keys = [...keysBox.querySelectorAll('input:checked')].map(cb => cb.getAttribute('data-k'));
+        if (!keys.length) { hint.textContent = t('cfg.lookupPickKey'); return; }
+        const src = new Set();
+        for (const r of allRows()) if (r._source === from.value) src.add(keys.map(k => String(r[k])).join(''));
+        const targets = allRows().filter(r => r._source !== from.value);
+        const hit = targets.filter(r => src.has(keys.map(k => String(r[k])).join(''))).length;
+        hint.textContent = tf('cfg.lookupMatch', { hit, total: targets.length });
+      };
+      refreshCols(); syncHint();
+      formBox._get = () => ({ kind: 'lookup', from: from.value, col: colSel.value, agg: agg.value,
+        keys: [...keysBox.querySelectorAll('input:checked')].map(cb => cb.getAttribute('data-k')) });
+      formBox.append(from, el('span', {}, '·'), colSel, el('span', {}, t('cfg.derivedMatch')), keysBox, agg, hint,
+        el('div', { class: 'hint', style: 'width:100%' }, t('cfg.lookupHint').replace(/\*\*/g, '')));
     } else {
       const val = select(numOpts, E.valueCol || nums[0], () => {}), refCol = select(cols.map(c => [c, c]), E.refCol || cols[0], () => refreshVals()), refVal = select([], '', () => {});
       const mode = select([['delta', t('opt.derivedDelta')], ['retention', t('opt.derivedRetention')]], E.mode || 'delta', () => {});

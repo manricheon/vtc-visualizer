@@ -107,6 +107,7 @@ ours,4000,4.1,0.744,MMLU
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
 | **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
+| **Join across files** | Computed columns → kind `Look up from another file`: finds a value in another file **by key and attaches it as one column** (e.g. `params_b` from `models.csv` onto `runs.csv`). Only columns present in **both** files are offered as keys, and picking one immediately tells you **how many rows will find a match**. Several matches fold via first/mean/sum/min/max/count. **Rows are never multiplied** |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
@@ -167,6 +168,13 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.25 — joining across files
+- **Values from another file can be looked up by key.** Computed columns gained the kind `Look up from another file` — keep `runs.csv` (measurements) and `models.csv` (metadata such as parameters and price) separate and still use both in one chart. Until now merging files only stacked rows, so this shape was out of reach.
+- **Rows are never multiplied.** Only a column is attached — growing the row set would break the notion of "the same row" that exclusions, fading, point labels and text-marker anchors all rely on. Several matches fold via first/mean/sum/min/max/count.
+- **No silently empty column**: only columns present in both files are offered as keys, and picking one immediately counts how many rows will find a match. Unmatched rows get a blank, not a zero.
+- Computed columns defined earlier can serve as the key — build a composite one with `Label join` and match on two columns at once (definition order is evaluation order).
+- **Bug fix**: computed columns were leaking into how "the same row" is recognised, so re-loading the same file while a computed column existed **wiped every exclusion and fade you had marked by hand**. Computed columns are regenerated from the data, so they are now excluded from that identity.
 
 ### v0.24 — reachable by keyboard, a less crowded panel
 - **The tool now works without a mouse.** Until now most settings controls had a visible label but no programmatic one (zero `<label>` associations), popovers could not be tabbed into, and sorting the table was click-only.
