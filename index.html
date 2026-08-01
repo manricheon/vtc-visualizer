@@ -46,6 +46,7 @@
     --grid: #34363b; --axis: #4a4c52; --border: rgba(255,255,255,0.13); --accent: #5a9ef0; --danger: #f2635f; --hover: #223247;
   }
   * { box-sizing: border-box; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   body {
     margin: 0; background: var(--page); color: var(--ink-1);
     font-family: var(--font); font-size: 14px; line-height: 1.5;
@@ -1512,12 +1513,14 @@ function removeDataset(id) {
   });
   return;
 }
-function allRows() { return state.datasets.flatMap(d => d.rows); }
-/* 컬럼 목록·숫자 판정·고유값은 매 호출마다 전 행을 훑는다. 설정 패널 하나를 그리는 데 수십 번 불리므로
-   데이터가 바뀔 때만 무효화되는 캐시를 둔다(dataVer는 데이터셋·계산 컬럼이 바뀔 때만 증가). */
-let dataVer = 0, colCache = null, numColCache = null;
+let dataVer = 0, allRowsCache = null, colCache = null, numColCache = null;
 const uniqCache = new Map();
-function invalidateDataCaches() { dataVer++; colCache = null; numColCache = null; uniqCache.clear(); sizeRangeCache = null; }
+function invalidateDataCaches() { dataVer++; allRowsCache = null; colCache = null; numColCache = null; uniqCache.clear(); sizeRangeCache = null; }
+function allRows() {
+  if (allRowsCache) return allRowsCache;
+  allRowsCache = state.datasets.flatMap(d => d.rows);
+  return allRowsCache;
+}
 function columns() {
   if (colCache) return colCache;
   const set = new Set();
@@ -4874,6 +4877,20 @@ document.getElementById('btnExample').addEventListener('click', () => {
   addDataset('example.csv', parseAny(EXAMPLE_CSV, 'example.csv'));
   showToast(t('toast.exampleLoaded'));
 });
+function debounce(fn, ms = 150) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
+window.addEventListener('resize', debounce(() => {
+  for (const c of state.charts) {
+    const gd = plotDivs[c.id];
+    if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd);
+  }
+}, 150));
+
 document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (e.key !== 'Escape') return;
   const modal = document.getElementById('modalBack');
