@@ -263,6 +263,8 @@
   #ptPopover input[type="text"] { width: 100%; }
   /* 컬럼 목록: 많을 수 있으므로 자체 스크롤 */
   #ptPopover .pp-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+  #ptPopover .pp-sub { margin-top: var(--sp-2); color: var(--ink-muted); font-size: var(--fs-xs); font-weight: 600; }
+  #ptPopover .melt-list { max-height: 150px; }
   #ptPopover .pp-check { display: flex; align-items: baseline; gap: var(--sp-2); padding: 3px 4px; border-radius: var(--radius); cursor: pointer; }
   #ptPopover .pp-check:hover { background: var(--hover); }
   #ptPopover .pp-check .cname { flex: 1; font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -385,6 +387,10 @@
 
 <script>
 'use strict';
+/* 공유용 HTML을 만들 때 쓸 **손대지 않은 body 마크업**을 지금(렌더 전에) 붙잡아 둔다.
+   렌더가 시작된 뒤의 DOM에는 그려진 차트·표·팝오버가 섞여 있어 그대로 저장하면 열리지 않는다.
+   이 문자열에는 이 스크립트 자신도 들어 있으므로, 머리(head)만 붙이면 그대로 동작하는 페이지가 된다. */
+const PRISTINE_BODY = document.body.innerHTML;
 /* =====================================================================
  * VTC Visualizer — 범용 벤치마크/성능 비교 시각화 도구 (단일 파일) © mrc
  * 데이터 계약: CSV(헤더+행) 또는 JSON 객체 배열. 필수 컬럼 없음.
@@ -392,7 +398,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.26';
+const APP_VERSION = 'v0.27';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -731,6 +737,25 @@ const I18N = {
     'pt.sizePlaceholder': '크기',
     'btn.save': '저장',
     'table.allIncludeTitle': '전체 포함/제외',
+    'btn.exportStandalone': '공유용 HTML 한 장',
+    'err.noDataToExport': '먼저 데이터를 불러오세요.',
+    'toast.shareCdn': 'HTML 한 장으로 저장했습니다 — 이 파일은 차트 라이브러리를 인터넷에서 받습니다. 완전 오프라인으로 주려면 index-offline.html에서 만드세요.',
+    'toast.shareOffline': 'HTML 한 장으로 저장했습니다 — 인터넷 없이도 열립니다.',
+    'watch.label': '폴더 감시',
+    'watch.title': '지정한 폴더의 파일이 바뀌면 자동으로 다시 읽습니다 — 실험을 돌리는 중에 열어 두세요. 제외·흐리게 표시는 유지됩니다.',
+    'toast.watchUpdated': '{n}개 파일이 갱신되었습니다.',
+    'melt.title': '녹이기 (가로 → 세로)',
+    'melt.hint': '컬럼이 가로로 펼쳐진 파일(method_a, method_b …)을 한 행 = 한 측정점 형태로 바꿉니다. 원본은 그대로 두고 새 데이터셋을 만듭니다.',
+    'melt.valueCols': '녹일 컬럼 (값이 되는 것)', 'melt.idCols': '남길 컬럼 (조건)',
+    'melt.varName': '이름 컬럼', 'melt.valName': '값 컬럼',
+    'melt.varDefault': '항목', 'melt.valDefault': '값',
+    'melt.preview': '{from}행 → 최대 {to}행 (빈 칸은 건너뜁니다)',
+    'melt.run': '녹여서 추가',
+    'melt.needValue': '녹일 컬럼을 하나 이상 고르세요.',
+    'melt.nameClash': '이름/값 컬럼이 남길 컬럼과 겹칩니다 — 다른 이름을 쓰세요.',
+    'melt.empty': '녹인 결과가 비었습니다 — 고른 컬럼에 값이 없습니다.',
+    'melt.tooBig': '결과가 너무 큽니다 ({max}행 초과). 녹일 컬럼을 줄이세요.',
+    'melt.done': '{n}행으로 녹였습니다.',
     'card.asTable': '표', 'card.asTableTitle': '이 차트를 표로도 보기 (그래프를 읽을 수 없는 경우·정확한 값 확인)',
     'card.tableCap': '이 차트의 데이터 {n}행',
     'card.tableCapCut': '이 차트의 데이터 {total}행 중 처음 {n}행',
@@ -1138,6 +1163,25 @@ const I18N = {
     'pt.sizePlaceholder': 'Size',
     'btn.save': 'Save',
     'table.allIncludeTitle': 'Include/exclude all',
+    'btn.exportStandalone': 'Share as one HTML file',
+    'err.noDataToExport': 'Load some data first.',
+    'toast.shareCdn': 'Saved as one HTML file — it fetches the chart library from the internet. Build it from index-offline.html for a fully offline copy.',
+    'toast.shareOffline': 'Saved as one HTML file — it opens without internet.',
+    'watch.label': 'Watch folder',
+    'watch.title': 'Reloads files from the served folder as they change — leave it on while a run is in progress. Exclusions and fading are kept.',
+    'toast.watchUpdated': '{n} file(s) reloaded.',
+    'melt.title': 'Melt (wide → long)',
+    'melt.hint': 'Turns a file whose columns are spread sideways (method_a, method_b …) into one row per measurement. The original is left alone; this adds a new dataset.',
+    'melt.valueCols': 'Columns to melt (become values)', 'melt.idCols': 'Columns to keep (conditions)',
+    'melt.varName': 'Name column', 'melt.valName': 'Value column',
+    'melt.varDefault': 'variable', 'melt.valDefault': 'value',
+    'melt.preview': '{from} rows → up to {to} rows (blanks are skipped)',
+    'melt.run': 'Melt and add',
+    'melt.needValue': 'Pick at least one column to melt.',
+    'melt.nameClash': 'The name/value column collides with a kept column — use a different name.',
+    'melt.empty': 'The result is empty — the columns you picked hold no values.',
+    'melt.tooBig': 'The result would be too large (over {max} rows). Melt fewer columns.',
+    'melt.done': 'Melted into {n} rows.',
     'card.asTable': 'Table', 'card.asTableTitle': 'Also show this chart as a table (when the graph cannot be read, or to check exact values)',
     'card.tableCap': '{n} rows behind this chart',
     'card.tableCapCut': 'First {n} of {total} rows behind this chart',
@@ -4709,9 +4753,80 @@ function renderChips() {
   for (const d of state.datasets) {
     box.append(el('span', { class: 'chip' },
       d.name, el('span', { class: 'n' }, tf('chips.rows', { n: d.rows.length })),
+      el('button', { title: t('melt.title'), onclick: e => showMeltPopover(d, e) }, '⇲'),
       el('button', { title: t('btn.delete'), onclick: () => askRemoveDataset(d.id) }, '×'),
     ));
   }
+}
+/* ---- wide → long 녹이기 ----
+   입력 계약은 long-form(한 행 = 한 측정점)이다. 컬럼이 `method_a, method_b`처럼 **가로로 펼쳐진** 파일은
+   여태 문 앞에서 막혔다 — 축·그룹·필터가 전부 "컬럼 하나 = 한 가지 것"을 전제하기 때문이다.
+   행이 늘어나므로 계산 컬럼(행 안에서만 동작)이 아니라 **파일 단위 변환**이다: 원본은 그대로 두고 새 데이터셋을 만든다. */
+const MELT_MAX_ROWS = 500000;
+function meltRows(rows, idCols, valCols, varName, valName) {
+  const out = [];
+  for (const r of rows) {
+    for (const c of valCols) {
+      const v = r[c];
+      if (v === null || v === undefined || v === '') continue;   // 빈 칸은 측정점이 아니다
+      const o = {};
+      for (const k of idCols) o[k] = r[k];
+      o[varName] = c;
+      o[valName] = v;
+      out.push(o);
+    }
+  }
+  return out;
+}
+function showMeltPopover(ds, mouseEv) {
+  popover.innerHTML = '';
+  const cols = Object.keys(ds.rows[0] || {}).filter(c => !c.startsWith('_'));
+  const numeric = new Set(cols.filter(c => ds.rows.some(r => typeof r[c] === 'number')));
+  const mk = (c, checked) => el('label', { class: 'pp-check' },
+    el('input', { type: 'checkbox', 'data-c': c, ...(checked ? { checked: '' } : {}) }), c);
+  const valBox = el('div', { class: 'pp-list melt-list' });
+  const idBox = el('div', { class: 'pp-list melt-list' });
+  /* 기본 추정: 숫자 컬럼이 녹일 값, 나머지가 남길 조건 — 대개 이게 맞고 틀리면 체크로 고친다 */
+  cols.forEach(c => { valBox.append(mk(c, numeric.has(c))); idBox.append(mk(c, !numeric.has(c))); });
+  const varInp = el('input', { type: 'text', value: t('melt.varDefault'), 'aria-label': t('melt.varName') });
+  const valInp = el('input', { type: 'text', value: t('melt.valDefault'), 'aria-label': t('melt.valName') });
+  const info = el('div', { class: 'pp-note' });
+  const pick = box => [...box.querySelectorAll('input:checked')].map(i => i.getAttribute('data-c'));
+  const sync = () => {
+    const n = ds.rows.length * pick(valBox).length;
+    info.textContent = tf('melt.preview', { from: ds.rows.length, to: n });
+  };
+  valBox.addEventListener('change', sync);
+  sync();
+  const run = () => {
+    const valCols = pick(valBox), idCols = pick(idBox).filter(c => !valCols.includes(c));
+    if (!valCols.length) { alert(t('melt.needValue')); return; }
+    if (ds.rows.length * valCols.length > MELT_MAX_ROWS) { alert(tf('melt.tooBig', { max: MELT_MAX_ROWS.toLocaleString() })); return; }
+    const varName = varInp.value.trim() || t('melt.varDefault');
+    const valName = valInp.value.trim() || t('melt.valDefault');
+    if (idCols.includes(varName) || idCols.includes(valName)) { alert(t('melt.nameClash')); return; }
+    const rows = meltRows(ds.rows, idCols, valCols, varName, valName);
+    if (!rows.length) { alert(t('melt.empty')); return; }
+    hidePopover();
+    addDataset(meltName(ds.name), rows);
+    showToast(tf('melt.done', { n: rows.length }));
+  };
+  popover.append(el('div', { class: 'pp-title' }, t('melt.title')),
+    el('div', { class: 'pp-note' }, t('melt.hint')),
+    el('div', { class: 'pp-sub' }, t('melt.valueCols')), valBox,
+    el('div', { class: 'pp-sub' }, t('melt.idCols')), idBox,
+    el('div', { class: 'pp-row' }, varInp, valInp),
+    info,
+    el('div', { class: 'pp-row' }, el('button', { onclick: run }, t('melt.run')),
+      el('button', { onclick: hidePopover }, t('btn.cancel'))));
+  placePopover(mouseEv, t('melt.title'));
+}
+/* 이름이 겹치면 같은 이름 데이터셋을 덮어쓰게 되므로 비어 있는 이름을 찾는다 */
+function meltName(base) {
+  const stem = base.replace(/\.(csv|tsv|json)$/i, '');
+  let name = `${stem}-long.csv`;
+  for (let i = 2; state.datasets.some(d => d.name === name); i++) name = `${stem}-long-${i}.csv`;
+  return name;
 }
 /* 계산 컬럼 패널 — 이항 연산 / 기준 대비 델타 */
 let derivedEditIdx = -1;
@@ -4973,6 +5088,11 @@ function save() {
   }, 400);
 }
 function loadSaved() {
+  /* 공유 파일로 열린 경우 — 받는 사람의 localStorage가 아니라 **파일에 박힌 상태**로 연다.
+     저장은 평소대로 되므로, 받은 사람이 손을 대면 그때부터는 자기 브라우저에 남는다. */
+  if (window.__VTC_EMBED && window.__VTC_EMBED.datasets) {
+    try { restoreSession(window.__VTC_EMBED); return true; } catch (e) { console.warn('embed restore failed', e); }
+  }
   try {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
     if (s && s.datasets) {
@@ -5021,6 +5141,31 @@ function exportSession() {
   const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
   const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-session.json' });
   a.click(); URL.revokeObjectURL(a.href);
+}
+function sessionPayload() {
+  return { datasets: state.datasets, charts: state.charts.map(serializableChart), derived: state.derived,
+    hiddenCols: state.hiddenCols, nextId: state.nextId, presets: loadPresets(),
+    ui: { lang: LANG, theme: THEME, width: WIDTH, palette: PALETTE_THEME } };
+}
+/* ---- 상태 그대로 HTML 한 장 ----
+   세션 JSON은 "이 도구를 이미 가진 사람"에게만 쓸모가 있다. 받는 사람이 더블클릭만 하면 되게 하려면
+   앱과 데이터가 한 파일에 있어야 한다: 지금 페이지의 머리(head, 오프라인 빌드라면 Plotly까지 들어 있다) +
+   렌더 전에 붙잡아 둔 body + 상태를 심는 스크립트.
+   상태 스크립트는 **앱 스크립트보다 먼저** 놓는다 — `loadSaved()`가 그것을 보고 열기 때문이다. */
+function exportStandalone() {
+  if (!state.datasets.length) { alert(t('err.noDataToExport')); return; }
+  const json = JSON.stringify(sessionPayload())
+    .replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/\u2028|\u2029/g, m => '\\u' + m.charCodeAt(0).toString(16));
+  const cdn = /cdn\.plot\.ly/.test(document.head.innerHTML);
+  const html = '<!doctype html>\n<html lang="' + esc(document.documentElement.lang || 'ko') + '">\n'
+    + document.head.outerHTML + '\n<body>\n'
+    + '<script>window.__VTC_EMBED = ' + json + ';<\/script>\n'
+    + PRISTINE_BODY + '\n</body>\n</html>';
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'vtc-visualizer-share.html' });
+  a.click(); URL.revokeObjectURL(a.href);
+  /* CDN판으로 만들면 받는 사람은 인터넷이 있어야 한다 — 조용히 넘기면 비행기에서 열다가 빈 화면을 본다 */
+  showToast(t(cdn ? 'toast.shareCdn' : 'toast.shareOffline'));
 }
 /* ---- 현재 표(검색 반영, 제외 행 제거)를 CSV로 ---- */
 function toCSV(rows, cols) {
@@ -5483,6 +5628,7 @@ document.getElementById('btnExportMenu').addEventListener('click', e => {
     el('div', { class: 'pp-title' }, t('btn.exportMenu')),
     item(t('btn.report'), exportReport),
     item(t('btn.exportAll'), exportAllCharts),
+    item(t('btn.exportStandalone'), exportStandalone),
     item(t('btn.exportSession'), exportSession),
     item(t('btn.importSession'), importSession),
   );
@@ -5559,7 +5705,61 @@ async function tryServerAutoload() {
       }
     }
     if (reloaded) showToast(tf('toast.reloaded', { n: reloaded }));
+    serverMode = true;
+    await refreshWatchStat();
+    setupWatchUI();
   } catch (e) { /* 서버 없음 — 정상 */ }
+}
+
+/* ---- 폴더 감시 ----
+   실험을 돌리는 중에 열어 두면 새 결과가 저절로 들어오게 한다.
+   갱신은 `addDataset`을 그대로 태우므로 **행 정체성으로 제외·흐리게 표시가 되붙는다**(v0.14).
+   지문(mtime-size)이 바뀐 파일만 다시 받는다 — 매번 전부 받으면 큰 폴더에서 화면이 계속 덜컹인다.
+   **사라진 파일은 지우지 않는다**: 파일이 잠깐 없는 순간(쓰는 중·이름 바꾸는 중)에 화면에서 데이터가 사라지면
+   내가 지운 것도 아닌데 되돌릴 길이 없다. */
+const WATCH_KEY = 'vtc-visualizer:watch';
+const WATCH_MS = 4000;
+let serverMode = false, watchTimer = null, watchStat = {};
+async function refreshWatchStat() {
+  try {
+    const r = await fetch('api/stat');
+    if (r.ok) watchStat = await r.json();
+  } catch (e) { /* 무시 — 다음 주기에 다시 본다 */ }
+}
+async function watchTick() {
+  let now;
+  try {
+    const r = await fetch('api/stat');
+    if (!r.ok) return;
+    now = await r.json();
+  } catch (e) { return; }
+  const changed = Object.keys(now).filter(n => watchStat[n] !== now[n]);
+  watchStat = now;
+  if (!changed.length) return;
+  let n = 0;
+  for (const name of changed) {
+    try {
+      const r = await fetch('api/file?name=' + encodeURIComponent(name));
+      if (!r.ok) continue;
+      addDataset(name, parseAny(await r.text(), name));
+      n++;
+    } catch (e) { console.warn('감시 갱신 실패:', name, e); }
+  }
+  if (n) showToast(tf('toast.watchUpdated', { n }));
+}
+function setWatching(on) {
+  clearInterval(watchTimer); watchTimer = null;
+  if (on) watchTimer = setInterval(watchTick, WATCH_MS);
+  try { localStorage.setItem(WATCH_KEY, on ? '1' : '0'); } catch (e) { /* 저장 못 해도 이번 세션은 동작 */ }
+}
+function setupWatchUI() {
+  const zone = document.querySelector('#dropzone .btns');
+  if (!zone || document.getElementById('watchWrap')) return;
+  const on = localStorage.getItem(WATCH_KEY) === '1';
+  const cb = el('input', { type: 'checkbox', id: 'watchChk', ...(on ? { checked: '' } : {}),
+    onchange: e => setWatching(e.target.checked) });
+  zone.append(el('label', { class: 'inline', id: 'watchWrap', title: t('watch.title') }, cb, t('watch.label')));
+  if (on) setWatching(true);
 }
 
 /* ================= init ================= */

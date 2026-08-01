@@ -110,6 +110,19 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/api/files":
             files = _data_files(self.data_dir.resolve()) if self.data_dir else []
             self._send(200, json.dumps(files).encode(), "application/json")
+        elif path == "/api/stat":
+            # 폴더 감시용 지문 — {상대경로: "mtime-size"}. 목록(/api/files)과 **같은 규칙**으로 훑어야
+            # 감시가 목록에 없는 파일을 물고 늘어지지 않는다.
+            out = {}
+            if self.data_dir:
+                base = self.data_dir.resolve()
+                for name in _data_files(base):
+                    try:
+                        st = (base / name).stat()
+                    except OSError:
+                        continue  # 훑는 사이에 지워졌으면 그냥 빠진다
+                    out[name] = "%d-%d" % (int(st.st_mtime), st.st_size)
+            self._send(200, json.dumps(out).encode(), "application/json")
         elif path == "/api/file":
             name = urllib.parse.parse_qs(parsed.query).get("name", [""])[0]
             if self.data_dir and name:
