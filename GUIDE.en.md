@@ -119,6 +119,7 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 - For text that belongs to **no single point** — measurement conditions, sample size — use `＋ Pinned note` in the Point labels group; it holds its spot through data and axis changes
 - Style → Font size 15–16 (back-of-the-room test); with 2–3 series move the legend to `Inside chart` to save space
 - Export with `PNG` (3× resolution, for slides) or `SVG` (papers, vector editing)
+- **When you have a submission spec**, pick a preset such as `Paper, 2 columns (170mm)` under Settings → `Export size`. The hint reports the pixels it will save and the pt of body text, so it is immediately clear that small text calls for **a bigger font, not a higher dpi**
 
 ![A presentation-ready chart — the title states the conclusion and a text marker points at the saturation point](assets/guide/r7-presentation.png)
 
