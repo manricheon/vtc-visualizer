@@ -21,7 +21,7 @@ import threading
 import urllib.parse
 import urllib.request
 import webbrowser
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -33,13 +33,17 @@ DATA_EXTS = {".csv", ".tsv", ".json"}
 def build_offline() -> None:
     """index.html의 Plotly CDN <script>를 인라인으로 치환해 index-offline.html 생성."""
     html = INDEX.read_text(encoding="utf-8")
-    m = re.search(r'<script src="(https://cdn\.plot\.ly/[^"]+)"[^>]*></script>', html)
+    m = re.search(r'<script\s+[^>]*src="(https://cdn\.plot\.ly/[^"]+)"[^>]*>\s*</script>', html)
     if not m:
         sys.exit("Could not find the Plotly CDN tag in index.html.")
     url = m.group(1)
     print(f"Downloading Plotly… {url}")
-    with urllib.request.urlopen(url) as res:
-        plotly_js = res.read().decode("utf-8")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as res:
+            plotly_js = res.read().decode("utf-8")
+    except Exception as err:
+        sys.exit(f"Failed to download Plotly CDN ({err}). Check your connection.")
     inline = "<script>\n" + plotly_js + "\n</script>"
     out = html.replace(m.group(0), inline, 1)
     out = out.replace("<title>VTC Visualizer</title>",
@@ -70,19 +74,33 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/api/files":
             files = []
             if self.data_dir:
-                files = sorted(p.name for p in self.data_dir.iterdir()
-                               if p.is_file() and p.suffix.lower() in DATA_EXTS)
+                base = self.data_dir.resolve()
+                files = sorted(
+                    str(p.relative_to(base)).replace("\\", "/")
+                    for p in base.rglob("*")
+                    if p.is_file() and p.suffix.lower() in DATA_EXTS
+                )
             self._send(200, json.dumps(files).encode(), "application/json")
         elif path == "/api/file":
             name = urllib.parse.parse_qs(parsed.query).get("name", [""])[0]
-            target = (self.data_dir / name).resolve() if self.data_dir else None
-            # 폴더 밖 경로 접근 차단
-            if (not target or not target.is_file()
-                    or target.parent != self.data_dir.resolve()
-                    or target.suffix.lower() not in DATA_EXTS):
-                self._send(404, b"not found", "text/plain")
-                return
-            self._send(200, target.read_bytes(), "text/plain; charset=utf-8")
+            if self.data_dir and name:
+                base = self.data_dir.resolve()
+                target = (base / name).resolve()
+                try:
+                    is_inside = target.is_relative_to(base)
+                except AttributeError:
+                    is_inside = base in target.parents
+                except ValueError:
+                    is_inside = False
+
+                if target.is_file() and is_inside and target.suffix.lower() in DATA_EXTS:
+                    sfx = target.suffix.lower()
+                    ctype = "text/csv; charset=utf-8" if sfx == ".csv" else \
+                            "application/json; charset=utf-8" if sfx == ".json" else \
+                            "text/plain; charset=utf-8"
+                    self._send(200, target.read_bytes(), ctype)
+                    return
+            self._send(404, b"not found", "text/plain")
         else:
             self._send(404, b"not found", "text/plain")
 
@@ -90,13 +108,13 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def serve(data_dir: "Optional[Path]", port: int, offline: bool = False) -> None:
+def serve(data_dir: "Optional[Path]", port: int, host: str = "127.0.0.1", offline: bool = False) -> None:
     Handler.data_dir = data_dir
     Handler.use_offline = offline
     if offline and not OFFLINE.exists():
         sys.exit("index-offline.html not found. Run: python visualizer.py build-offline")
-    server = HTTPServer(("127.0.0.1", port), Handler)
-    url = f"http://127.0.0.1:{port}/"
+    server = ThreadingHTTPServer((host, port), Handler)
+    url = f"http://{host}:{port}/"
     where = f" (data folder: {data_dir})" if data_dir else ""
     where += " [offline build]" if offline else ""
     print(f"VTC Visualizer — {url}{where}\nStop: Ctrl+C")
@@ -112,6 +130,8 @@ def main() -> None:
     ap.add_argument("target", nargs="?", default=None,
                     help="data folder to autoload, or 'build-offline'")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--host", type=str, default="127.0.0.1",
+                    help="host interface to bind (default: 127.0.0.1)")
     ap.add_argument("--offline", action="store_true",
                     help="serve index-offline.html (no CDN) instead of index.html")
     args = ap.parse_args()
@@ -125,8 +145,9 @@ def main() -> None:
         data_dir = Path(args.target).resolve()
         if not data_dir.is_dir():
             sys.exit(f"Folder not found: {data_dir}")
-    serve(data_dir, args.port, args.offline)
+    serve(data_dir, args.port, args.host, args.offline)
 
 
 if __name__ == "__main__":
     main()
+
