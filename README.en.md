@@ -31,7 +31,11 @@ Any of these three:
    python visualizer.py results/          # autoloads *.csv, *.json from results/
    python visualizer.py                   # start empty
    python visualizer.py results/ --port 8765
+   python visualizer.py results/ --host 0.0.0.0   # reach it from another machine (exposes the folder)
    ```
+
+   Subfolders are included too (they show up as relative paths like `sub/run1.csv`).
+   Hidden folders (`.git`, `.venv`, …) and symlinks pointing outside the folder are skipped, and the list stops at 500 files.
 
 The UI is bilingual — use the **KO/EN toggle** in the top-right corner (your choice is remembered).
 
@@ -162,6 +166,14 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.23 — subfolder autoload and launcher cleanup
+- **Autoload now reaches into subfolders.** Split your results across `results/a/run1.csv` and they all load at once, listed as relative paths.
+- **Hidden folders (`.git`, `.venv`, `.ipynb_checkpoints`, …) and symlinks pointing outside the folder are skipped** — tool config files have no business being read as data, and following links either escapes the folder or loops forever. The list stops at 500 files.
+- **The outside-the-folder guard now catches symlinks too**: paths are resolved to their real location before the check.
+- `--host` picks the bind address (still `127.0.0.1` by default). Binding to **`0.0.0.0` lets anyone on your network read that folder**, so it now prints a warning at startup.
+- Requests are served on threads, so reading a large file no longer freezes the page. The offline build gives up after 15 seconds with a reason when the CDN doesn't answer.
+- Internal: the all-rows list is memoised, cutting repeated scans while building config panels.
 
 ### v0.22 — half-width cards and the figures in the docs
 - **Fixed the header buttons folding in half-width cards.** `Reset view` broke into two lines that spilled out of the button box. The buttons now keep their width and the header gains a second row when space runs out.
