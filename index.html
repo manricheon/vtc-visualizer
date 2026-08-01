@@ -143,6 +143,12 @@
   .cfg-noresult { margin: 0 0 var(--sp-2); }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
+  /* 차트를 표로 — 넓은 표는 자기 안에서만 가로로 흐른다(페이지가 옆으로 밀리면 안 된다) */
+  .chart-table { padding: 0 14px 4px; }
+  .chart-table-wrap { max-height: 320px; overflow: auto; border: 1px solid var(--grid); border-radius: var(--radius); }
+  .chart-table caption { caption-side: top; text-align: left; padding: 6px 10px; color: var(--ink-muted); font-size: var(--fs-xs); }
+  .chart-table table.data th { cursor: default; }
+  .chart-table table.data th:hover { color: var(--ink-2); }
   .chart-card .plot-hint { padding: 5px 12px; font-size: 11px; color: var(--ink-muted); border-top: 1px solid var(--grid); }
   details.grp { margin-bottom: var(--sp-2); border-bottom: 1px solid var(--grid); padding-bottom: var(--sp-2); }
   details.grp summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: var(--fs-sm); padding: var(--sp-1) 0; user-select: none; letter-spacing: .01em; }
@@ -377,7 +383,7 @@
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.25';
+const APP_VERSION = 'v0.26';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -620,7 +626,8 @@ const I18N = {
     'cfg.lineType': '선 종류',
     'opt.straightLine': '직선', 'opt.spline': '곡선(스무딩)',
     'cfg.areaFill': '영역 채우기',
-    'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기',
+    'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기', 'opt.stackFill': '쌓기(누적 영역)',
+    'cfg.stackHint': '시리즈를 위로 쌓아 합계와 구성비를 함께 보여줍니다. 선이 있는 유형에서만 동작하고, 쌓기 중에는 WebGL 대신 SVG로 그립니다(WebGL은 쌓기를 지원하지 않습니다).',
     'cfg.styleHint': '시리즈별: 색 · 범례 이름 · 마커 모양/크기 · 선 종류/굵기',
     'cfg.bar': '막대 옵션',
     'cfg.barMode': '배치',
@@ -715,6 +722,24 @@ const I18N = {
     'pt.sizePlaceholder': '크기',
     'btn.save': '저장',
     'table.allIncludeTitle': '전체 포함/제외',
+    'card.asTable': '표', 'card.asTableTitle': '이 차트를 표로도 보기 (그래프를 읽을 수 없는 경우·정확한 값 확인)',
+    'card.tableCap': '이 차트의 데이터 {n}행',
+    'card.tableCapCut': '이 차트의 데이터 {total}행 중 처음 {n}행',
+    'card.tableNoCols': '축을 먼저 고르면 표로 볼 수 있습니다.',
+    'cfg.spanHint': '구간 음영: 한 축의 범위를 띠로 칠합니다 (권장 대역, 메모리 초과 구간 등). 베이스라인이 "선 하나"라면 이건 "이 범위".',
+    'cfg.addSpan': '＋ 구간', 'cfg.spanAxis': '구간 축', 'cfg.spanFrom': '시작', 'cfg.spanTo': '끝', 'cfg.spanLabel': '구간 이름(선택)',
+    'cfg.spanNeed': '시작과 끝을 서로 다른 값으로 넣어 주세요.',
+    'cfg.errCol': '오차 컬럼',
+    'cfg.errColTitle': '행마다의 ± 값이 이미 컬럼으로 있을 때 (예: score_std) — 그대로 오차막대로 그립니다',
+    'cfg.errColIgnored': '집계 중에는 이 컬럼을 쓰지 않습니다 — 점 하나가 여러 행을 대표하므로 행마다의 오차는 그 점의 오차가 아닙니다. 집계 오차막대를 쓰세요.',
+    'cfg.export': '내보내기 규격',
+    'cfg.expPreset': '규격', 'cfg.expUnit': '단위', 'cfg.expSize': '폭 × 높이',
+    'cfg.expW': '폭', 'cfg.expH': '높이', 'cfg.expHAuto': '높이(자동)',
+    'cfg.expScreenNote': '화면 크기 그대로 내보냅니다 (PNG는 3배 해상도). 논문·보고서 규격이 있으면 단위를 mm/inch로 바꾸세요.',
+    'cfg.expInfo': '{px} CSS픽셀 → PNG {out}픽셀로 저장됩니다. 이 설정에서 본문 글자는 약 {pt}pt입니다 (dpi를 올려도 글자의 물리 크기는 그대로 — 키우려면 글자 크기를 올리세요).',
+    'opt.expScreen': '화면 그대로',
+    'expPreset.custom': '(직접 지정)', 'expPreset.col1': '논문 1단 (85mm)', 'expPreset.col2': '논문 2단 (170mm)',
+    'expPreset.beamer': '슬라이드 본문 (114mm)', 'expPreset.slide': '슬라이드 전체 (10in)',
     'cfg.searchNone': '"{q}"에 맞는 설정이 없습니다. 검색어를 지우면 전체가 다시 보입니다.',
     'cfg.addBaseline': '＋ 추가',
     'cfg.addBaselineX': '베이스라인 x 값',
@@ -1008,7 +1033,8 @@ const I18N = {
     'cfg.lineType': 'Line style',
     'opt.straightLine': 'Straight', 'opt.spline': 'Curved (spline)',
     'cfg.areaFill': 'Area fill',
-    'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line',
+    'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line', 'opt.stackFill': 'Stack (cumulative area)',
+    'cfg.stackHint': 'Stacks the series so the total and each share read together. Works on line types only, and draws with SVG instead of WebGL while stacking (WebGL has no stacking).',
     'cfg.styleHint': 'Per series: color · legend name · marker shape/size · line style/width',
     'cfg.bar': 'Bar options',
     'cfg.barMode': 'Layout',
@@ -1103,6 +1129,24 @@ const I18N = {
     'pt.sizePlaceholder': 'Size',
     'btn.save': 'Save',
     'table.allIncludeTitle': 'Include/exclude all',
+    'card.asTable': 'Table', 'card.asTableTitle': 'Also show this chart as a table (when the graph cannot be read, or to check exact values)',
+    'card.tableCap': '{n} rows behind this chart',
+    'card.tableCapCut': 'First {n} of {total} rows behind this chart',
+    'card.tableNoCols': 'Pick the axes first to see this as a table.',
+    'cfg.spanHint': 'Span shading: paints a range on one axis (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range".',
+    'cfg.addSpan': '＋ Span', 'cfg.spanAxis': 'Span axis', 'cfg.spanFrom': 'From', 'cfg.spanTo': 'To', 'cfg.spanLabel': 'Span label (optional)',
+    'cfg.spanNeed': 'Enter a start and an end that differ.',
+    'cfg.errCol': 'Error column',
+    'cfg.errColTitle': 'When the ± value per row already exists as a column (e.g. score_std) — drawn as error bars directly',
+    'cfg.errColIgnored': 'Ignored while aggregating — one point stands for several rows, so a per-row error is not that point\'s error. Use the aggregate error bars instead.',
+    'cfg.export': 'Export size',
+    'cfg.expPreset': 'Preset', 'cfg.expUnit': 'Unit', 'cfg.expSize': 'Width × height',
+    'cfg.expW': 'Width', 'cfg.expH': 'Height', 'cfg.expHAuto': 'Height (auto)',
+    'cfg.expScreenNote': 'Exports at the on-screen size (PNG at 3×). Switch the unit to mm/inch if you have a paper or report spec to hit.',
+    'cfg.expInfo': '{px} CSS px → saved as a {out} px PNG. Body text comes out at about {pt}pt here (raising dpi does not change the physical text size — raise the font size for that).',
+    'opt.expScreen': 'On-screen size',
+    'expPreset.custom': '(custom)', 'expPreset.col1': 'Paper, 1 column (85mm)', 'expPreset.col2': 'Paper, 2 columns (170mm)',
+    'expPreset.beamer': 'Slide body (114mm)', 'expPreset.slide': 'Full slide (10in)',
     'cfg.searchNone': 'No setting matches "{q}". Clear the box to see them all again.',
     'cfg.addBaseline': '＋ Add',
     'cfg.addBaselineX': 'Baseline x value',
@@ -1460,7 +1504,30 @@ function defaultChart() {
     plotHeight: 460,            // 플롯 높이(px)
     cardWidth: 'full',          // full | half — 절반이면 두 차트 나란히
     heatZ: '', heatAgg: 'mean', heatText: 'none',   // 히트맵: 색 값 컬럼·집계·셀 값 표시
+    errCol: '',                 // 숫자 컬럼 → 행마다 ± 오차막대 (이미 계산된 std 컬럼이 있을 때). 집계 중에는 무시
+    spans: [],                  // [{axis:'x'|'y', from, to, label}] — 구간 음영(권장 범위·OOM 구간 등)
+    /* 내보내기 규격: 화면 그대로(screen) 또는 물리 크기(mm/in).
+       물리 크기는 96 CSS dpi 기준 픽셀로 환산하고 `scale`에 dpi/96을 준다 —
+       그래야 글자 크기가 dpi와 무관하게 같은 물리 크기로 나온다(px 그대로 키우면 글자만 작아진다). */
+    expUnit: 'screen',          // screen | mm | in
+    expW: '', expH: '',         // 물리 폭·높이 (H가 비면 화면 비율 유지)
+    expDpi: 300,                // 물리 크기일 때만 의미 있음
   };
+}
+/* 내보내기 크기 계산 — 화면 그대로면 지금까지와 같은 동작(폭=clientWidth, PNG는 3배) */
+const EXPORT_PRESETS = [
+  ['', 'expPreset.custom'], ['85:mm', 'expPreset.col1'], ['170:mm', 'expPreset.col2'],
+  ['114:mm', 'expPreset.beamer'], ['10:in', 'expPreset.slide'],
+];
+function exportSize(cfg, div, format) {
+  const cw = div.clientWidth || 900, chh = div.clientHeight || 480;
+  const w = Number(cfg.expW), h = Number(cfg.expH);
+  if (cfg.expUnit === 'screen' || !w) return { width: cw, height: chh, scale: format === 'png' ? 3 : 1 };
+  const per = cfg.expUnit === 'in' ? 96 : 96 / 25.4;   // 물리 단위 → CSS 픽셀
+  const width = Math.round(w * per);
+  const height = Math.round(h ? h * per : width * (chh / cw));
+  const dpi = Math.max(72, Math.min(1200, Number(cfg.expDpi) || 300));
+  return { width, height, scale: format === 'png' ? dpi / 96 : 1 };
 }
 
 /* ================= parsing ================= */
@@ -1863,6 +1930,8 @@ function buildTraces(cfg) {
 const GL_MIN_POINTS = 5000;
 function useGl(cfg, nPoints) {
   if (cfg._forceSvg || cfg.renderMode === 'svg') return false;
+  /* scattergl은 stackgroup을 지원하지 않는다 — 켜 두면 쌓이지 않고 겹쳐 그려져 조용히 틀린 그림이 된다 */
+  if (cfg.areaFill === 'stack') return false;
   if (cfg.renderMode === 'gl') return true;
   return nPoints >= GL_MIN_POINTS;
 }
@@ -1899,6 +1968,12 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
           type: 'data', array: cfg.barError === 'sem' ? agg.sems : agg.stds,
           visible: true, color: CHROME.ink, thickness: 1.2, width: 4,
         };
+      } else if (cfg.barAgg === 'none' && cfg.errCol) {
+        /* 집계하지 않을 때만 — 집계하면 막대 하나가 여러 행이라 행마다의 오차가 그 막대의 오차가 아니다 */
+        tr[horiz ? 'error_x' : 'error_y'] = {
+          type: 'data', visible: true, color: CHROME.ink, thickness: 1.2, width: 4,
+          array: pts.map(r => (typeof r[cfg.errCol] === 'number' ? Math.abs(r[cfg.errCol]) : null)),
+        };
       }
       if (cfg.barText === 'value') {
         tr.text = agg.ys.map(fmtBarVal);
@@ -1910,6 +1985,9 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
     } else {
       const hasLine = lineMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
+      /* 쌓기: 막대에는 있는데 선에는 없어서 구성비 추이를 못 그렸다.
+         Plotly의 stackgroup은 **본 시리즈 trace에만** 준다 — 추세선·흐리게·__fillbase가 끼면 합이 틀어진다. */
+      const useStack = hasLine && cfg.areaFill === 'stack';
       const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumnsAll().includes(cfg.colorBy);
       let npts = pts.filter(r => !isMutedRow(cfg, r));   // 강조(일반)
       const mpts = pts.filter(r => isMutedRow(cfg, r));    // 흐리게(배경 맥락) — 클릭 흐리게 + 흐리게 필터
@@ -1975,7 +2053,12 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
         x: mx, y: my, customdata: cfg.ptAgg === 'none' ? npts.map(labelfn) : mx, hovertemplate: hoverT,
         marker, line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
         ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
+        ...(useStack ? { stackgroup: 'one', fillcolor: hexToRgba(st.color, 0.55) } : {}),
         ...(cfg.ptAgg !== 'none' && cfg.ptError !== 'none' ? { error_y: { type: 'data', array: errs, visible: true, color: st.color, thickness: 1.2, width: 4 } } : {}),
+        /* 이미 계산된 오차 컬럼(예: score_std)을 그대로 쓴다. **집계 중에는 무시한다** —
+           집계하면 점이 여러 행을 대표하므로 행마다의 오차는 그 점의 오차가 아니다(ptError가 그 자리를 맡는다). */
+        ...(cfg.ptAgg === 'none' && cfg.errCol ? { error_y: { type: 'data', visible: true, color: st.color, thickness: 1.2, width: 4,
+          array: npts.map(r => (typeof r[cfg.errCol] === 'number' ? Math.abs(r[cfg.errCol]) : null)) } } : {}),
       });
       if (cfg.trend !== 'none') {
         traces.push(...trendTraces(cfg, name, npts.map(r => ({ x: r[cfg.x], y: r[cfg.y] })), st.color));
@@ -2418,7 +2501,38 @@ function baselineShapes(cfg, gd) {
       });
     }
   }
+  /* 구간 음영 — 베이스라인은 선이라 "이 범위"를 말할 수 없다(권장 대역, OOM 구간 …).
+     한 축은 데이터 좌표, 다른 축은 paper(0~1)라 줌·범위 변경과 무관하게 띠가 화면을 가로지른다. */
+  for (const sp of (cfg.spans || [])) {
+    const a = Number(sp.from), b = Number(sp.to);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || a === b) continue;
+    const [lo, hi] = a < b ? [a, b] : [b, a];
+    const onX = (sp.axis || 'x') === 'x';
+    shapes.push({
+      type: 'rect', layer: 'below', line: { width: 0 }, fillcolor: hexToRgba(CHROME.ink2, 0.07),
+      ...(onX ? { xref: 'x', yref: 'paper', x0: lo, x1: hi, y0: 0, y1: 1 }
+              : { xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: lo, y1: hi }),
+    });
+  }
   return shapes;
+}
+/* 구간 라벨은 annotation이라 shapes와 따로 만든다 — 로그축에서 좌표 규약이 다르다(annotation은 log10) */
+function spanAnnotations(cfg) {
+  const out = [];
+  for (const sp of (cfg.spans || [])) {
+    if (!sp.label) continue;
+    const a = Number(sp.from), b = Number(sp.to);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    const mid = (a + b) / 2;
+    const onX = (sp.axis || 'x') === 'x';
+    out.push({
+      text: sp.label, showarrow: false, _kind: 'span',
+      font: { family: cfg.fontFamily, size: Math.max(9, cfg.fontSize - 2), color: CHROME.ink2 },
+      ...(onX ? { xref: 'x', yref: 'paper', x: axCoord(mid, cfg.xScale), y: 1, yanchor: 'bottom' }
+              : { xref: 'paper', yref: 'y', x: 0.01, xanchor: 'left', y: axCoord(mid, cfg.yScale) }),
+    });
+  }
+  return out;
 }
 function hasY2(cfg) { return !!(cfg.y2 && cfg.y2 !== cfg.y && cfg.type !== 'bar' && !cfg.facetBy); }
 function y2Layout(cfg) {
@@ -2561,7 +2675,7 @@ function buildLayout(cfg, gd, traces) {
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
-    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces)],
+    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg)],
     shapes: baselineShapes(cfg, gd),
     barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
@@ -2591,6 +2705,7 @@ function renderPlot(cfg) {
     modeBarButtonsToRemove: ['lasso2d', 'select2d'],
   }).then(() => {
     gd._vizRendering = false;
+    if (cfg._asTable) renderChartTable(cfg);   // 표는 그림과 같은 행을 보여야 한다
     /* 기준을 잃은 마커는 화면에서 사라지므로, 사라졌다는 사실을 한 번은 말해 준다 */
     if ((cfg._tmStaleN || 0) !== (cfg._tmStaleShown || 0)) {
       if (cfg._tmStaleN) showToast(tf('toast.tmStale', { n: cfg._tmStaleN }));
@@ -2957,6 +3072,7 @@ function renderChartCard(cfg) {
     } }, t('card.resetView')),
     el('button', { class: 'small', onclick: () => { cfgPanel.classList.toggle('hidden'); cfg._cfgHidden = cfgPanel.classList.contains('hidden'); } }, t('card.settings')),
     el('button', { class: 'small', onclick: e => showPresetMenu(cfg, e) }, t('card.preset')),
+    el('button', { class: 'small', title: t('card.asTableTitle'), onclick: () => toggleChartTable(cfg) }, t('card.asTable')),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'svg') }, 'SVG'),
     el('button', { class: 'small', onclick: () => duplicateChart(cfg) }, t('card.duplicate')),
@@ -2967,9 +3083,54 @@ function renderChartCard(cfg) {
   const capDiv = el('div', { class: 'plot-caption' }, cfg.caption || '');
   capDiv.hidden = !cfg.caption;
   card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
+    el('div', { class: 'chart-table', hidden: '' }),
     capDiv,
     el('div', { class: 'plot-hint' }, t('card.plotHint')));
+  if (cfg._asTable) renderChartTable(cfg, card);
   return card;
+}
+/* 그래프를 표로 — 스크린리더에게는 이것이 차트를 읽는 유일한 길이고,
+   눈으로 보는 사람에게도 "그 점의 값이 정확히 얼마인지"를 확인하는 자리다.
+   차트가 실제로 쓰는 컬럼만, 그 차트의 필터를 적용한 뒤의 행으로 만든다. */
+const CHART_TABLE_MAX = 300;
+function chartTableCols(cfg) {
+  const seen = [];
+  for (const k of ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'errCol', 'facetBy', 'labelCol', 'heatZ']) {
+    const c = cfg[k];
+    if (c && !seen.includes(c)) seen.push(c);
+  }
+  return seen;
+}
+function renderChartTable(cfg, card) {
+  const box = (card || cardOf(cfg)) && (card || cardOf(cfg)).querySelector('.chart-table');
+  if (!box) return;
+  box.innerHTML = '';
+  box.hidden = !cfg._asTable;
+  if (!cfg._asTable) return;
+  const cols = chartTableCols(cfg);
+  if (!cols.length) { box.append(el('div', { class: 'hint' }, t('card.tableNoCols'))); return; }
+  const rows = chartRows(cfg).filter(r => !r._excluded);
+  const shown = rows.slice(0, CHART_TABLE_MAX);
+  const numSet = new Set(numericColumnsAll());
+  const nc = c => numSet.has(c) ? ' class="num"' : '';
+  const head = `<thead><tr>${cols.map(c => `<th${nc(c)}>${esc(c)}</th>`).join('')}</tr></thead>`;
+  const body = shown.map(r => `<tr>${cols.map(c =>
+    `<td${nc(c)}>${r[c] === null || r[c] === undefined ? '–' : esc(r[c])}</td>`).join('')}</tr>`).join('');
+  const tbl = el('table', { class: 'data' });
+  tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
+  const cap = el('caption');
+  cap.textContent = rows.length > shown.length
+    ? tf('card.tableCapCut', { n: shown.length, total: rows.length })
+    : tf('card.tableCap', { n: rows.length });
+  tbl.prepend(cap);
+  box.append(el('div', { class: 'chart-table-wrap' }, tbl));
+}
+function toggleChartTable(cfg) {
+  cfg._asTable = !cfg._asTable;
+  renderChartTable(cfg);
+  const card = cardOf(cfg);
+  const btn = card && [...card.querySelectorAll('.head button')].find(b => b.textContent === t('card.asTable'));
+  if (btn) btn.classList.toggle('on', !!cfg._asTable);
 }
 /* 차트 크기·폭 변경을 카드 재생성 없이 반영하고 Plotly 리사이즈 (폭 변경 시 이웃 차트도 재배치되므로 전부 리사이즈) */
 function applyChartSize(cfg) {
@@ -3117,6 +3278,14 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       row(t('cfg.size'), colSelect(cfg, 'size')),
       row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })),
       ...(cfg.colorBy ? [el('div', { class: 'hint' }, t('cfg.colorByHint'))] : []),
+    ]),
+    /* 이미 계산된 오차 컬럼(예: score_std) — 집계 오차막대(ptError/barError)는 **집계할 때만** 나오므로 그 자리를 못 메운다.
+       막대에도 필요하므로 위의 산점/선 전용 묶음 밖에 둔다. 분포·히트맵·덤벨에서는 뜻이 없다. */
+    ...(isHeat || isDumbbell || isDist ? [] : [
+      row(t('cfg.errCol'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.errCol,
+        v => { cfg.errCol = v; rp(); }, { title: t('cfg.errColTitle') })),
+      ...(cfg.errCol && (isBar ? cfg.barAgg !== 'none' : cfg.ptAgg !== 'none')
+        ? [el('div', { class: 'hint' }, t('cfg.errColIgnored'))] : []),
     ]),
     ...(isHeat || isDumbbell ? [] : [
       row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
@@ -3287,7 +3456,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
       row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
           select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
-      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')], ['stack', t('opt.stackFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+      ...(cfg.areaFill === 'stack' ? [el('div', { class: 'hint' }, t('cfg.stackHint'))] : []),
       el('div', { class: 'hint' }, t('cfg.styleHint')),
     ]),
     seriesBox,
@@ -3387,11 +3557,46 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     blX.value = ''; blY.value = '';
     renderBaseList(); rp(); blX.focus();
   };
+  /* 구간 음영 — 베이스라인은 선이라 "이 범위"를 말할 수 없다(권장 대역, 메모리 초과 구간 …) */
+  const spanBox = el('div');
+  const renderSpanList = () => {
+    spanBox.innerHTML = '';
+    (cfg.spans || []).forEach((sp, i) => {
+      const nm = `${(sp.axis || 'x').toUpperCase()} ${sp.from} – ${sp.to}`;
+      const lab = el('input', { type: 'text', class: 'slabel', value: sp.label || '', placeholder: t('cfg.spanLabel'),
+        'aria-label': `${nm} ${t('cfg.spanLabel')}` });
+      lab.addEventListener('input', () => { sp.label = lab.value; rp(); save(); });
+      spanBox.append(el('div', { class: 'series-row' },
+        el('span', { class: 'sname', title: nm }, nm), lab,
+        el('button', { class: 'small danger', title: t('btn.removeItem'),
+          onclick: () => { cfg.spans.splice(i, 1); renderSpanList(); rp(); } }, '×'),
+      ));
+    });
+  };
+  renderSpanList();
+  const spAxis = select([['x', 'X'], ['y', 'Y']], 'x', () => {});
+  spAxis.setAttribute('aria-label', t('cfg.spanAxis'));
+  const spFrom = el('input', { type: 'number', step: 'any', placeholder: t('cfg.spanFrom'), 'aria-label': t('cfg.spanFrom') });
+  const spTo = el('input', { type: 'number', step: 'any', placeholder: t('cfg.spanTo'), 'aria-label': t('cfg.spanTo') });
+  const addSpan = () => {
+    const a = Number(spFrom.value), b = Number(spTo.value);
+    /* 두 값이 다 있어야 띠가 된다 — 하나만 넣으면 아무것도 안 그려지고 이유를 알 수 없다 */
+    if (spFrom.value === '' || spTo.value === '' || !Number.isFinite(a) || !Number.isFinite(b) || a === b) {
+      alert(t('cfg.spanNeed')); return;
+    }
+    cfg.spans.push({ axis: spAxis.value, from: a, to: b, label: '' });
+    spFrom.value = ''; spTo.value = '';
+    renderSpanList(); rp(); spFrom.focus();
+  };
   gBase.append(
     el('div', { class: 'hint' }, t('cfg.baselineHint')),
     baseBox,
     el('div', { class: 'series-row' }, blX, blY, blDir,
       el('button', { class: 'small', onclick: addBaseline }, t('cfg.addBaseline'))),
+    el('div', { class: 'hint' }, t('cfg.spanHint')),
+    spanBox,
+    el('div', { class: 'series-row' }, spAxis, spFrom, spTo,
+      el('button', { class: 'small', onclick: addSpan }, t('cfg.addSpan'))),
   );
 
   /* --- 고급 --- */
@@ -3423,11 +3628,49 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     ...(cfg.pareto ? [el('div', { class: 'hint' }, t('cfg.paretoHint'))] : []),
   );
 
+  /* --- 내보내기 규격 ---
+     화면 크기 × 3배로만 뽑히던 것을 제출 규격(단 폭 mm/inch, dpi)에 맞춘다.
+     글자 크기는 CSS 픽셀이라 dpi와 무관하게 물리 크기가 정해진다 — 결과 pt를 계산해 보여 준다. */
+  const gExp = el('details', { class: 'grp', 'data-g': 'export' }, el('summary', {}, t('cfg.export')));
+  const expW = el('input', { type: 'number', step: 'any', min: 10, style: 'width:76px', placeholder: t('cfg.expW'),
+    value: cfg.expW, 'aria-label': t('cfg.expW'), oninput: e => { cfg.expW = e.target.value; syncExp(); save(); } });
+  const expH = el('input', { type: 'number', step: 'any', min: 10, style: 'width:76px', placeholder: t('cfg.expHAuto'),
+    value: cfg.expH, 'aria-label': t('cfg.expH'), oninput: e => { cfg.expH = e.target.value; syncExp(); save(); } });
+  const expDpi = el('input', { type: 'number', min: 72, max: 1200, step: 10, style: 'width:76px',
+    value: cfg.expDpi, 'aria-label': 'dpi', oninput: e => { cfg.expDpi = Number(e.target.value) || 300; syncExp(); save(); } });
+  const expInfo = el('div', { class: 'hint' });
+  const syncExp = () => {
+    const div = plotDivs[cfg.id];
+    if (cfg.expUnit === 'screen' || !Number(cfg.expW)) { expInfo.textContent = t('cfg.expScreenNote'); return; }
+    const s = exportSize(cfg, div || { clientWidth: 900, clientHeight: cfg.plotHeight || 460 }, 'png');
+    /* 글자는 CSS 픽셀이므로 pt = px × 72/96 — dpi를 올려도 물리 크기는 그대로다 */
+    expInfo.textContent = tf('cfg.expInfo', {
+      px: `${s.width}×${s.height}`, out: `${Math.round(s.width * s.scale)}×${Math.round(s.height * s.scale)}`,
+      pt: (cfg.fontSize * 72 / 96).toFixed(1),
+    });
+  };
+  gExp.append(
+    row(t('cfg.expPreset'), select(EXPORT_PRESETS.map(([v, k]) => [v, t(k)]),
+      cfg.expUnit === 'screen' ? '' : `${cfg.expW}:${cfg.expUnit}`, v => {
+        if (!v) { cfg.expUnit = 'screen'; cfg.expW = ''; }
+        else { const [w, u] = v.split(':'); cfg.expUnit = u; cfg.expW = w; }
+        rebuildPanel();
+      })),
+    row(t('cfg.expUnit'), select([['screen', t('opt.expScreen')], ['mm', 'mm'], ['in', 'inch']], cfg.expUnit,
+      v => { cfg.expUnit = v; rebuildPanel(); })),
+    ...(cfg.expUnit === 'screen' ? [] : [
+      row(t('cfg.expSize'), expW, expH),
+      row('dpi', expDpi),
+    ]),
+    expInfo,
+  );
+  syncExp();
+
   // 고급(추세선·Pareto)은 산점/선 전용 — 막대에서는 숨김
   // 히트맵·덤벨은 포인트 레이블·베이스라인·추세선/Pareto가 무의미 → 숨김
   const heatDumb = isHeat || isDumbbell || isDist;
   panel.append(gData, ...(gBar ? [gBar] : []), gFilter, gAxis, gStyle,
-    ...(heatDumb ? [] : [gLabel, gBase]), ...(isBar || heatDumb ? [] : [gAdv]));
+    ...(heatDumb ? [] : [gLabel, gBase]), ...(isBar || heatDumb ? [] : [gAdv]), gExp);
   restoreGroupState(cfg, panel);
   panel.prepend(cfgSearchBox(panel));
 
@@ -3439,7 +3682,7 @@ async function exportImg(cfg, format) {
   /* WebGL로 그려진 차트를 그대로 SVG로 내보내면 그림이 래스터로 박힌다 — 잠시 SVG로 다시 그린 뒤 되돌린다 */
   const wasGl = format === 'svg' && div.data.some(tr => tr.type === 'scattergl');
   if (wasGl) { cfg._forceSvg = true; renderPlot(cfg); await new Promise(r => setTimeout(r, 250)); }
-  await Plotly.downloadImage(div, { format, width: div.clientWidth * 1.0 || 900, height: div.clientHeight || 480, scale: format === 'png' ? 3 : 1, filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
+  await Plotly.downloadImage(div, { format, ...exportSize(cfg, div, format), filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
   if (wasGl) { delete cfg._forceSvg; renderPlot(cfg); }
 }
 /* 비어 있는 축을 데이터에 맞게 채운다 — 차트 추가와 데이터셋 전환이 같은 규칙을 쓴다.
@@ -3456,7 +3699,7 @@ function guessAxes(cfg) {
 }
 /* 데이터셋을 바꾸면 그 파일에 없는 컬럼 설정은 비운다 — 남겨 두면 드롭다운에는 없는 값이 걸려
    빈 차트가 되고 화면과 설정이 어긋난다. 비운 뒤에는 차트 추가와 같은 규칙으로 축을 다시 고른다. */
-const DATASET_COL_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ'];
+const DATASET_COL_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ', 'errCol'];
 function switchDataset(cfg, name, rebuild) {
   cfg.dataset = name;
   const ok = chartColumns(cfg);
@@ -3547,8 +3790,9 @@ function relabelCards() {
     const card = cardOf(cfg);
     if (!card) continue;
     const b = card.querySelectorAll('.head button');
-    const labels = [cfg._collapsed ? '▸' : '▾', '↑', '↓', t('card.resetView'), t('card.settings'), t('card.preset'), 'PNG', 'SVG', t('card.duplicate'), t('btn.delete')];
-    const titles = [t('card.collapseTitle'), t('card.moveUpTitle'), t('card.moveDownTitle'), t('card.resetViewTitle'), '', '', '', '', '', ''];
+    /* 위치로 붙이므로 헤더 버튼을 추가·이동하면 이 배열도 같이 고쳐야 한다 */
+    const labels = [cfg._collapsed ? '▸' : '▾', '↑', '↓', t('card.resetView'), t('card.settings'), t('card.preset'), t('card.asTable'), 'PNG', 'SVG', t('card.duplicate'), t('btn.delete')];
+    const titles = [t('card.collapseTitle'), t('card.moveUpTitle'), t('card.moveDownTitle'), t('card.resetViewTitle'), '', '', t('card.asTableTitle'), '', '', '', ''];
     b.forEach((btn, i) => { if (labels[i] !== undefined) btn.textContent = labels[i]; if (titles[i]) btn.title = titles[i]; });
     const hint = card.querySelector('.plot-hint');
     if (hint) hint.textContent = t('card.plotHint');
@@ -4464,7 +4708,7 @@ function renderChips() {
 let derivedEditIdx = -1;
 /* 계산 컬럼을 지우면 그걸 축·필터로 쓰던 차트는 조용히 빈 그래프가 되고, 설정 패널은 "(선택)"으로 보이면서도
    내부적으로는 사라진 컬럼을 붙들고 있었다. 지우기 전에 어디서 쓰는지 보여주고, 지운 뒤에는 참조까지 정리한다. */
-const DERIVED_REF_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ'];
+const DERIVED_REF_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ', 'errCol'];
 /* 임의 컬럼의 사용처 — 계산 컬럼 삭제(참조를 끊는다)와 컬럼 숨김(끊지 않는다)이 함께 쓴다 */
 function colUsage(name) {
   const charts = [];
@@ -4849,7 +5093,8 @@ async function exportReport() {
     const cfg = state.charts[i], gd = plotDivs[cfg.id];
     if (!gd || !gd.data) continue;
     try {
-      const url = await Plotly.toImage(gd, { format: 'png', scale: 2, width: gd.clientWidth || 900, height: gd.clientHeight || 460 });
+      /* 리포트의 그림도 그 차트의 출력 규격을 따른다 — 규격을 정해 놓고 리포트만 다른 크기로 나오면 쓸 수가 없다 */
+      const url = await Plotly.toImage(gd, { format: 'png', ...exportSize(cfg, gd, 'png') });
       const blob = await (await fetch(url)).blob();
       downloadBlob(blob, reportImgName(cfg, i));
       saved++;

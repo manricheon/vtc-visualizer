@@ -111,6 +111,11 @@ ours,4000,4.1,0.744,MMLU
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
 | **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table |
+| **Export size** | Settings → Export size: presets for **paper 1-column (85mm), 2-column (170mm) and slides**, or mm/inch directly, plus dpi. The hint shows **the pixels it will save and the pt size of body text** (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
+| **Error column** | Settings → Data → Error column: when the ± value **already exists as a column** (e.g. `score_std`), it is drawn as error bars directly. Ignored while aggregating (the aggregate error bars take over there) |
+| **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis and labels it (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
+| **Stacked area** | Settings → Style → Area fill → `Stack`: stacks the series so the total and each share read together (line types only) |
+| **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
 | Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
 | **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
 | Raw data | Bottom table: search, click-to-sort (**or Enter on the header**), per-dataset delete, **uncheck a row to exclude it from charts**, **`Fade` column to de-emphasise it**. Numeric columns are right-aligned so digits line up |
@@ -168,6 +173,14 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.26 — figures you can actually submit
+- **Export size is now yours to set.** Exports were the on-screen size at 3×, so hitting a paper or report spec meant fixing it up elsewhere. Presets cover **1-column (85mm), 2-column (170mm) and slides**, or set mm/inch plus dpi yourself.
+- The hint reports **the pixels it will save and the pt size of body text**, making it obvious on the spot that raising dpi does not enlarge the text (raise the font size for that). Figures in the markdown report follow the same spec.
+- **The error column can be named directly.** Error bars only appeared when aggregating, so data that already carried `score_std` had no way to draw it.
+- **Span shading** arrived. A baseline is a line, so it could never say "this range" — recommended bands, out-of-memory regions and the like now have a form.
+- **Stacked area** works on line charts. Only bars could stack, so a share-over-time chart was out of reach. Stacking draws with SVG instead of WebGL (WebGL has no stacking and would silently overlay instead).
+- **Charts can be shown as a table.** It is the only way to read a chart without seeing it, and it is where you check an exact value.
 
 ### v0.25 — joining across files
 - **Values from another file can be looked up by key.** Computed columns gained the kind `Look up from another file` — keep `runs.csv` (measurements) and `models.csv` (metadata such as parameters and price) separate and still use both in one chart. Until now merging files only stacked rows, so this shape was out of reach.
