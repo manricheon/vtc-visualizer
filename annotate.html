@@ -144,6 +144,7 @@
         <input type="color" id="inpColor" value="#d03b3b" data-i18n-aria="cfg.color">
         <input type="number" id="inpWidth" min="1" max="24" value="3" style="width:70px" data-i18n-aria="cfg.width">
         <input type="number" id="inpFont" min="8" max="96" value="22" style="width:70px" data-i18n-aria="cfg.font">
+        <label class="inline"><input type="checkbox" id="inpBg" checked><span data-i18n="cfg.bg"></span></label>
         <button class="small danger" id="btnDelete" data-i18n="btn.deleteMark"></button>
       </div>
       <div id="stageWrap" tabindex="-1">
@@ -161,7 +162,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.29';
+const APP_VERSION = 'v0.29.1';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -175,7 +176,7 @@ const I18N = {
     'btn.deleteMark': '선택 삭제',
     'tool.text': '텍스트', 'tool.arrow': '화살표', 'tool.rect': '사각형', 'tool.mask': '가리기',
     'tool.hint': '그림판에서 끌어 그리고, 마크를 눌러 고릅니다. 고른 마크는 드래그로 옮깁니다.',
-    'cfg.style': '스타일', 'cfg.color': '색', 'cfg.width': '선 굵기', 'cfg.font': '글자 크기',
+    'cfg.style': '스타일', 'cfg.color': '색', 'cfg.width': '선 굵기', 'cfg.font': '글자 크기', 'cfg.bg': '글자 배경',
     'stage.empty': '이미지를 먼저 넣으세요.',
     'stage.hint': '드래그 = 그리기 · 클릭 = 고르기 · Delete = 삭제 · ⌘/Ctrl+Z = 실행 취소. 목록에서도 고르고 지울 수 있습니다.',
     'mark.text': '텍스트', 'mark.arrow': '화살표', 'mark.rect': '사각형', 'mark.mask': '가리기',
@@ -197,7 +198,7 @@ const I18N = {
     'btn.deleteMark': 'Delete selected',
     'tool.text': 'Text', 'tool.arrow': 'Arrow', 'tool.rect': 'Box', 'tool.mask': 'Redact',
     'tool.hint': 'Drag on the canvas to draw, click a mark to select it. A selected mark can be dragged.',
-    'cfg.style': 'Style', 'cfg.color': 'Colour', 'cfg.width': 'Line width', 'cfg.font': 'Font size',
+    'cfg.style': 'Style', 'cfg.color': 'Colour', 'cfg.width': 'Line width', 'cfg.font': 'Font size', 'cfg.bg': 'Text backdrop',
     'stage.empty': 'Add an image first.',
     'stage.hint': 'Drag = draw · click = select · Delete = remove · ⌘/Ctrl+Z = undo. The list below selects and deletes too.',
     'mark.text': 'Text', 'mark.arrow': 'Arrow', 'mark.rect': 'Box', 'mark.mask': 'Redaction',
@@ -291,9 +292,13 @@ function drawMark(c, m, s, isSel) {
     c.font = `600 ${Math.max(6, m.font * s)}px ${getComputedStyle(document.body).fontFamily}`;
     c.textBaseline = 'top';
     const w = c.measureText(m.text || '').width, h = m.font * s * 1.25;
-    c.globalAlpha = 0.85; c.fillStyle = '#fff';
-    c.fillRect(x - 3, y - 2, w + 6, h + 4);
-    c.globalAlpha = 1; c.fillStyle = m.color;
+    /* 배경은 켜면 **완전 불투명**이다 — 85%로 두었더니 아래 선·격자가 비쳐 글자색이 탁해졌다.
+       읽히라고 까는 것이므로 어정쩡하게 덮지 않는다. 배경이 그림을 가리는 자리에서는 아예 끈다. */
+    if (m.bg !== false) {
+      c.fillStyle = '#fff';
+      c.fillRect(x - 3, y - 2, w + 6, h + 4);
+      c.fillStyle = m.color;
+    }
     c.fillText(m.text || '', x, y);
     if (isSel) { c.strokeStyle = '#2a78d6'; c.lineWidth = 1; c.setLineDash([4, 3]); c.strokeRect(x - 3, y - 2, w + 6, h + 4); }
   } else if (m.kind === 'rect') {
@@ -350,7 +355,7 @@ function renderMarks() {
     btn.className = 'small ghost mname';
     btn.textContent = name || t('mark.' + m.kind);
     btn.setAttribute('aria-label', `${t('mark.' + m.kind)} ${i + 1}: ${name}`);
-    btn.onclick = () => { sel = i; draw(); renderMarks(); };
+    btn.onclick = () => { sel = i; syncStyleInputs(); draw(); renderMarks(); };
     const kind = document.createElement('span');
     kind.className = 'mkind'; kind.textContent = t('mark.' + m.kind);
     const del = document.createElement('button');
@@ -377,12 +382,12 @@ stage.addEventListener('pointerdown', e => {
     stage.setPointerCapture(e.pointerId);
     return;
   }
-  if (hit >= 0) { sel = hit; draw(); renderMarks(); return; }   // 첫 클릭은 고르기만
+  if (hit >= 0) { sel = hit; syncStyleInputs(); draw(); renderMarks(); return; }   // 첫 클릭은 고르기만
   if (tool === 'text') {
     const txt = prompt(t('prompt.text'), '');
     if (!txt) return;
     snapshot();
-    marks.push({ kind: 'text', x: px, y: py, text: txt, color: colorVal(), width: widthVal(), font: fontVal() });
+    marks.push({ kind: 'text', x: px, y: py, text: txt, color: colorVal(), width: widthVal(), font: fontVal(), bg: bgVal() });
     sel = marks.length - 1;
     draw(); renderMarks(); return;
   }
@@ -413,6 +418,7 @@ stage.addEventListener('pointercancel', endDrag);
 const colorVal = () => document.getElementById('inpColor').value;
 const widthVal = () => Number(document.getElementById('inpWidth').value) || 3;
 const fontVal = () => Number(document.getElementById('inpFont').value) || 22;
+const bgVal = () => document.getElementById('inpBg').checked;
 /* 스타일 입력은 **고른 마크가 있으면 그것을** 바꾼다 — 없으면 다음에 그릴 것의 기본값 */
 for (const [id, key] of [['inpColor', 'color'], ['inpWidth', 'width'], ['inpFont', 'font']]) {
   document.getElementById(id).addEventListener('input', e => {
@@ -421,6 +427,19 @@ for (const [id, key] of [['inpColor', 'color'], ['inpWidth', 'width'], ['inpFont
       draw();
     }
   });
+}
+/* 배경은 텍스트에만 뜻이 있다 — 다른 마크를 고른 채로 눌러도 아무 일이 없어야 한다(조용히 필드만 남기지 않는다) */
+document.getElementById('inpBg').addEventListener('change', e => {
+  if (sel >= 0 && marks[sel] && marks[sel].kind === 'text') { marks[sel].bg = e.target.checked; draw(); }
+});
+/* 마크를 고르면 그 마크의 스타일을 입력에 되비춘다 — 안 그러면 입력이 고른 것과 어긋나 보인다 */
+function syncStyleInputs() {
+  const m = sel >= 0 ? marks[sel] : null;
+  if (!m) return;
+  document.getElementById('inpColor').value = m.color;
+  document.getElementById('inpWidth').value = String(m.width);
+  document.getElementById('inpFont').value = String(m.font);
+  if (m.kind === 'text') document.getElementById('inpBg').checked = m.bg !== false;
 }
 
 /* ---- 도구 ---- */
