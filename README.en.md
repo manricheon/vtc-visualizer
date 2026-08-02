@@ -121,6 +121,7 @@ ours,4000,4.1,0.744,MMLU
 | **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis and labels it (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
 | **Stacked area** | Settings → Style → Area fill → `Stack`: stacks the series so the total and each share read together (line types only) |
 | **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
+| **Annotate an image** | `Export ▾` → `Annotate an image…`: a separate page (`annotate.html`) for putting **text, arrows, boxes and redactions** on a capture and saving it as PNG. Paste a screenshot straight in (⌘/Ctrl+V). The image never leaves the browser. **It is a separate file, so keep it next to `index.html`** |
 | Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
 | **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
 | Raw data | Bottom table: search, click-to-sort (**or Enter on the header**), per-dataset delete, **uncheck a row to exclude it from charts**, **`Fade` column to de-emphasise it**. Numeric columns are right-aligned so digits line up |
@@ -188,6 +189,12 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.29 — image annotation tool
+- **There is now a page for labelling a capture** — `annotate.html`. Text, arrows, boxes, and a **redaction** block for covering sensitive values. Screenshots paste straight in.
+- Coordinates are kept in original image pixels, so shrinking the view to fit your screen never shrinks **the exported file**, which comes out at full resolution (1x/2x).
+- Language and theme are shared with the main page. The image never leaves the browser.
+- **The file count went from 9 to 10.** This tool uses neither the chart library nor the data model, so folding it into the main page would only mix in unrelated code — the rule was relaxed once and locked again.
 
 ### v0.28 — baselines follow the data
 - **A baseline made by clicking a point is now anchored to that point (row).** It used to hold only coordinates, so reloading a file — or a folder-watch refresh — moved the point to its new value while **the baseline stayed at the old spot**, with nothing on screen to say so. Same failure that text markers had until v0.15.
