@@ -29,6 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "index.html"
 OFFLINE = ROOT / "index-offline.html"
+ANNOTATE = ROOT / "annotate.html"
 DATA_EXTS = {".csv", ".tsv", ".json"}
 MAX_LIST = 500   # autoload list cap — a huge tree would stall the browser reading every file
 
@@ -107,6 +108,9 @@ class Handler(BaseHTTPRequestHandler):
             # --offline이면 인라인 빌드를 서빙 — 폴더 자동 로드와 오프라인을 함께 쓸 수 있다
             page = OFFLINE if (self.use_offline and OFFLINE.exists()) else INDEX
             self._send(200, page.read_bytes(), "text/html; charset=utf-8")
+        elif path == "/annotate.html" and ANNOTATE.exists():
+            # 아는 경로만 준다 — 정적 파일 서버로 만들면 레포 전체가 읽힌다
+            self._send(200, ANNOTATE.read_bytes(), "text/html; charset=utf-8")
         elif path == "/api/files":
             files = _data_files(self.data_dir.resolve()) if self.data_dir else []
             self._send(200, json.dumps(files).encode(), "application/json")

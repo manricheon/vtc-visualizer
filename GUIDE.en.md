@@ -254,3 +254,16 @@ A team on one palette gets consistent method colors across every document. Expor
 ---
 
 © mrc
+
+## Marking up a capture for a report
+
+Sometimes the picture does not finish the sentence — "it bends here", "this range ran out of memory", "please cover this value".
+Annotations tied to the data (text markers, span shading) belong in the main app; marks drawn **on the capture itself** live in `Export ▾ → Annotate an image…`.
+
+- Pasting (⌘/Ctrl+V) is the fastest way in for a screenshot. Saving the chart PNG and dragging it works too.
+- `Arrow` points at one spot, `Box` groups a region, `Text` adds a line.
+- **`Redact` is for covering account names, paths and figures before sharing.** It paints opaque, so nothing shows through.
+- Exports are 1x/2x of the original resolution — viewing it shrunk to fit never shrinks the file.
+
+> If the mark needs to **follow the data**, use a text marker in the main app instead.
+> Marks on a capture are burned into the picture, so changing data means capturing again.
