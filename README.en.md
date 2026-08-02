@@ -192,6 +192,9 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.32.1 — violin and ECDF draw without an X axis
+- Distribution charts need only a value column, but the render guard exempted histogram and box **by name**, so the newly added violin and ECDF demanded an X axis and showed nothing until one was picked.
+
 ### v0.32 — distribution shape, series order, best point
 - **Violin** and **ECDF** charts. A box plot shows quartiles only, so **bimodality and tails disappear** — which matters when comparing repeated seeds. An ECDF answers "what fraction is at or below this value" straight off the picture (drawn as steps — joining the points with straight lines would assign probability to values never observed).
 - **Series order** is adjustable with ↑↓. Until now it followed the order values appeared in the data, so putting `baseline` first meant reordering CSV rows. **The colour does not follow** — a colour belongs to the series, not to the position.
