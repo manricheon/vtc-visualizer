@@ -1,4 +1,4 @@
-# VTC Visualizer
+. **Reorder** with ↑↓ — legend and draw order change, **the colour stays with the series** |# VTC Visualizer
 
 **English** | [한국어](README.md)
 
@@ -78,7 +78,7 @@ ours,4000,4.1,0.744,MMLU
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
 | **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
-| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) |
+| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) |
 | **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
 | **Option search** | Type an option name in the search box above the settings panel to filter it down |
@@ -93,6 +93,7 @@ ours,4000,4.1,0.744,MMLU
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
+| **Mark best** | Settings → Point labels → Mark best: labels the highest or lowest Y automatically (one overall, or one per series). It is **re-picked from the current data on every draw**, so it moves when the data changes — unlike a hand-placed text marker |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
 | **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
 | **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
@@ -190,6 +191,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.32 — distribution shape, series order, best point
+- **Violin** and **ECDF** charts. A box plot shows quartiles only, so **bimodality and tails disappear** — which matters when comparing repeated seeds. An ECDF answers "what fraction is at or below this value" straight off the picture (drawn as steps — joining the points with straight lines would assign probability to values never observed).
+- **Series order** is adjustable with ↑↓. Until now it followed the order values appeared in the data, so putting `baseline` first meant reordering CSV rows. **The colour does not follow** — a colour belongs to the series, not to the position.
+- **Mark best** labels the highest or lowest point automatically. That was a manual click-and-annotate every time. Where Pareto describes the whole frontier, this points at one.
 
 ### v0.31.1 — version label and an internal name
 - The image annotation page still reported `v0.30` (v0.31 bumped only the main page).
