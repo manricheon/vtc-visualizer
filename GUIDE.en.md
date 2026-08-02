@@ -324,5 +324,3 @@ Annotations tied to the data (text markers, span shading) belong in the main app
 
 > If the mark needs to **follow the data**, use a text marker in the main app instead.
 > Marks on a capture are burned into the picture, so changing data means capturing again.
-
-<!-- dry -->
