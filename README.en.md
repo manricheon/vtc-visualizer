@@ -109,6 +109,7 @@ ours,4000,4.1,0.744,MMLU
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
 | **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
+| **Example data** | `Load example data` brings the 24-row basic set; `More examples` adds three companions (metadata, a wide CSV, repeated-measure standard deviations) so guide recipes ⑮⑯⑰ can be followed as written |
 | **Melt (wide → long)** | The `⇲` button on a dataset chip: turns a file whose columns are spread sideways (`baseline, ours, ablation`) into **one row per measurement** as a new dataset. The original is untouched, and the new name column works as a group/facet/filter straight away |
 | **Watch folder** | The `Watch folder` checkbox, shown when running via `visualizer.py`: **reloads files as they change**. Leave it on while a run is in progress — exclusions and fading survive, and a file that briefly disappears is not dropped from the screen |
 | **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
@@ -189,6 +190,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.31 — example data for following the recipes
+- The data card gained a **`More examples (join · melt · error)`** button. It loads three companion datasets (`methods.csv`, `wide.csv`, `repeat.csv`) so guide recipes ⑮ melt, ⑯ join and ⑰ error column can be followed **exactly as written**.
+- Joining needs two files and melting needs a wide one, so a single bundled example could not demonstrate either.
+- `example.csv` is **left untouched** — one more column there would shift the analysis golden tests and the documented description together.
 
 ### v0.30 — the guide catches up with the tool
 - **Three recipes added** to the visualisation guide: melting a wide CSV (⑮), attaching metadata from another file (⑯), and a figure that meets a submission spec (⑰).
