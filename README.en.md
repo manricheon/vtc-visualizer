@@ -191,6 +191,10 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.31.1 — version label and an internal name
+- The image annotation page still reported `v0.30` (v0.31 bumped only the main page).
+- The internal series name for an ungrouped chart was going through the translation function. No such key existed, so it was accidentally safe — but filling in that "missing key" would have made **series colours and labels vanish on every language switch**.
+
 ### v0.31 — example data for following the recipes
 - The data card gained a **`More examples (join · melt · error)`** button. It loads three companion datasets (`methods.csv`, `wide.csv`, `repeat.csv`) so guide recipes ⑮ melt, ⑯ join and ⑰ error column can be followed **exactly as written**.
 - Joining needs two files and melting needs a wide one, so a single bundled example could not demonstrate either.
