@@ -88,6 +88,12 @@ Points inside the baseline shading (upper-left = faster **and** more accurate) a
 Total bar height = the sum; each color band = one method's share. `X as categories` is what makes
 500–16000 render as evenly spaced bars (unchecked, they sit at their true numeric positions and the left bars get needle-thin).
 
+If the question is **how the composition shifts along a sweep or over time**, stack lines instead of bars —
+type=`Line`, Settings → Style → Area fill=`Stack (cumulative area)`. The top edge is the total; each band's thickness is that series' share.
+(Stacking draws with SVG instead of WebGL — WebGL has no stacking and would silently overlay.)
+
+![Cumulative area chart showing per-method cost stacking across the budget](assets/guide/r12-stack-area.png)
+
 ### ⑤ Ranking chart — "Throughput order at a glance"
 
 > Type=`Bar`, X axis=`method`, Y axis=`throughput_fps`, Group (color)=`method`
@@ -203,6 +209,10 @@ You get one markdown file plus the chart PNGs; every chart section carries its *
 **Why the filter conditions must travel with the figure**: a conclusion that only holds for tokens ≤ 4000, screenshotted with the filter on and pasted without stating it, will be read as a conclusion about the whole dataset. The report writes that condition down for you.
 When moving findings into prose, do not convert them into causal claims (see "How to read the findings" in ⑪) and keep only what you need.
 
+**When you need the numbers next to the picture** — the card's `Table` button shows the chart's own columns, with the chart's filters applied.
+It is where you check "what exactly is that point", and for anyone who cannot see the graph it is the only way to read it.
+The table redraws whenever the plot does, so the two can never disagree.
+
 ### ⑬ Living with a weekly log
 
 Re-adding a file under the same name replaces the data and keeps your chart settings. Since v0.14 it also keeps **the work you did by hand**:
@@ -214,6 +224,10 @@ When the point a marker referred to is gone, it is **hidden rather than left in 
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
+**While a run is in progress**, tick `Watch folder` on the page (it appears only when served).
+Files reload as they change and, as above, **the exclusions and fading you marked by hand survive**.
+A file that briefly disappears (mid-write, mid-rename) is not dropped from the screen — you didn't delete it, and there would be no way back.
+
 **With several files open** — the `Data` dropdown at the top of a chart's settings picks which file it draws, and the column
 lists narrow to that file, so unrelated schemas can sit open together with each chart pointing somewhere different.
 To **compare files with the same schema**, leave it on `(all)` and facet by `_source` (one small chart per file) or set group
@@ -223,6 +237,43 @@ To **compare files with the same schema**, leave it on `(all)` and facet by `_so
 via the table's `Columns n/m` button. A switched-off column leaves the table, axis pickers, filters and the analysis together,
 so the dropdowns get short again. The data is untouched, `Show all` brings everything back, and charts already drawn on a
 hidden column keep drawing. It also works as an analysis control: switch off a column you don't want scanned.
+
+### ⑮ When the CSV came in wide — melting
+
+A file whose columns run sideways (`baseline, ours, ablation`) does not match this tool's premise of one row per measurement.
+Axes, groups and filters all assume one column means one thing, so as-is there is no way to colour by method.
+
+> `⇲` on the dataset chip → in the melt list **uncheck the condition columns (tokens and friends)**, leaving the measurements → `Melt and add`
+
+The original is untouched and a `…-long.csv` appears. The new `variable` column *is* the method, so it works as a group/facet/filter straight away.
+**The default guess is wrong often** — sweep knobs are numeric too, so move the condition columns across by hand.
+The preview says how many rows you will get before you commit.
+
+### ⑯ When measurements and metadata live in different files — joining
+
+Measurements in `runs.csv`, model parameters and prices in `models.csv` is a common split.
+Opening both only stacked the rows, so "accuracy against parameter count" used to be unplottable.
+
+> Computed columns → kind=`Look up from another file` → from=`models.csv`, column=`params_b`, match key=`model`
+
+Only columns present in **both** files are offered as keys, and choosing one immediately reports **how many rows will find a match** —
+zero means the key is wrong, and you know before committing. Several matches fold via first/mean/sum/min/max/count.
+**Rows are never added** (only a column). Four metadata fields means four definitions.
+
+### ⑰ A figure that meets the submission spec — size, error, ranges
+
+What reads well on screen and what reads well in a paper are different things.
+
+> Settings → Export size → preset=`Paper, 2 columns (170mm)`, dpi=`300`
+> Settings → Data → Error column=`score_std` (when the ± value already exists as a column)
+> Settings → Baselines → `＋ Span` to shade the range you want to call out
+
+![A figure sized for a 170mm column, with error bars and a shaded recommended range](assets/guide/r11-spec-error-span.png)
+
+- **If the text is small, raise the font size, not the dpi.** The hint shows the resulting pt — dpi does not change the physical text size.
+- **Error bars used to appear only when aggregating**, so a precomputed `_std` column now draws directly via `Error column` (ignored while aggregating).
+- **Span shading says what a baseline cannot** — if a baseline is "this line", a span is "this range" (a recommended band, an out-of-memory region).
+- Figures in the markdown report follow the same spec.
 
 ### ⑭ Choosing colors — where is the figure going?
 
@@ -259,6 +310,8 @@ A team on one palette gets consistent method colors across every document. Expor
 
 Sometimes the picture does not finish the sentence — "it bends here", "this range ran out of memory", "please cover this value".
 Annotations tied to the data (text markers, span shading) belong in the main app; marks drawn **on the capture itself** live in `Export ▾ → Annotate an image…`.
+
+![A chart capture with an arrow, a box, text and a redaction on top](assets/guide/r13-annotate.png)
 
 - Pasting (⌘/Ctrl+V) is the fastest way in for a screenshot. Saving the chart PNG and dragging it works too.
 - `Arrow` points at one spot, `Box` groups a region, `Text` adds a line.
