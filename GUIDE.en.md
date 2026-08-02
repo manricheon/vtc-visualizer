@@ -243,6 +243,8 @@ hidden column keep drawing. It also works as an analysis control: switch off a c
 A file whose columns run sideways (`baseline, ours, ablation`) does not match this tool's premise of one row per measurement.
 Axes, groups and filters all assume one column means one thing, so as-is there is no way to colour by method.
 
+To try it, press `More examples` in the data card — `wide.csv` is exactly this shape.
+
 > `⇲` on the dataset chip → in the melt list **uncheck the condition columns (tokens and friends)**, leaving the measurements → `Melt and add`
 
 The original is untouched and a `…-long.csv` appears. The new `variable` column *is* the method, so it works as a group/facet/filter straight away.
@@ -253,6 +255,8 @@ The preview says how many rows you will get before you commit.
 
 Measurements in `runs.csv`, model parameters and prices in `models.csv` is a common split.
 Opening both only stacked the rows, so "accuracy against parameter count" used to be unplottable.
+
+To try it, press `More examples` and follow the steps with `example.csv` + `methods.csv` (the key is `method`).
 
 > Computed columns → kind=`Look up from another file` → from=`models.csv`, column=`params_b`, match key=`model`
 
@@ -265,7 +269,7 @@ zero means the key is wrong, and you know before committing. Several matches fol
 What reads well on screen and what reads well in a paper are different things.
 
 > Settings → Export size → preset=`Paper, 2 columns (170mm)`, dpi=`300`
-> Settings → Data → Error column=`score_std` (when the ± value already exists as a column)
+> Settings → Data → Error column=`score_std` (when the ± value already exists as a column — the example is `accuracy_std` in `repeat.csv`)
 > Settings → Baselines → `＋ Span` to shade the range you want to call out
 
 ![A figure sized for a 170mm column, with error bars and a shaded recommended range](assets/guide/r11-spec-error-span.png)
