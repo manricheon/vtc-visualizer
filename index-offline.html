@@ -398,7 +398,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.27';
+const APP_VERSION = 'v0.28';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -675,6 +675,10 @@ const I18N = {
     'pt.markerTooMany': '행이 {n}개라 목록으로 고르기 어렵습니다({max}개까지). 그래프의 점을 클릭해 만드세요.',
     'cfg.addNoteHint': '데이터 점과 무관하게 차트 한구석에 붙는 메모 — 데이터가 바뀌어도 자리를 지킵니다.',
     'cfg.tmPinned': '고정',
+    'cfg.blAnchored': '점에 묶임',
+    'toast.blStale': '기준선 {n}개가 기준 점을 잃어 숨겼습니다 — 설정 › 베이스라인에서 다시 지정하세요.',
+    'toast.blPick': '기준선을 붙일 점을 그래프에서 클릭하세요.',
+    'toast.blReanchored': '기준선을 새 점에 다시 붙였습니다.',
     'cfg.tmStaleAxis': '축이 바뀜',
     'cfg.tmStaleGone': '점이 없음',
     'cfg.tmReanchor': '다시 지정',
@@ -1101,6 +1105,10 @@ const I18N = {
     'pt.markerTooMany': '{n} rows is too many to pick from a list (limit {max}). Click a point on the chart instead.',
     'cfg.addNoteHint': 'A note pinned to a corner of the chart, tied to no data point — it stays put when the data changes.',
     'cfg.tmPinned': 'pinned',
+    'cfg.blAnchored': 'anchored to a point',
+    'toast.blStale': 'Hid {n} baseline(s) that lost their anchor point — re-anchor them in Settings › Baselines.',
+    'toast.blPick': 'Click the point on the chart to anchor the baseline to.',
+    'toast.blReanchored': 'Baseline re-anchored to the new point.',
     'cfg.tmStaleAxis': 'axis changed',
     'cfg.tmStaleGone': 'point is gone',
     'cfg.tmReanchor': 'Re-anchor',
@@ -2517,12 +2525,33 @@ function buildAnnotations(cfg) {
   cfg._tmStaleN = staleN;
   return ann;
 }
+/* 베이스라인도 마커와 같은 문제를 갖는다 — 점을 클릭해 만든 기준선은 **그 점이 어느 행이었는지**를 알아야
+   데이터가 갱신돼도 같은 것을 가리킨다. 좌표만 들고 있으면 점은 새 값으로 움직이고 선만 옛 자리에 남는다.
+   단, **설정 패널에서 값으로 넣은 기준선(`rk` 없음)은 좌표 그대로 둔다** —
+   "정확히 0.80"은 값 자체가 의미이지 어떤 행을 가리키는 것이 아니다. */
+function resolveBaseline(cfg, b, rowsByKey) {
+  if (!b.rk) return { mode: 'xy', x: b.x, y: b.y };
+  if ((b.xc && b.xc !== cfg.x) || (b.yc && b.yc !== cfg.y)) return { mode: 'point', stale: 'axis' };
+  const r = (rowsByKey || markerAnchorRows(cfg)).get(b.rk);
+  if (!r) return { mode: 'point', stale: 'gone' };
+  const x = r[cfg.x], y = r[cfg.y];
+  const need = (b.dir || 'both');
+  /* 방향이 요구하는 값이 없으면 그릴 수 없다 — 가로선은 y만, 세로선은 x만 있으면 된다 */
+  if (need !== 'h' && (x === null || x === undefined)) return { mode: 'point', stale: 'gone' };
+  if (need !== 'v' && (y === null || y === undefined)) return { mode: 'point', stale: 'gone' };
+  return { mode: 'point', x, y, row: r };
+}
 function baselineShapes(cfg, gd) {
   // 주의: Plotly 2.x의 layout.shapes 좌표는 로그축에서도 "원시 데이터 값"이다 (실측 검증).
   // log10 변환(axCoord)이 필요한 것은 annotation뿐 — 여기서 변환하면 선이 엉뚱한 위치에 그려진다.
   const shapes = [];
+  const blRows = cfg.baselines.some(b => b.rk) ? markerAnchorRows(cfg) : null;
+  let blStale = 0;
   for (const b of cfg.baselines) {
-    const bx = b.x, by = b.y;
+    const at = resolveBaseline(cfg, b, blRows);
+    /* 기준을 잃으면 그리지 않는다 — 어긋난 기준선은 그대로 보고서로 나간다(조용히 틀리는 쪽이 가장 나쁘다) */
+    if (at.stale) { blStale++; continue; }
+    const bx = at.x, by = at.y;
     const dir = b.dir || 'both';   // both | h(가로선만 — Δ컬럼의 0선 등) | v(세로선만)
     if (dir !== 'h') shapes.push(
       { type: 'line', xref: 'x', yref: 'paper', x0: bx, x1: bx, y0: 0, y1: 1,
@@ -2531,7 +2560,7 @@ function baselineShapes(cfg, gd) {
       { type: 'line', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: by, y1: by,
         line: { color: CHROME.muted, width: 1, dash: 'dot' } });
     const shade = b.shade || 'none';
-    if (dir === 'both' && shade !== 'none' && typeof b.x === 'number' && typeof b.y === 'number') {
+    if (dir === 'both' && shade !== 'none' && typeof bx === 'number' && typeof by === 'number') {
       let xr = [bx, bx], yr = [by, by];
       if (gd && gd._fullLayout && gd._fullLayout.xaxis && gd._fullLayout.yaxis) {
         // _fullLayout의 range는 로그축이면 log10 값 → 원시 데이터 값으로 되돌린다
@@ -2554,6 +2583,7 @@ function baselineShapes(cfg, gd) {
       });
     }
   }
+  cfg._blStaleN = blStale;
   /* 구간 음영 — 베이스라인은 선이라 "이 범위"를 말할 수 없다(권장 대역, OOM 구간 …).
      한 축은 데이터 좌표, 다른 축은 paper(0~1)라 줌·범위 변경과 무관하게 띠가 화면을 가로지른다. */
   for (const sp of (cfg.spans || [])) {
@@ -2765,6 +2795,12 @@ function renderPlot(cfg) {
       cfg._tmStaleShown = cfg._tmStaleN;
       refreshPanels(cfg);
     }
+    /* 베이스라인도 같은 규칙 — 안 그리고 넘어가면 "기준선이 없는 그림"이 그대로 보고서로 나간다 */
+    if ((cfg._blStaleN || 0) !== (cfg._blStaleShown || 0)) {
+      if (cfg._blStaleN) showToast(tf('toast.blStale', { n: cfg._blStaleN }));
+      cfg._blStaleShown = cfg._blStaleN;
+      refreshPanels(cfg);
+    }
     if (!gd._vizBound) {
       gd._vizBound = true;
       gd.on('plotly_click', ev => {
@@ -2868,13 +2904,21 @@ function placePopover(mouseEv, label) {
 }
 function showPointPopover(c, gd, p, mouseEv) {
   popover.innerHTML = '';
-  const bIdx = c.baselines.findIndex(b => b.x === p.x && b.y === p.y);
+  /* "이 점의 기준선이 이미 있나"는 저장된 좌표가 아니라 **지금 그려진 자리**로 판단해야 한다 —
+     점에 묶인 기준선은 데이터가 갱신되면 저장값과 화면값이 다르다(그러면 같은 점에 두 개가 쌓인다). */
+  const bRows = c.baselines.some(b => b.rk) ? markerAnchorRows(c) : null;
+  const bIdx = c.baselines.findIndex(b => {
+    const at = resolveBaseline(c, b, bRows);
+    return !at.stale && at.x === p.x && at.y === p.y;
+  });
   popover.append(
     el('div', { class: 'pp-title' }, `(${p.x}, ${p.y})`),
     el('button', {
       onclick: () => {
         if (bIdx >= 0) c.baselines.splice(bIdx, 1);
-        else c.baselines.push({ x: p.x, y: p.y, shade: 'none' });
+        /* 클릭으로 만든 기준선은 **그 점(행)에 묶는다** — 데이터가 갱신되면 새 값을 따라가야 한다.
+           설정 패널에서 값으로 넣는 기준선은 앵커를 붙이지 않는다(값 자체가 의미다). */
+        else c.baselines.push({ x: p.x, y: p.y, shade: 'none', ...markerAnchorFor(c, p) });
         hidePopover(); renderPlot(c); refreshPanels(c); save();
       },
     }, bIdx >= 0 ? t('pt.removeBaseline') : t('pt.addBaseline')),
@@ -2941,14 +2985,27 @@ function markerAnchorFor(c, p) {
     && (g == null || String(r[c.group]) === g) && (g2 == null || String(r[c.group2]) === g2));
   return row ? { rk: rowKey(row), xc: c.x, yc: c.y } : {};
 }
-let tmPending = null;   // {chartId, idx} — "다시 지정"을 누른 마커. 다음 포인트 클릭이 새 앵커가 된다
-function startReanchor(c, idx) {
-  tmPending = { chartId: c.id, idx };
-  showToast(t('toast.tmPick'), t('btn.cancel'), () => { tmPending = null; });
+/* {kind:'marker'|'baseline', chartId, idx} — "다시 지정"을 누른 항목. 다음 포인트 클릭이 새 앵커가 된다.
+   마커와 베이스라인이 같은 기계를 쓰므로 대기 상태도 하나다(두 벌로 늘리면 둘 다 대기 중인 상태가 생긴다). */
+let tmPending = null;
+function startReanchor(c, idx, kind = 'marker') {
+  tmPending = { kind, chartId: c.id, idx };
+  showToast(t(kind === 'baseline' ? 'toast.blPick' : 'toast.tmPick'), t('btn.cancel'), () => { tmPending = null; });
 }
 function applyReanchor(c, p) {
-  const m = c.textMarkers[tmPending.idx];
+  const { kind, idx } = tmPending;
   tmPending = null;
+  if (kind === 'baseline') {
+    const b = c.baselines[idx];
+    if (!b) return;
+    delete b.rk; delete b.xc; delete b.yc;
+    Object.assign(b, { x: p.x, y: p.y }, markerAnchorFor(c, p));
+    c._blStaleShown = undefined;
+    renderPlot(c); refreshPanels(c); save();
+    showToast(t('toast.blReanchored'));
+    return;
+  }
+  const m = c.textMarkers[idx];
   if (!m) return;
   delete m.rk; delete m.xc; delete m.yc; delete m.anchor;
   Object.assign(m, { x: p.x, y: p.y, ax: m.ax || 40, ay: m.ay || -40 }, markerAnchorFor(c, p));
@@ -3579,16 +3636,28 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const baseBox = el('div');
   const renderBaseList = () => {
     baseBox.innerHTML = '';
+    /* 기준을 잃은 기준선은 그려지지 않으므로 목록이 유일한 단서다 — 마커와 같은 규칙 */
+    const blRows = cfg.baselines.some(b => b.rk) ? markerAnchorRows(cfg) : null;
     cfg.baselines.forEach((b, i) => {
       const dir = b.dir || 'both';
-      /* 한쪽만 넣은 선(x 없는 가로선 등)은 "(null, 0.8)"로 보이면 안 된다 */
-      const bname = dir === 'h' ? `y = ${b.y}` : dir === 'v' ? `x = ${b.x}` : `(${b.x}, ${b.y})`;
-      baseBox.append(el('div', { class: 'series-row' },
+      const at = resolveBaseline(cfg, b, blRows);
+      /* 한쪽만 넣은 선(x 없는 가로선 등)은 "(null, 0.8)"로 보이면 안 된다. 점에 묶인 것은 **지금 값**을 보여준다 */
+      const bx = at.stale ? b.x : at.x, by = at.stale ? b.y : at.y;
+      const bname = dir === 'h' ? `y = ${by}` : dir === 'v' ? `x = ${bx}` : `(${bx}, ${by})`;
+      const tail = [];
+      if (at.stale) {
+        tail.push(el('span', { class: 'tm-badge warn' }, '⚠ ' + t(at.stale === 'axis' ? 'cfg.tmStaleAxis' : 'cfg.tmStaleGone')),
+          el('button', { class: 'small', onclick: () => startReanchor(cfg, i, 'baseline') }, t('cfg.tmReanchor')));
+      } else if (b.rk) {
+        tail.push(el('span', { class: 'tm-badge' }, t('cfg.blAnchored')));
+      }
+      baseBox.append(el('div', { class: 'series-row' + (at.stale ? ' tm-stale' : '') },
         el('span', { class: 'sname', title: bname }, bname),
+        ...tail,
         select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], dir, v => { b.dir = v; renderBaseList(); rp(); }),
         // 사분면 음영은 십자(both)일 때만 의미가 있음
         ...(dir === 'both' ? [select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); })] : []),
-        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.baselines.splice(i, 1); renderBaseList(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.baselines.splice(i, 1); cfg._blStaleShown = undefined; renderBaseList(); rp(); } }, '×'),
       ));
     });
     gBase.querySelector('summary').textContent = tf('cfg.baselineCount', { n: cfg.baselines.length });
@@ -4337,6 +4406,12 @@ function analyzeData() {
   }
   const rThresh = Math.min(0.95, AN.rBase + AN.multK * Math.log2(Math.max(2, nPairs)));   // 다중비교 억제(보정 아님)
   const confCols = [...catCols, ...designCols];
+  /* 속도: 이 루프가 쌍마다 그룹핑을 다시 한다는 점이 눈에 띄지만 **재 보니 값이 안 나온다.**
+     레벨 번호를 미리 매겨 정수 버킷으로 바꿔 봤더니 최악 조건(연속량 20개·5만 행)에서 3,177 → 2,865 ms,
+     10%였다. 대신 "레벨 등장 순서를 예전 Map 삽입 순서와 같게 유지해야 한다"는 미묘한 불변이 생긴다
+     (`within` 순서가 바뀌면 `anMedian`의 짝수 개 처리에서 값이 달라진다). 그 값에 그 복잡도는 맞지 않아 되돌렸다.
+     CPU 프로파일상 비용은 한 곳이 아니라 흩어져 있다 — analyzeData 본문 826 · anPairXY 356 · anDescribe 355 · anRanks 252 ms.
+     여기를 다시 건드릴 거라면 **먼저 프로파일을 다시 뜨고**, 지배적인 한 곳이 생겼는지부터 볼 것. */
   for (const ps of pairStats) {
     let flip = null;
     for (const g of confCols) {   // 심슨 역전: 합친 수치가 그룹별 수치와 어긋나면 발견이 아니라 경고

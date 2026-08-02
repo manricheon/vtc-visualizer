@@ -92,7 +92,7 @@ ours,4000,4.1,0.744,MMLU
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
-| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel |
+| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
 | **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
 | **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
@@ -170,6 +170,16 @@ If you modify `index.html`, regenerate the offline build:
 python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ```
 
+## Known limits (left this way on purpose)
+
+Things that could be fixed but did not look worth it. Writing down the reason beats making the same call again later.
+
+- **Analysis takes a while** — about 3 s on 50k rows with 20 continuous columns. The obvious target (regrouping rows per correlation pair) was precomputed as an experiment and only bought **10%** (3,177 → 2,865 ms) while adding a subtle ordering invariant, so it was reverted. A CPU profile shows the cost spread across many functions rather than concentrated. It is a press-a-button-and-wait operation, and the scan samples rows so it stays nearly flat as data grows.
+- **Many open charts can hit the browser's WebGL context limit** — that is a browser cap. Pin Settings → Style → Rendering to `High quality (SVG)` to avoid it.
+- **Built-in presets offer one set per dataset** — even with several continuous columns, one score and one cost are chosen. Offering every candidate makes the list unusable fast. Apply one and change the axes.
+- **Folder watching polls every 4 seconds** — enough for a local folder.
+- **A join definition produces one column** — attaching four metadata fields means four definitions. Letting one definition emit several would break the "one definition, one name" assumption behind deletion, name-collision checks and usage lookup.
+
 ## Requirements
 
 - A modern browser (Chrome/Edge/Safari/Firefox)
@@ -178,6 +188,12 @@ python visualizer.py build-offline    # → index-offline.html (~4.6MB)
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.28 — baselines follow the data
+- **A baseline made by clicking a point is now anchored to that point (row).** It used to hold only coordinates, so reloading a file — or a folder-watch refresh — moved the point to its new value while **the baseline stayed at the old spot**, with nothing on screen to say so. Same failure that text markers had until v0.15.
+- **Baselines typed in as values stay pinned to the value.** A line at exactly `0.80` means the value, not some row.
+- **A baseline that loses its anchor is not drawn.** The list shows ⚠ with the reason (point is gone / axis changed) and a `Re-anchor` button. A misplaced baseline goes straight into a report, so being silently wrong is the worst outcome.
+- Analysis speed was **measured and left alone** — see "Known limits" below for why.
 
 ### v0.27 — how data gets in, and out
 - **Sideways CSVs are accepted now.** The input contract assumes long form (one row per measurement), so a file with `baseline, ours, ablation` as columns was **stopped at the door** — axes, groups and filters all assume one column means one thing. The `⇲` button on a dataset chip melts it into a new dataset, leaving the original alone.
