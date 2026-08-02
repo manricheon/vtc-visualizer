@@ -190,6 +190,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.29.1 — text backdrop on/off
+- The white backdrop behind annotation text can now be **switched off** (`Text backdrop`) when it hides part of the picture.
+- When on it is **fully opaque** — at 85% the lines and gridlines underneath showed through and muddied the text colour. A backdrop exists to make text readable, so it does not half-cover.
+- Selecting a mark now **reflects its colour, width, font size and backdrop back into the inputs**.
+
 ### v0.29 — image annotation tool
 - **There is now a page for labelling a capture** — `annotate.html`. Text, arrows, boxes, and a **redaction** block for covering sensitive values. Screenshots paste straight in.
 - Coordinates are kept in original image pixels, so shrinking the view to fit your screen never shrinks **the exported file**, which comes out at full resolution (1x/2x).
