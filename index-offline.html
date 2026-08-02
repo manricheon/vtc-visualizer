@@ -399,7 +399,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.31.1';
+const APP_VERSION = 'v0.32';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -644,6 +644,9 @@ const I18N = {
     'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
     'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
     'cfg.seriesColor': '색',
+    'cfg.seriesUp': '{name} 위로 (범례·그리는 순서만 — 색은 그대로)',
+    'cfg.seriesDown': '{name} 아래로 (범례·그리는 순서만 — 색은 그대로)',
+    'cfg.seriesOrderReset': '순서 되돌리기',
     'cfg.seriesCount': '시리즈 스타일 ({n})',
     'cfg.markerSize': '마커 크기',
     'cfg.lineWidth': '선 굵기',
@@ -677,6 +680,9 @@ const I18N = {
     'cfg.labelHint': '드래그: 위치 조정 · 클릭: 개별 숨김. 같은 값 중복은 하나만 표시되고 겹침은 자동 회피됩니다.',
     'cfg.restoreHiddenLabels': '숨긴 레이블 {n}개 모두 복원',
     'cfg.textMarkerGlobal': '텍스트 마커 (전체 스타일)',
+    'cfg.markBest': '최적점 표시', 'opt.markMax': 'Y 최댓값', 'opt.markMin': 'Y 최솟값',
+    'cfg.markBestScope': '범위', 'opt.scopeAll': '전체에서 하나', 'opt.scopeSeries': '시리즈마다',
+    'cfg.markBestHint': '그릴 때마다 지금 데이터에서 다시 고릅니다 — 손으로 놓은 텍스트 마커와 달리 데이터가 바뀌면 따라 움직입니다. 분포·히트맵·덤벨·분할에서는 표시하지 않습니다.',
     'cfg.addNote': '＋ 고정 메모',
     'cfg.addMarker': '＋ 텍스트 마커',
     'pt.markerPickRow': '마커를 붙일 행',
@@ -834,6 +840,7 @@ const I18N = {
     'cfg.y2': '보조 Y축(오른쪽)', 'cfg.y2Title': '스케일이 다른 두 지표를 한 차트에 — 점선·× 마커로 구분해 오른쪽 축에 그립니다',
     'cfg.y2Warn': '두 축은 눈금을 어떻게 잡느냐에 따라 없는 상관도 있어 보이게 만듭니다. 관계를 주장하려면 차트를 둘로 나누거나 한쪽을 정규화해 같은 축에 놓는 편이 안전합니다.',
     'opt.histogram': '히스토그램', 'opt.box': '박스플롯',
+    'opt.violin': '바이올린', 'opt.ecdf': '누적분포(ECDF)', 'cfg.ecdfY': '이하 비율',
     'cfg.histBins': '구간 수', 'cfg.histBinsPh': '자동',
     'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
     'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
@@ -1077,6 +1084,9 @@ const I18N = {
     'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
     'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
     'cfg.seriesColor': 'Colour',
+    'cfg.seriesUp': 'Move {name} up (legend and draw order only — the colour stays)',
+    'cfg.seriesDown': 'Move {name} down (legend and draw order only — the colour stays)',
+    'cfg.seriesOrderReset': 'Reset order',
     'cfg.seriesCount': 'Series styles ({n})',
     'cfg.markerSize': 'Marker size',
     'cfg.lineWidth': 'Line width',
@@ -1110,6 +1120,9 @@ const I18N = {
     'cfg.labelHint': 'Drag to reposition · click to hide individually. Duplicate values show once, and overlaps are avoided automatically.',
     'cfg.restoreHiddenLabels': 'Restore all {n} hidden labels',
     'cfg.textMarkerGlobal': 'Text markers (global style)',
+    'cfg.markBest': 'Mark best', 'opt.markMax': 'Highest Y', 'opt.markMin': 'Lowest Y',
+    'cfg.markBestScope': 'Scope', 'opt.scopeAll': 'One overall', 'opt.scopeSeries': 'Per series',
+    'cfg.markBestHint': 'Re-picked from the current data on every draw — unlike a hand-placed text marker it moves when the data changes. Not shown on distribution, heatmap, dumbbell or facet charts.',
     'cfg.addNote': '＋ Pinned note',
     'cfg.addMarker': '＋ Text marker',
     'pt.markerPickRow': 'Row to anchor the marker to',
@@ -1267,6 +1280,7 @@ const I18N = {
     'cfg.y2': 'Second Y axis (right)', 'cfg.y2Title': 'Two metrics on different scales in one chart — drawn on the right axis with a dotted line and × markers',
     'cfg.y2Warn': 'Two scales can manufacture a correlation that is not there, depending on how each axis is framed. To claim a relationship, split into two charts or normalise one measure onto a shared axis.',
     'opt.histogram': 'Histogram', 'opt.box': 'Box plot',
+    'opt.violin': 'Violin', 'opt.ecdf': 'Cumulative (ECDF)', 'cfg.ecdfY': 'fraction at or below',
     'cfg.histBins': 'Bins', 'cfg.histBinsPh': 'auto',
     'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
     'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
@@ -1537,9 +1551,12 @@ function defaultChart() {
     grid: true, plotFace: 'none',   // none | soft | tint — 그래프 면 색
     fontFamily: FONTS[0], fontSize: 13, fontColor: '',   // '' = 테마 잉크 자동(다크/라이트 따라감)
     legendPos: 'right',         // right | top | inside | none
+    markBest: 'none',          // none | max | min — Y가 가장 큰/작은 점에 라벨. 계산된 주석이라 세션의 textMarkers와 무관
+    markBestScope: 'all',      // all | series
     markerSize: 9, lineWidth: 2,
     seriesStyles: {},           // name -> {color, symbol, msize}
-    seriesLabels: {},           // 원본 시리즈명 -> 범례 표시용 커스텀 이름 (비우면 원본)
+    seriesLabels: {},
+    seriesOrder: [],          // 시리즈 표시 순서(범례·그리는 순서). 색은 따라오지 않는다 — colorIdx가 엔티티에 붙어 있다           // 원본 시리즈명 -> 범례 표시용 커스텀 이름 (비우면 원본)
     showLabels: false, labelCol: '',
     labelOffsets: {},           // pointKey -> {ax, ay}
     hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
@@ -1865,7 +1882,18 @@ function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 /* ================= chart rendering ================= */
 const plotDivs = {};   // chartId -> div
 /* 시리즈 정의: 색=group, 모양=group2. 인덱스는 전체(미필터) 고유값 기준 — 색/모양이 엔티티를 따라감 */
+/* 시리즈 순서 — 기본은 데이터 등장 순이다. 논문 그림에서는 "baseline을 맨 앞에" 같은 요구가 흔한데
+   여태 CSV 행 순서를 고치는 수밖에 없었다.
+   **색은 `colorIdx`가 들고 있으므로 순서를 바꿔도 엔티티를 따라간다** — 색은 엔티티의 것이지 자리의 것이 아니다.
+   목록에 없는 시리즈는 뒤에, 자연 순서를 유지한 채 붙는다(sort가 안정 정렬이다). */
 function seriesDefs(cfg) {
+  const defs = seriesDefsNatural(cfg);
+  const order = cfg.seriesOrder || [];
+  if (!order.length) return defs;
+  const rank = d => { const i = order.indexOf(d.name); return i < 0 ? order.length : i; };
+  return defs.slice().sort((x, y) => rank(x) - rank(y));
+}
+function seriesDefsNatural(cfg) {
   if (!cfg.group && cfg.group2) {   // 색 그룹 없이 모양 그룹만 — 색은 하나로 두고 모양으로 나눈다
     return uniqueVals(cfg.group2).map(String).map((h, i) => ({
       name: h, colorIdx: 0, symIdx: i, g: null, g2: h,
@@ -1983,7 +2011,7 @@ function facetValues(cfg) {
   return uniqueVals(cfg.facetBy).map(String).filter(v => present.has(v)).slice(0, 16);
 }
 function buildTraces(cfg) {
-  if (cfg.type === 'histogram' || cfg.type === 'box') return buildDistribution(cfg, cfg.type);
+  if (isDistType(cfg.type)) return buildDistribution(cfg, cfg.type);
   if (cfg.type === 'heatmap') return buildHeatmap(cfg);
   if (cfg.type === 'dumbbell') return buildDumbbell(cfg);
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
@@ -2322,6 +2350,9 @@ function trendTraces(cfg, name, pts, color) {
 
 /* 히트맵: X·Y 이산 축의 격자에 heatZ 값(집계)을 색으로 */
 /* 분포: 히스토그램(값의 퍼짐)과 박스(사분위·수염). 반복 측정의 흩어짐을 보는 용도라 값 컬럼 하나(cfg.y)만 쓴다. */
+/* 분포 유형 넷 — 늘 때마다 문자열 비교를 여기저기 늘리지 않도록 한 곳에서 판정한다 */
+const DIST_TYPES = ['histogram', 'box', 'violin', 'ecdf'];
+const isDistType = t => DIST_TYPES.includes(t);
 function buildDistribution(cfg, kind) {
   const col = cfg.y || cfg.x;
   if (!col) return [];
@@ -2347,6 +2378,28 @@ function buildDistribution(cfg, kind) {
         if (mx > mn) tr.xbins = { start: mn, end: mx, size: (mx - mn) / nb };
       }
       out.push(tr);
+    } else if (kind === 'violin') {
+      /* 박스는 사분위수만 보여준다 — 이봉성이나 꼬리 모양은 거기서 사라진다.
+         상자와 평균선을 함께 얹어 "요약 + 실제 분포"를 한 그림에 둔다. */
+      out.push({ type: 'violin', name: dname, y: vals,
+        line: { color: st.color }, fillcolor: hexToRgba(st.color, 0.25),
+        box: { visible: true, width: 0.25 }, meanline: { visible: true },
+        points: cfg.boxPoints === 'none' ? false : (cfg.boxPoints || 'outliers'),
+        marker: { color: st.color, size: Math.max(3, st.msize - 3) },
+        jitter: 0.3, pointpos: 0, spanmode: 'soft',
+        hovertemplate: `<b>${esc(dname)}</b><br>${esc(col)}=%{y}<extra></extra>` });
+    } else if (kind === 'ecdf') {
+      /* 경험적 누적분포 — "몇 %가 이 값 이하인가"를 그림에서 바로 읽는다.
+         계단선(`hv`)이어야 한다: 직선으로 이으면 관측되지 않은 값에 확률을 주는 그림이 된다. */
+      const sorted = vals.slice().sort((x, y) => x - y);
+      const xs = [], ys = [];
+      sorted.forEach((v, i) => {
+        if (i && v === sorted[i - 1]) { ys[ys.length - 1] = (i + 1) / sorted.length; return; }   // 같은 값은 한 계단
+        xs.push(v); ys.push((i + 1) / sorted.length);
+      });
+      out.push({ type: 'scatter', mode: 'lines', name: dname, x: xs, y: ys,
+        line: { color: st.color, width: st.lwidth, shape: 'hv' },
+        hovertemplate: `<b>${esc(dname)}</b><br>${esc(col)}=%{x}<br>%{y:.0%}<extra></extra>` });
     } else {
       out.push({ type: 'box', name: dname, y: vals, marker: { color: st.color }, line: { color: st.color },
         fillcolor: hexToRgba(st.color, 0.18),
@@ -2619,6 +2672,33 @@ function baselineShapes(cfg, gd) {
   return shapes;
 }
 /* 구간 라벨은 annotation이라 shapes와 따로 만든다 — 로그축에서 좌표 규약이 다르다(annotation은 log10) */
+/* 최적점 표시 — "가장 좋은 점"에 라벨을 붙이는 건 손으로 매번 하던 일이다.
+   Pareto는 프런티어 **전체**를 말하고, 이건 **하나**를 가리킨다(둘은 다른 질문이다).
+   **계산된 주석**이라 텍스트 마커와 섞지 않는다 — 마커는 사용자가 놓은 것이고 행에 묶여 stale 판정을 받지만,
+   이건 그릴 때마다 지금 데이터에서 다시 고른다. 그래서 앵커도 `_tmIdx`도 없다. */
+function bestAnnotations(cfg) {
+  const how = cfg.markBest || 'none';
+  if (how === 'none' || !cfg.x || !cfg.y) return [];
+  if (isDistType(cfg.type) || cfg.type === 'heatmap' || cfg.type === 'dumbbell' || cfg.facetBy) return [];
+  const rows = chartRows(cfg).filter(r => !r._excluded && !isMutedRow(cfg, r)
+    && typeof r[cfg.x] === 'number' && typeof r[cfg.y] === 'number');
+  if (!rows.length) return [];
+  const pick = list => list.reduce((b, r) => (how === 'max' ? r[cfg.y] > b[cfg.y] : r[cfg.y] < b[cfg.y]) ? r : b, list[0]);
+  const groups = cfg.markBestScope === 'series' && cfg.group
+    ? [...new Map(rows.map(r => [String(r[cfg.group]), null])).keys()].map(g => rows.filter(r => String(r[cfg.group]) === g))
+    : [rows];
+  return groups.filter(g => g.length).map(g => {
+    const r = pick(g);
+    const label = cfg.group && cfg.markBestScope === 'series' ? `${r[cfg.group]}: ${fmtBarVal(r[cfg.y])}` : fmtBarVal(r[cfg.y]);
+    return {
+      x: axCoord(r[cfg.x], cfg.xScale), y: axCoord(r[cfg.y], cfg.yScale),
+      text: label, showarrow: true, arrowhead: 2, arrowwidth: 1, arrowcolor: CHROME.muted,
+      ax: 0, ay: how === 'max' ? -34 : 34, _kind: 'best',
+      font: { family: cfg.fontFamily, size: Math.max(9, cfg.fontSize - 2), color: inkOf(cfg) },
+      bgcolor: CHROME.overlay, bordercolor: CHROME.axis, borderwidth: 1, borderpad: 3,
+    };
+  });
+}
 function spanAnnotations(cfg) {
   const out = [];
   for (const sp of (cfg.spans || [])) {
@@ -2703,7 +2783,7 @@ function buildLayout(cfg, gd, traces) {
   };
   const catAxis = (label, col) => ({ title: { text: label || col, font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: inkOf(cfg) } },
     type: 'category', showgrid: false, linecolor: CHROME.axis, linewidth: 1, tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted }, ticks: 'outside', tickcolor: CHROME.axis, automargin: true });
-  if (cfg.type === 'histogram' || cfg.type === 'box') {
+  if (isDistType(cfg.type)) {
     const dcol = cfg.y || cfg.x;
     const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick);
     const legendCfg = {   // 분포 차트도 범례 위치·숨김 설정을 따라야 한다
@@ -2714,6 +2794,13 @@ function buildLayout(cfg, gd, traces) {
       const cnt = axis(cfg.xLabel || 'n', 'linear', '', '', '', '');
       return { ...baseLayout, ...legendCfg, xaxis: { ...valAxis, title: { ...valAxis.title, text: cfg.xLabel || dcol } },
         yaxis: { ...cnt, title: { ...cnt.title, text: 'n' } }, barmode: 'overlay', bargap: 0.04 };
+    }
+    if (cfg.type === 'ecdf') {
+      /* ECDF는 축이 반대다 — X가 **값**, Y가 0~1 비율. 박스/바이올린의 카테고리 축을 그대로 쓰면 안 된다. */
+      const frac = axis('', 'linear', 0, 1, '', 'percent');
+      return { ...baseLayout, ...legendCfg,
+        xaxis: { ...valAxis, title: { ...valAxis.title, text: cfg.xLabel || dcol } },
+        yaxis: { ...frac, title: { ...frac.title, text: cfg.yLabel || t('cfg.ecdfY') }, range: [0, 1.02] } };
     }
     const catAx = axis('', 'linear', '', '', '', '');
     return { ...baseLayout, ...legendCfg, xaxis: { ...catAx, type: 'category', showgrid: false }, yaxis: valAxis };
@@ -2777,7 +2864,7 @@ function buildLayout(cfg, gd, traces) {
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
-    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg)],
+    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg)],
     shapes: baselineShapes(cfg, gd),
     barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
@@ -3338,7 +3425,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const numCols = numericColumns();
   const isBar = cfg.type === 'bar';
   const isHeat = cfg.type === 'heatmap', isDumbbell = cfg.type === 'dumbbell';
-  const isDist = cfg.type === 'histogram' || cfg.type === 'box';
+  const isDist = isDistType(cfg.type);
   const rp = () => { renderPlot(cfg); save(); };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
   /* 라벨은 컨트롤이 **정확히 하나일 때만** `for`로 잇는다.
@@ -3375,7 +3462,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         v => switchDataset(cfg, v, rebuildPanel))),
       el('div', { class: 'hint' }, t('cfg.datasetHint')),
     ] : []),
-    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
+    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
     ...(!isBar && !isHeat && !isDumbbell && !isDist ? [
@@ -3553,10 +3640,22 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       const named = (e, key) => { e.setAttribute('aria-label', `${name} — ${t(key)}`); return e; };
       const labelInput = el('input', { type: 'text', class: 'slabel', value: cfg.seriesLabels[name] || '', placeholder: name, title: t('cfg.seriesLabelTitle'),
         oninput: e => { const v = e.target.value.trim(); if (v) cfg.seriesLabels[name] = v; else delete cfg.seriesLabels[name]; rp(); } });
+      /* 순서 바꾸기 — 색은 따라오지 않는다(엔티티에 붙어 있다). 목록이 비어 있으면 지금 순서로 채우고 시작한다. */
+      const move = dir => {
+        const names = (cfg.seriesOrder && cfg.seriesOrder.length ? cfg.seriesOrder.slice() : defs.map(d => d.name));
+        for (const d of defs) if (!names.includes(d.name)) names.push(d.name);
+        const i = names.indexOf(name), j = i + dir;
+        if (i < 0 || j < 0 || j >= names.length) return;
+        [names[i], names[j]] = [names[j], names[i]];
+        cfg.seriesOrder = names;
+        rp(); renderSeries();
+      };
       into.append(el('div', { class: 'series-block' },
         el('div', { class: 'series-row' },
           named(el('input', { type: 'color', value: st.color, oninput: e => upd({ color: e.target.value }) }), 'cfg.seriesColor'),
           named(labelInput, 'cfg.seriesLabelTitle'),
+          el('button', { class: 'small', title: tf('cfg.seriesUp', { name }), onclick: () => move(-1) }, '↑'),
+          el('button', { class: 'small', title: tf('cfg.seriesDown', { name }), onclick: () => move(1) }, '↓'),
         ),
         ...(isBar ? [] : [el('div', { class: 'series-row sub' },   // 막대는 색만 의미 있음
           named(select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }), 'cfg.markerShapeTitle'),
@@ -3566,6 +3665,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         )]),
       ));
     });
+    /* 순서를 손댔을 때만 — 목록 안에 두어야 순서를 바꾼 **그 순간** 나타난다(패널 재구성을 기다리지 않는다) */
+    if (cfg.seriesOrder && cfg.seriesOrder.length) {
+      seriesBox.append(el('div', { class: 'row' },
+        el('button', { class: 'small', onclick: () => { cfg.seriesOrder = []; rp(); renderSeries(); } }, t('cfg.seriesOrderReset'))));
+    }
   };
   renderSeries();
   gStyle.append(
@@ -3604,6 +3708,13 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     }
     markerBox.innerHTML = '';
     markerBox.append(
+      row(t('cfg.markBest'), select([['none', t('opt.none')], ['max', t('opt.markMax')], ['min', t('opt.markMin')]],
+        cfg.markBest || 'none', v => { cfg.markBest = v; rebuildPanel(); })),
+      ...((cfg.markBest && cfg.markBest !== 'none' && cfg.group) ? [
+        row(t('cfg.markBestScope'), select([['all', t('opt.scopeAll')], ['series', t('opt.scopeSeries')]],
+          cfg.markBestScope || 'all', v => { cfg.markBestScope = v; rp(); })),
+      ] : []),
+      ...(cfg.markBest && cfg.markBest !== 'none' ? [el('div', { class: 'hint' }, t('cfg.markBestHint'))] : []),
       el('div', { class: 'row' },
         el('button', { class: 'small', onclick: e => showNotePopover(cfg, e) }, t('cfg.addNote')),
         el('button', { class: 'small', onclick: e => showMarkerAddPopover(cfg, e) }, t('cfg.addMarker'))),
