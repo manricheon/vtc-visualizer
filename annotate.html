@@ -73,7 +73,13 @@
 
   #dropzone { border: 1.5px dashed var(--axis); border-radius: var(--radius-lg); padding: var(--sp-6) var(--sp-4);
               text-align: center; color: var(--ink-muted); font-size: var(--fs-md); }
-  #dropzone.has { padding: var(--sp-2) var(--sp-3); display: flex; gap: var(--sp-2); align-items: center; justify-content: center; }
+  /* 이미지가 들어온 뒤에는 점선을 거둔다 — "여기 떨어뜨리세요"는 할 일을 끝냈고, 남아 있으면 소음이다.
+     드래그 중에는(.drag) 다시 점선으로 돌아와 받을 수 있다는 것을 알린다.
+     (본문 index.html은 그대로 둔다 — 거기서 파일을 떨어뜨리는 건 **더하기**라 계속 권할 일이지만,
+      여기서 떨어뜨리면 이미지가 **바뀌고 마크가 사라진다**.) */
+  #dropzone.has { padding: var(--sp-2) var(--sp-3); display: flex; gap: var(--sp-2); align-items: center; justify-content: center;
+                  border-style: solid; border-width: 1px; border-color: var(--border); }
+  #dropzone.has.drag { border-style: dashed; border-width: 1.5px; }
   #dropzone.has .drop-text, #dropzone.has .empty-hint { display: none; }
   #dropzone.drag { border-color: var(--accent); background: var(--hover); }
   .btns { display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; margin-top: var(--sp-3); }
@@ -162,7 +168,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.29.1';
+const APP_VERSION = 'v0.29.2';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -181,6 +187,7 @@ const I18N = {
     'stage.hint': '드래그 = 그리기 · 클릭 = 고르기 · Delete = 삭제 · ⌘/Ctrl+Z = 실행 취소. 목록에서도 고르고 지울 수 있습니다.',
     'mark.text': '텍스트', 'mark.arrow': '화살표', 'mark.rect': '사각형', 'mark.mask': '가리기',
     'prompt.text': '넣을 문구:',
+    'confirm.replace': '새 이미지를 넣으면 지금 주석 {n}개가 사라집니다(되돌릴 수 없음). 계속할까요?',
     'toast.pasted': '붙여넣은 이미지를 넣었습니다.', 'toast.exported': 'PNG로 저장했습니다.',
     'toast.needImage': '이미지를 먼저 넣으세요.', 'toast.notImage': '이미지 파일이 아닙니다.',
     'toast.undoNone': '되돌릴 것이 없습니다.', 'toast.selectNone': '고른 마크가 없습니다.',
@@ -203,6 +210,7 @@ const I18N = {
     'stage.hint': 'Drag = draw · click = select · Delete = remove · ⌘/Ctrl+Z = undo. The list below selects and deletes too.',
     'mark.text': 'Text', 'mark.arrow': 'Arrow', 'mark.rect': 'Box', 'mark.mask': 'Redaction',
     'prompt.text': 'Text to place:',
+    'confirm.replace': 'Loading a new image discards the {n} annotation(s) you have (no undo). Continue?',
     'toast.pasted': 'Pasted image loaded.', 'toast.exported': 'Saved as PNG.',
     'toast.needImage': 'Add an image first.', 'toast.notImage': 'That is not an image file.',
     'toast.undoNone': 'Nothing to undo.', 'toast.selectNone': 'No mark selected.',
@@ -471,6 +479,9 @@ document.addEventListener('keydown', e => {
 /* ---- 입력 ---- */
 function loadFile(file) {
   if (!file || !/^image\//.test(file.type)) { showToast(t('toast.notImage')); return; }
+  /* 새 이미지는 마크를 전부 지운다 — 되돌리기도 안 되므로 물어보고 한다.
+     실수로 창에 그림 하나 떨어뜨렸다고 30분치 주석이 사라지면 안 된다. */
+  if (marks.length && !confirm(tf('confirm.replace', { n: marks.length }))) return;
   const url = URL.createObjectURL(file);
   const im = new Image();
   im.onload = () => { setImage(im); URL.revokeObjectURL(url); };

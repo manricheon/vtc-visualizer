@@ -190,6 +190,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.29.2 — drop-zone border and image replacement
+- The **dashed border is dropped once an image is in**. "Drop here" has done its job by then and only adds noise; it returns while dragging so you still know the area accepts a file.
+- **Loading a new image discards every annotation** — the one path with no undo — so it now asks first.
+- (For reference: the blue dashed outline on the canvas is the **selection indicator**. It is on screen only and never lands in the export.)
+
 ### v0.29.1 — text backdrop on/off
 - The white backdrop behind annotation text can now be **switched off** (`Text backdrop`) when it hides part of the picture.
 - When on it is **fully opaque** — at 85% the lines and gridlines underneath showed through and muddied the text colour. A backdrop exists to make text readable, so it does not half-cover.
