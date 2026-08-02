@@ -190,6 +190,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.30 — the guide catches up with the tool
+- **Three recipes added** to the visualisation guide: melting a wide CSV (⑮), attaching metadata from another file (⑯), and a figure that meets a submission spec (⑰).
+- Existing recipes picked up the v0.26–v0.29 features: stacked area (④), chart as table (⑫), folder watching (⑬), plus an example of an annotated capture.
+- Figures were shot **only for the new recipes.** Nothing in the palette, layout or plot face changed since r1–r10 were last captured, so re-shooting them would produce a diff and nothing else.
+
 ### v0.29.2 — drop-zone border and image replacement
 - The **dashed border is dropped once an image is in**. "Drop here" has done its job by then and only adds noise; it returns while dragging so you still know the area accepts a file.
 - **Loading a new image discards every annotation** — the one path with no undo — so it now asks first.
