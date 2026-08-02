@@ -238,6 +238,37 @@ via the table's `Columns n/m` button. A switched-off column leaves the table, ax
 so the dropdowns get short again. The data is untouched, `Show all` brings everything back, and charts already drawn on a
 hidden column keep drawing. It also works as an analysis control: switch off a column you don't want scanned.
 
+### ⑱ The spread of repeated runs — what a box hides
+
+Results from repeated seeds lose half their story when reduced to "the mean".
+The three figures below are **the same data** (4 methods × 30 seeds) drawn three ways —
+it is `seeds.csv`, which arrives with `More examples`, so you can follow along exactly.
+
+> type=`Box plot`, Y=`accuracy`, group (colour)=`method`, data=`seeds.csv`
+
+![Box plots of accuracy for four methods — quartiles only](assets/guide/r14-box.png)
+
+A box reports quartiles and whiskers. `adaptive` has a wide box and so does `distill` — **whether they are wide for the same reason is not visible.**
+
+> switch the type to `Violin`
+
+![The same data as violins — adaptive turns out to be bimodal](assets/guide/r15-violin.png)
+
+`adaptive` has **two peaks**. Results split into two branches depending on configuration or initialisation,
+and no mean, median or quartile can show that. `distill` really is evenly spread; `ensemble` is tight.
+**The box and mean line stay inside the violin**, so the summary is not lost.
+
+> switch the type to `Cumulative (ECDF)`
+
+![ECDFs for four methods — read a threshold vertically](assets/guide/r16-ecdf.png)
+
+**Read "what fraction is at or below this value" vertically.** With a fixed threshold ("must clear 0.72 to ship") this is the most direct picture.
+The **flat stretch** in the middle of `adaptive` is bimodality wearing another face — no value was ever observed in that range.
+It is drawn as steps for the same reason: straight lines would **assign probability to values never observed**.
+
+**Which to use** — below about ten values per method the violin's curve looks smoother than the evidence warrants, so a box or the raw points is more honest.
+Reach for ECDF when a threshold is the question, violin when the shape is, box when many conditions must sit side by side.
+
 ### ⑮ When the CSV came in wide — melting
 
 A file whose columns run sideways (`baseline, ours, ablation`) does not match this tool's premise of one row per measurement.
