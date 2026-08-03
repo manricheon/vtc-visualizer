@@ -85,7 +85,7 @@ ours,4000,4.1,0.744,MMLU
 | **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
-| Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, font |
+| Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
 | **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width |
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
@@ -191,6 +191,15 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.34 — per-series display
+
+- Each series can now draw as **points only, line only, or points + line** independently within one chart
+  (Settings → Style → Series; `Follow type` is the default). A reference curve as a line, raw data as points,
+  the series you care about as points + line — until now the chart type drew every series the same way.
+- Area fill, stacking, the secondary axis, the dimmed slice and small multiples all follow the per-series mode,
+  so a series with no line never gets a fill band on its own.
+- Old sessions open unchanged — an empty mode means "follow the chart type", exactly as before.
 
 ### v0.33 — a distribution recipe, companion data, and a dataset-scoping bug
 - The guide gained **recipe ⑱, the spread of repeated runs** — the same data as box, violin and ECDF side by side, showing what a box hides.

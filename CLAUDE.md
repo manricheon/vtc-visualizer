@@ -94,6 +94,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),
   `lineShape`(linear|spline), `lineDash`(전역 선 종류, 시리즈별 `seriesStyles[name].dash`/`lwidth`로 오버라이드),
+  `seriesStyles[name].mode`(v0.34 — 시리즈별 표시 모드 markers|lines|both, **빈 값 = 차트 유형을 따름**. `seriesMode(st, lineMode)` 하나가 해석하고
+    `buildFacetTraces`(facet·비facet 공용 경로)가 흐리게 조각·본 trace·보조축에 같은 값을 쓴다. **`hasLine`을 이 모드로 판정**해야 한다 —
+    차트 유형으로 판정하면 선이 없는 시리즈에 영역 채우기·쌓기가 걸려 그리지 못할 것을 그리려 든다. 모르는 값은 유형으로 폴백(옛 세션 방어).
+    UI는 선/산점도 계열에서만 노출한다 — 분포·히트맵·덤벨은 모드를 스스로 정한다),
   `seriesLabels{원본시리즈명:표시명}`(범례·hover 표시만 덮어씀 — 내부 키(스타일·추세·`__fillbase`/`__trendband`)는 `def.name` 원본 유지, buildTraces의 `dname`),
   `legendPos`(right|top|inside-tl|inside-tr|inside-bl|inside-br|none — 구 `inside`는 좌상단으로 매핑),
   `colorBy`(숫자 컬럼 연속 색상 — group 없을 때만, 단일 trace `marker.color`+`SEQ_SCALE` 컬러바; group 있으면 무시),

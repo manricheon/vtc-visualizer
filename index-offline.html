@@ -399,7 +399,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.33';
+const APP_VERSION = 'v0.34';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -647,6 +647,8 @@ const I18N = {
     'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
     'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
     'cfg.seriesColor': '색',
+    'cfg.seriesModeTitle': '이 시리즈의 표시 — 차트 유형과 다르게 둘 수 있습니다(참고용은 선만, 원자료는 점만)',
+    'opt.modeAuto': '유형 따름', 'opt.modeMarkers': '점만', 'opt.modeLines': '선만', 'opt.modeBoth': '점+선',
     'cfg.seriesUp': '{name} 위로 (범례·그리는 순서만 — 색은 그대로)',
     'cfg.seriesDown': '{name} 아래로 (범례·그리는 순서만 — 색은 그대로)',
     'cfg.seriesOrderReset': '순서 되돌리기',
@@ -1087,6 +1089,8 @@ const I18N = {
     'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
     'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
     'cfg.seriesColor': 'Colour',
+    'cfg.seriesModeTitle': 'How this series draws — it may differ from the chart type (a reference curve as a line only, raw data as points only)',
+    'opt.modeAuto': 'Follow type', 'opt.modeMarkers': 'Points only', 'opt.modeLines': 'Line only', 'opt.modeBoth': 'Points + line',
     'cfg.seriesUp': 'Move {name} up (legend and draw order only — the colour stays)',
     'cfg.seriesDown': 'Move {name} down (legend and draw order only — the colour stays)',
     'cfg.seriesOrderReset': 'Reset order',
@@ -1925,6 +1929,14 @@ function seriesDefsNatural(cfg) {
   }));
   return defs;
 }
+/* 시리즈의 실제 그리기 모드 — 오버라이드가 없으면 차트 유형이 정한 것을 그대로 쓴다.
+   `markers`/`lines`/`both` 세 값만 받는다(그 외는 무시하고 차트 유형을 따른다). */
+function seriesMode(st, chartMode) {
+  if (st.mode === 'markers') return 'markers';
+  if (st.mode === 'lines') return 'lines';
+  if (st.mode === 'both') return 'lines+markers';
+  return chartMode;
+}
 function seriesStyle(cfg, def) {
   const o = cfg.seriesStyles[def.name] || {};
   return {
@@ -1933,6 +1945,9 @@ function seriesStyle(cfg, def) {
     msize: o.msize || cfg.markerSize,
     dash: o.dash || cfg.lineDash,
     lwidth: o.lwidth || cfg.lineWidth,
+    /* 빈 값 = 차트 유형을 따른다. 시리즈마다 점만/선만/점+선을 달리 쓰고 싶은 경우가 있다 —
+       참고용 곡선은 선만 옅게, 주인공은 점+선, 원자료는 점만. */
+    mode: o.mode || '',
   };
 }
 function hexToRgba(hex, alpha) {
@@ -2100,7 +2115,10 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       }
       traces.push(tr);
     } else {
-      const hasLine = lineMode.includes('lines');
+      /* 시리즈마다 모드가 다를 수 있으므로 여기서부터는 **차트 유형이 아니라 이 시리즈의 모드**를 본다 —
+         선이 없는 시리즈에 영역 채우기·쌓기를 걸면 그리지 못할 것을 그리려 든다. */
+      const myMode = seriesMode(st, lineMode);
+      const hasLine = myMode.includes('lines');
       const useFill = hasLine && cfg.areaFill === 'tozeroy';
       /* 쌓기: 막대에는 있는데 선에는 없어서 구성비 추이를 못 그렸다.
          Plotly의 stackgroup은 **본 시리즈 trace에만** 준다 — 추세선·흐리게·__fillbase가 끼면 합이 틀어진다. */
@@ -2112,7 +2130,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       if (mpts.length) {
         traces.push({
           name: `${name} __muted`, x: mpts.map(r => r[cfg.x]), y: mpts.map(r => r[cfg.y]),
-          type: scat, mode: lineMode, showlegend: false, opacity: 0.28,
+          type: scat, mode: myMode, showlegend: false, opacity: 0.28,
           marker: { color: CHROME.muted, symbol: st.symbol, size: cfg.size ? mpts.map(r => sizeScale(r[cfg.size], cfg)) : Math.max(4, st.msize - 2) },
           line: { color: CHROME.muted, width: 1, shape: cfg.lineShape },
           customdata: mpts.map(labelfn), hovertemplate: hoverT,
@@ -2166,7 +2184,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
             ...(fadeOp ? { opacity: fadeOp } : {}),
             line: { width: 1.5, color: CHROME.surface } };
       traces.push({
-        name: dname, _g: def.g, _g2: def.g2, type: scat, mode: lineMode,
+        name: dname, _g: def.g, _g2: def.g2, type: scat, mode: myMode,
         x: mx, y: my, customdata: cfg.ptAgg === 'none' ? npts.map(labelfn) : mx, hovertemplate: hoverT,
         marker, line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
         ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
@@ -2190,7 +2208,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       const st = seriesStyle(cfg, def);
       traces.push({
         name: `${(cfg.seriesLabels && cfg.seriesLabels[def.name]) || def.name} · ${cfg.y2}`,
-        type: gl ? 'scattergl' : 'scatter', mode: lineMode.includes('lines') ? 'lines+markers' : 'markers',
+        type: gl ? 'scattergl' : 'scatter', mode: seriesMode(st, lineMode).includes('lines') ? 'lines+markers' : 'markers',
         x: pts.map(r => r[cfg.x]), y: pts.map(r => r[cfg.y2]), yaxis: 'y2',
         marker: { color: st.color, symbol: 'x', size: Math.max(5, (st.msize || 9) - 2), opacity: 0.85 },
         line: { color: st.color, width: Math.max(1, (st.lwidth || 2) - 0.5), dash: 'dot', shape: cfg.lineShape },
@@ -3670,6 +3688,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           el('button', { class: 'small', title: tf('cfg.seriesDown', { name }), onclick: () => move(1) }, '↓'),
         ),
         ...(isBar ? [] : [el('div', { class: 'series-row sub' },   // 막대는 색만 의미 있음
+          /* 시리즈마다 점만/선만/점+선 — 참고용 곡선은 선만, 주인공은 점+선처럼 쓴다.
+             선/산점도 계열에서만 뜻이 있다(분포·히트맵·덤벨은 모드를 스스로 정한다). */
+          ...(['scatter', 'line', 'scatter+line'].includes(cfg.type) ? [
+            named(select([['', t('opt.modeAuto')], ['markers', t('opt.modeMarkers')], ['lines', t('opt.modeLines')], ['both', t('opt.modeBoth')]],
+              st.mode || '', v => upd({ mode: v }), { title: t('cfg.seriesModeTitle') }), 'cfg.seriesModeTitle'),
+          ] : []),
           named(select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }), 'cfg.markerShapeTitle'),
           named(el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }), 'cfg.markerSizeTitle'),
           named(select(DASHES(), st.dash, v => upd({ dash: v }), { title: t('cfg.lineType') }), 'cfg.lineType'),
