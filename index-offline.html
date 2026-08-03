@@ -143,7 +143,14 @@
     flex-wrap: wrap;   /* 절반 폭에서 버튼이 "설"·"프리"처럼 잘리던 것 — 줄이는 대신 접는다 */
   }
   .chart-card .head button { flex: none; }
-  .chart-card .head .name { font-weight: 600; margin-right: auto; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chart-card .head .name { font-weight: 600; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 설정을 접어 둔 카드의 한 줄 요약 — 자리가 모자라면 이것부터 줄어든다(버튼은 flex:none) */
+  .chart-card .head .spec {
+    color: var(--ink-muted); font-size: var(--fs-xs); min-width: 0; flex: 1 1 auto;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .chart-card .head .spec[hidden] { display: none; }
+  .chart-card .head .name:last-of-type { margin-right: auto; }
   .chart-card .body { display: flex; align-items: stretch; }
   /* 설정 패널 폭은 사용자가 정한다(`--cfg-w`) — 한국어 라벨과 선택지가 292px에서 자주 두 줄로 접혔다.
      절반 폭 카드에서는 상한을 둔다: 카드가 좁은데 패널까지 넓히면 그림이 남지 않는다. */
@@ -418,7 +425,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.38.1';
+const APP_VERSION = 'v0.39';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -613,6 +620,7 @@ const I18N = {
     'card.resetViewTitle': '줌·축 범위를 초기화하고 전체 데이터를 보여줍니다',
     'card.resetView': '보기 초기화',
     'card.settings': '⚙ 설정',
+    'card.specGroup': '그룹', 'card.specFacet': '분할', 'card.specFilter': '필터',
     'card.duplicate': '복제',
     'card.preset': '프리셋',
     'pt.presetTitle': '차트 프리셋 — 클릭하면 이 차트에 적용',
@@ -1064,6 +1072,7 @@ const I18N = {
     'card.resetViewTitle': 'Reset zoom/axis range and show all data',
     'card.resetView': 'Reset view',
     'card.settings': '⚙ Settings',
+    'card.specGroup': 'group', 'card.specFacet': 'split', 'card.specFilter': 'filters',
     'card.duplicate': 'Duplicate',
     'card.preset': 'Presets',
     'pt.presetTitle': 'Chart presets — click to apply to this chart',
@@ -3134,6 +3143,7 @@ function renderPlot(cfg) {
     div._vizBound = false;   // purge가 이벤트 에미터를 제거하므로 재바인딩 필요
     return;
   }
+  applyCardSpec(cfg);   // 설정을 바꾸면 요약도 따라와야 한다(모든 변경이 renderPlot을 거친다)
   const gd = div;
   if (!gd.data) gd.innerHTML = '';   // placeholder 텍스트만 제거 — 기존 플롯 DOM은 Plotly.react가 관리
   gd._vizRendering = true;
@@ -3512,6 +3522,31 @@ function setCardName(nameSpan, text) {
   const card = nameSpan.closest('.chart-card');
   if (card) card.setAttribute('aria-label', text);
 }
+/* 카드 헤더 요약 — 설정을 접어 두면 "이 카드가 무슨 그림인지"를 확인하려고 다시 펼쳐야 했다.
+   리포트용 `chartSpecText`는 로그축·집계까지 적어 헤더에서는 흐르므로 짧은 것을 따로 만든다.
+   **설정이 펼쳐져 있을 때는 숨긴다** — 바로 아래 같은 내용이 보이는데 두 번 적을 이유가 없다. */
+function cardSpecText(cfg) {
+  const parts = [t(AN_TYPE_KEY[cfg.type] || cfg.type)];
+  if (isDistType(cfg.type)) { if (cfg.y) parts.push(cfg.y); }
+  else if (cfg.type === 'heatmap') {
+    if (cfg.x && cfg.y) parts.push(`${cfg.x} × ${cfg.y}`);
+    if (cfg.heatZ) parts.push(cfg.heatZ);
+  } else if (cfg.x && cfg.y) parts.push(`${cfg.x} × ${cfg.y}`);
+  if (cfg.y2) parts.push('+ ' + cfg.y2);
+  if (cfg.group) parts.push(`${t('card.specGroup')} ${cfg.group}`);
+  if (cfg.facetBy) parts.push(`${t('card.specFacet')} ${cfg.facetBy}`);
+  const nf = (cfg.filters || []).filter(filterActive).length;
+  if (nf) parts.push(`${t('card.specFilter')} ${nf}`);
+  if (cfg.dataset) parts.push(cfg.dataset);
+  return parts.join(' · ');
+}
+function applyCardSpec(cfg) {
+  const card = cardOf(cfg);
+  const sp = card && card.querySelector('.head .spec');
+  if (!sp) return;
+  sp.hidden = !cfg._cfgHidden;
+  if (!sp.hidden) sp.textContent = cardSpecText(cfg);
+}
 function renderChartCard(cfg) {
   const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : ''), 'data-chart': cfg.id });
 
@@ -3524,8 +3559,9 @@ function renderChartCard(cfg) {
 
   if (cfg._cfgHidden) cfgPanel.classList.add('hidden');   // 설정 패널 접힘은 카드가 다시 그려져도 유지
   if (cfg._collapsed) plotDiv.style.display = 'none';
+  const specSpan = el('span', { class: 'spec', hidden: cfg._cfgHidden ? undefined : '' }, cfg._cfgHidden ? cardSpecText(cfg) : '');
   const head = el('div', { class: 'head' },
-    nameSpan,
+    nameSpan, specSpan,
     el('button', { class: 'small', title: t('card.collapseTitle'), onclick: e => {
       cfg._collapsed = !cfg._collapsed;
       plotDiv.style.display = cfg._collapsed ? 'none' : '';
@@ -3540,7 +3576,11 @@ function renderChartCard(cfg) {
       if (plotDiv.data) Plotly.relayout(plotDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true });
       buildCfgPanel(cfg, cfgPanel, nameSpan); save();
     } }, t('card.resetView')),
-    el('button', { class: 'small', onclick: () => { cfgPanel.classList.toggle('hidden'); cfg._cfgHidden = cfgPanel.classList.contains('hidden'); } }, t('card.settings')),
+    el('button', { class: 'small', onclick: () => {
+      cfgPanel.classList.toggle('hidden');
+      cfg._cfgHidden = cfgPanel.classList.contains('hidden');
+      applyCardSpec(cfg);
+    } }, t('card.settings')),
     el('button', { class: 'small', onclick: e => showPresetMenu(cfg, e) }, t('card.preset')),
     el('button', { class: 'small', title: t('card.asTableTitle'), onclick: () => toggleChartTable(cfg) }, t('card.asTable')),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
@@ -4376,6 +4416,7 @@ function relabelCards() {
     if (hint) hint.textContent = t('card.plotHint');
     const nameSpan = card.querySelector('.head .name');
     if (nameSpan && !cfg.title) setCardName(nameSpan, tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }));
+    applyCardSpec(cfg);   // 요약 문구도 언어를 따라야 한다
   }
 }
 /* 제목 없는 카드의 "차트 N"은 순서에 따라 달라지므로 순서가 바뀌면 다시 매긴다 */
