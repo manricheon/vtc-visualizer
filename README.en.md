@@ -78,7 +78,7 @@ ours,4000,4.1,0.744,MMLU
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
 | **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
-| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) |
+| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) · **broken axis** (fold away the gap when values split into two far-apart groups — axis values stay real) |
 | **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
 | **Option search** | Type an option name in the search box above the settings panel to filter it down |
@@ -110,7 +110,7 @@ ours,4000,4.1,0.744,MMLU
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
 | **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
-| **Example data** | `Load example data` brings the 24-row basic set; `More examples` adds four companions (metadata, a wide CSV, standard deviations, repeated seeds) so guide recipes ⑮⑯⑰ can be followed as written |
+| **Example data** | `Load example data` brings the 24-row basic set; `More examples` adds five companions (metadata, a wide CSV, standard deviations, repeated seeds, two backends orders of magnitude apart) so guide recipes ⑮⑯⑰ can be followed as written |
 | **Melt (wide → long)** | The `⇲` button on a dataset chip: turns a file whose columns are spread sideways (`baseline, ours, ablation`) into **one row per measurement** as a new dataset. The original is untouched, and the new name column works as a group/facet/filter straight away |
 | **Watch folder** | The `Watch folder` checkbox, shown when running via `visualizer.py`: **reloads files as they change**. Leave it on while a run is in progress — exclusions and fading survive, and a file that briefly disappears is not dropped from the screen |
 | **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
@@ -191,6 +191,15 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.36 — broken axis
+
+- New chart type **`Broken axis`** — when values split into two far-apart groups (CPU 400 ms vs GPU 8 ms) the smaller group is pinned to the floor and its members cannot be told apart. The space between is folded away so **each group reads in its own range**.
+- **Axis values stay real** — hover, the table, exported CSV and reports all report the unfolded numbers (folding the coordinates instead would make every one of them lie).
+- The range is **automatic when left empty** (largest empty span, over 25% of the full range, at least two points on each side). If nothing is worth folding it draws as an ordinary chart **and says so**. You can enter a range yourself, or switch `Break` to the X axis.
+- Baselines, text markers, the best-point label and shaded spans attach to **whichever panel holds their value** (a span crossing the break is drawn as two pieces).
+- **Not available for bars** — a bar's length is the quantity, so breaking the axis makes the picture lie. For two different metrics, a secondary Y axis is the right tool.
+- `More examples` now includes **`scales.csv`** (3 backends × 6 batch sizes) so guide recipe ⑲ can be followed as written.
 
 ### v0.35.1 — baselines vanished the moment they were created
 

@@ -269,6 +269,38 @@ It is drawn as steps for the same reason: straight lines would **assign probabil
 **Which to use** — below about ten values per method the violin's curve looks smoother than the evidence warrants, so a box or the raw points is more honest.
 Reach for ECDF when a threshold is the question, violin when the shape is, box when many conditions must sit side by side.
 
+### ⑲ When values split into two groups — a broken axis
+
+Sometimes one metric spans orders of magnitude (CPU vs GPU latency, a small model vs a large one).
+On a single axis the smaller group is pinned to the floor and its members **cannot even be told apart**.
+`scales.csv` (3 backends × 6 batch sizes) from `More examples` in the data card follows this recipe exactly.
+
+> Type=`Scatter + line`, X=`batch`, Y=`latency_ms`, Group (colour)=`backend`, Data=`scales.csv`
+
+![On one axis the two gpu lines collapse onto the floor](assets/guide/r17-break-before.png)
+
+Only `cpu` reads; `gpu` and `gpu-int8` look like a single overlapping line — even though they differ by 30%.
+
+> Change the type to `Broken axis` and leave the range empty
+
+![With the axis broken, each group reads in its own range](assets/guide/r17-break.png)
+
+**The axis splits in two and the space between is folded away, marked `⁄⁄`.** Each group gets its own range,
+so the gap between `gpu` and `gpu-int8` reads alongside the growth of `cpu`.
+**Axis values stay real** — hover, the `Table` view and exported CSV/reports all report the unfolded numbers.
+
+- **Leave the range empty for automatic.** The largest empty span is folded, but only when it exceeds 25% of the
+  full range and has at least two points on each side. If nothing is worth folding it draws as an ordinary chart **and says so**.
+- To choose it yourself, enter two numbers in `Break range` (e.g. `20` to `380`).
+- If it is X that splits (token budgets of 500–2,000 and 100,000), switch `Break` to `X axis`.
+- Baselines, text markers and shaded spans attach to **whichever panel holds their value**; a span crossing the
+  break is drawn as two pieces.
+
+**When not to use it** — if values grow by *multiples* (1, 10, 100, 1000) a log axis is the right answer.
+A broken axis is for two groups that each need to read linearly.
+And never on **bars** (which is why the bar type has no break) — a bar's length *is* the quantity, so breaking
+the axis makes the picture lie. If the two are different metrics, a **secondary Y axis** is the right tool.
+
 ### ⑮ When the CSV came in wide — melting
 
 A file whose columns run sideways (`baseline, ours, ablation`) does not match this tool's premise of one row per measurement.
