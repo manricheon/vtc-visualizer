@@ -192,6 +192,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.35.1 — baselines vanished the moment they were created
+
+- **Bug fix**: with two files holding the same values, or with a chart-level `Data` selection or filter, a baseline or marker made by clicking a point **disappeared immediately with "lost its anchor point"**. The anchor was looked up **across all rows instead of the rows actually drawn**, so it latched onto an identical row from another file or one removed by a filter. It now searches only the rows the chart draws.
+- Anchors that were already broken are **restored when a point sits at exactly the stored coordinates**, so baselines and markers lost in earlier sessions come back. It never snaps to the nearest point — that would silently point at a different row, the very failure this machinery exists to prevent.
+
 ### v0.35 — baselines vanished when another file was loaded
 
 - **Bug fix**: loading one more data file made click-created **baselines and text markers immediately report "lost their anchor point" and disappear** (one press of `More examples` reproduces it).

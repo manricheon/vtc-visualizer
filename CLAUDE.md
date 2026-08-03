@@ -196,6 +196,9 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   갱신 뒤에는 둘이 다르므로 좌표로 보면 같은 점에 기준선이 겹쳐 쌓인다.
   재지정 대기 상태 `tmPending`은 `{kind:'marker'|'baseline', chartId, idx}`로 **하나만** 둔다(두 벌이면 둘 다 대기 중인 상태가 생긴다).
 - **텍스트 마커 앵커**(v0.15): 마커는 늘 포인트 클릭으로 만들어지므로 **좌표가 아니라 점에 묶는다** —
+  **앵커를 고르는 행 집합은 푸는 집합과 같아야 한다**(v0.35.1) — `markerAnchorFor`가 `allRows()`를 훑으면
+  값이 같은 다른 파일의 행·필터로 빠진 행을 물어 **만들자마자 stale**이 된다(`chartRows(c)`에서 고른다).
+  못 찾은 앵커는 `anchorRescue()`가 **저장 좌표와 완전 일치**하는 점이 있을 때만 되살린다(가까운 점 스냅 금지).
   `markerAnchorFor(cfg, p)`가 클릭한 점의 행을 찾아 `{rk: rowKey(row), xc, yc}`(행 정체성 + 그때의 축 컬럼)를 마커에 담고,
   `resolveMarker(cfg, m, rowsByKey)`가 그릴 때마다 `markerAnchorRows()`(chartRows의 rowKey 맵)에서 행을 찾아 **현재 값을 다시 읽는다**.
   세 가지 모드: `paper`(고정 메모 — x·y가 0~1 비율, `xref/yref:'paper'`, `_paper` 플래그) · `xy`(rk 없는 예전 마커, 좌표 그대로) · `point`(행 앵커).

@@ -399,7 +399,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.35';
+const APP_VERSION = 'v0.35.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -2025,11 +2025,22 @@ function markerAnchorRows(cfg) {
   }
   return map;
 }
+/* 이미 저장된 앵커가 행을 못 찾을 때, **저장해 둔 좌표와 정확히 같은 점**이 있으면 그 행으로 다시 묶는다.
+   가장 가까운 점을 찾는 것이 아니라 **완전 일치**만 본다 — 가까운 점에 붙이면 조용히 다른 점을 가리키게 되고,
+   그건 이 앵커 기계가 애초에 없애려던 실패다. v0.35 이전 키로 만든 앵커와 위 버그로 어긋난 앵커를 되살린다. */
+function anchorRescue(cfg, a) {
+  if (!a.rk || !cfg.x || !cfg.y) return null;
+  if (a.x === null || a.x === undefined || a.y === null || a.y === undefined) return null;
+  const row = chartRows(cfg).find(r => r[cfg.x] === a.x && r[cfg.y] === a.y);
+  if (!row) return null;
+  a.rk = rowKey(row);   // 되찾은 것은 저장해 둔다 — 다음 렌더부터는 정상 경로로 풀린다
+  return row;
+}
 function resolveMarker(cfg, m, rowsByKey) {
   if (m.anchor === 'paper') return { mode: 'paper', x: m.x, y: m.y };
   if (!m.rk) return { mode: 'xy', x: m.x, y: m.y };            // 예전 마커 — 좌표 그대로
   if ((m.xc && m.xc !== cfg.x) || (m.yc && m.yc !== cfg.y)) return { mode: 'point', stale: 'axis' };
-  const r = (rowsByKey || markerAnchorRows(cfg)).get(m.rk);
+  const r = (rowsByKey || markerAnchorRows(cfg)).get(m.rk) || anchorRescue(cfg, m);
   if (!r) return { mode: 'point', stale: 'gone' };
   const x = r[cfg.x], y = r[cfg.y];
   if (x === null || x === undefined || y === null || y === undefined) return { mode: 'point', stale: 'gone' };
@@ -2647,7 +2658,7 @@ function buildAnnotations(cfg) {
 function resolveBaseline(cfg, b, rowsByKey) {
   if (!b.rk) return { mode: 'xy', x: b.x, y: b.y };
   if ((b.xc && b.xc !== cfg.x) || (b.yc && b.yc !== cfg.y)) return { mode: 'point', stale: 'axis' };
-  const r = (rowsByKey || markerAnchorRows(cfg)).get(b.rk);
+  const r = (rowsByKey || markerAnchorRows(cfg)).get(b.rk) || anchorRescue(cfg, b);
   if (!r) return { mode: 'point', stale: 'gone' };
   const x = r[cfg.x], y = r[cfg.y];
   const need = (b.dir || 'both');
@@ -3130,10 +3141,14 @@ function showPointPopover(c, gd, p, mouseEv) {
   );
   placePopover(mouseEv);
 }
-/* 클릭한 점이 어느 행이었는지 기억해 둔다 — 값이 갱신돼도 같은 조건의 행을 다시 찾아간다 */
+/* 클릭한 점이 어느 행이었는지 기억해 둔다 — 값이 갱신돼도 같은 조건의 행을 다시 찾아간다.
+   **찾는 집합은 푸는 집합과 같아야 한다**(v0.35.1): 여기서 `allRows()`를 훑으면
+   값이 같은 다른 파일의 행이나 필터로 빠진 행을 물 수 있는데, `resolveMarker`/`resolveBaseline`은
+   `chartRows()`에서 찾으므로 **만들자마자 "기준 점을 잃었다"가 된다**(실제로 그랬다 —
+   같은 데이터를 두 파일로 들고 있거나 차트에 데이터셋·필터를 걸어 두면 클릭한 그 점이 곧바로 사라졌다). */
 function markerAnchorFor(c, p) {
   const g = p.data && p.data._g, g2 = p.data && p.data._g2;
-  const row = allRows().find(r => !r._excluded && r[c.x] === p.x && r[c.y] === p.y
+  const row = chartRows(c).find(r => r[c.x] === p.x && r[c.y] === p.y
     && (g == null || String(r[c.group]) === g) && (g2 == null || String(r[c.group2]) === g2));
   return row ? { rk: rowKey(row), xc: c.x, yc: c.y } : {};
 }
