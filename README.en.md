@@ -86,7 +86,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
-| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart. The panel height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
@@ -191,6 +191,14 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.38 — less scrolling in the settings panel
+
+- The panel was **capped at 640px**, so a tall window bought you nothing. It now **follows the window height** (640 → 850px in a 1000px window).
+- **One group opens at a time** (turn it off with `One at a time` above the panel). Fully expanded the panel was 3,400px, so finding anything meant a long scroll.
+- **The series list starts folded** — 437px of the Style group's 975px was that list, which is why Style never fit any window. It is 554px now, and the folded state is remembered.
+- Together, the distance you must scroll went from **2,808px to 77px** (default width, 1000px window).
+- Search still expands several groups at once — `One at a time` only reacts to an actual click.
 
 ### v0.37.1 — text clipped inside its own control
 

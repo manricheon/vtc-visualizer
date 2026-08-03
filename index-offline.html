@@ -149,12 +149,16 @@
      절반 폭 카드에서는 상한을 둔다: 카드가 좁은데 패널까지 넓히면 그림이 남지 않는다. */
   .chart-card .cfg {
     width: var(--cfg-w, 300px); flex: none; border-right: 1px solid var(--border);
-    padding: 10px 12px; overflow-y: auto; max-height: 640px; font-size: 13px;
+    padding: 10px 12px; overflow-y: auto; font-size: 13px;
+    /* 640px 고정이라 화면이 커도 안 늘어났다(1000px 창에서 360px을 버렸다).
+       max-height라 내용이 짧으면 그만큼만 차지한다 — 상한만 화면을 따라간다. */
+    max-height: min(calc(100vh - 150px), 900px); min-height: 240px;
   }
   .chart-card.half .cfg { width: min(var(--cfg-w, 300px), 320px); }
   .chart-card .cfg.hidden { display: none; }
   .cfg-search { flex: 1; min-width: 0; font-size: 12.5px; }
-  .cfg-search-box .top { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; }
+  .cfg-search-box .top { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; flex-wrap: wrap; }
+  .cfg-search-box .top label.inline { font-size: 12px; color: var(--ink-muted); gap: 4px; white-space: nowrap; }
   /* 폭 이름이 길어지면(`아주 넓게`) 화살표에 겹친다 — 내용에 맞추되 검색칸을 다 먹지 않게 상한만 둔다 */
   .cfg-search-box .top select { flex: none; width: auto; max-width: 45%; font-size: 12px; padding: 0 4px; }
   .cfg-noresult { margin: 0 0 var(--sp-2); }
@@ -413,7 +417,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.37.1';
+const APP_VERSION = 'v0.38';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -892,6 +896,7 @@ const I18N = {
     'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
     'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
     'cfg.widthTitle': '설정 패널 폭 — 모든 차트에 함께 적용됩니다',
+    'cfg.oneGroup': '하나씩', 'cfg.oneGroupTitle': '한 번에 한 묶음만 펼칩니다 — 끄면 여러 묶음을 동시에 볼 수 있습니다',
     'cfg.wS': '좁게', 'cfg.wM': '기본', 'cfg.wL': '넓게', 'cfg.wXL': '아주 넓게',
     'cfg.searchPh': '옵션 검색 (예: 로그, 정렬, 범례)',
     'cfg.caption': '캡션',
@@ -1342,6 +1347,7 @@ const I18N = {
     'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
     'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
     'cfg.widthTitle': 'Settings panel width — applies to every chart',
+    'cfg.oneGroup': 'One at a time', 'cfg.oneGroupTitle': 'Keep only one group open — turn it off to view several at once',
     'cfg.wS': 'Narrow', 'cfg.wM': 'Default', 'cfg.wL': 'Wide', 'cfg.wXL': 'Widest',
     'cfg.searchPh': 'Find an option (log, sort, legend…)',
     'cfg.caption': 'Caption',
@@ -3651,19 +3657,52 @@ function cfgSearchBox(panel) {
     v => setCfgWidth(v), { title: t('cfg.widthTitle') });
   wsel.classList.add('cfg-wsel');
   wsel.setAttribute('aria-label', t('cfg.widthTitle'));
-  return el('div', { class: 'cfg-search-box' }, el('div', { class: 'top' }, inp, wsel), none);
+  const acc = el('input', { type: 'checkbox', class: 'cfg-accsel', ...(ACCORDION ? { checked: '' } : {}),
+    onchange: e => setAccordion(e.target.checked) });
+  const accLbl = el('label', { class: 'inline', title: t('cfg.oneGroupTitle') }, acc, t('cfg.oneGroup'));
+  return el('div', { class: 'cfg-search-box' }, el('div', { class: 'top' }, inp, wsel, accLbl), none);
 }
 /* 차트별 `_open`은 세션에 저장되지 않는다(차트 UI 상태 규칙) — 그래서 새로고침하면 매번 다시 펼쳐야 했다.
    마지막으로 연 그룹을 **이 브라우저의 기본값**으로 따로 기억해 그 자리를 메운다. 스키마는 그대로다. */
 const GRP_KEY = 'vtc-visualizer:groups';
 let groupPrefs = (() => { try { return JSON.parse(localStorage.getItem(GRP_KEY)) || {}; } catch (e) { return {}; } })();
+/* 시리즈 목록 접힘은 차트별이 아니라 **이 브라우저의 기본값**이다(그룹 펼침과 같은 규칙) */
+const SERIES_OPEN_KEY = 'vtc-visualizer:seriesopen';
+let seriesOpen = localStorage.getItem(SERIES_OPEN_KEY) === '1';
 let grpSilent = false;   // 검색이 프로그램으로 여닫는 동안에는 기본값을 갱신하지 않는다
+/* 한 번에 한 그룹만 열기 — 전부 펼치면 3,400px이라 무엇을 찾든 스크롤이 길었다.
+   **기본은 켜짐**이고 끌 수 있다(여러 그룹을 나란히 보던 사람도 있다). */
+const ACC_KEY = 'vtc-visualizer:accordion';
+let ACCORDION = localStorage.getItem(ACC_KEY) !== '0';
+function setAccordion(on) {
+  ACCORDION = !!on;
+  localStorage.setItem(ACC_KEY, ACCORDION ? '1' : '0');
+  for (const b of document.querySelectorAll('.cfg-accsel')) b.checked = ACCORDION;
+}
+/* 형제를 닫는 것은 사용자의 선택이 아니므로 기본값으로 저장하지 않는다(검색과 같은 규칙). */
+function closeSiblingGroups(panel, keep, cfg) {
+  grpSilent = true;
+  for (const o of panel.querySelectorAll('details.grp[data-g]')) {
+    if (o === keep || !o.open) continue;
+    const k = o.getAttribute('data-g');
+    o.open = false;
+    if (cfg && cfg._open) cfg._open[k] = false;
+    groupPrefs[k] = false;
+  }
+  try { localStorage.setItem(GRP_KEY, JSON.stringify(groupPrefs)); } catch (e) { /* 저장 못 해도 동작은 그대로 */ }
+  setTimeout(() => { grpSilent = false; }, 0);
+}
 function restoreGroupState(cfg, panel) {
   cfg._open = cfg._open || {};
   panel.querySelectorAll('details.grp[data-g]').forEach(d => {
     const k = d.getAttribute('data-g');
     const want = cfg._open[k] !== undefined ? cfg._open[k] : groupPrefs[k];
     if (want !== undefined) d.open = want;
+    /* 아코디언은 **사람이 누를 때만** 동작한다 — `toggle`에 걸면 검색이 여러 묶음을 펼치는 것까지 닫아 버린다
+       (`grpSilent`는 비동기 toggle과 경합해 믿을 수 없다). 클릭 시점의 `d.open`은 아직 바뀌기 전 값이다. */
+    d.querySelector('summary').addEventListener('click', () => {
+      if (!d.open && ACCORDION) closeSiblingGroups(panel, d, cfg);
+    });
     d.addEventListener('toggle', () => {
       if (grpSilent) return;
       cfg._open[k] = d.open;
@@ -3890,15 +3929,18 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   /* --- 스타일 --- */
   const gStyle = el('details', { class: 'grp', 'data-g': 'style' }, el('summary', {}, t('cfg.style')));
   const seriesBox = el('div');
-  const SERIES_FOLD = 6;   // 이보다 많으면 스타일 그룹이 시리즈 목록으로 뒤덮인다
+  /* 시리즈 목록은 **항상** 한 겹 접는다(v0.38). 스타일 그룹 975px 중 437px이 이 목록이었고,
+     그래서 어떤 패널 높이로도 스타일이 한 화면에 안 들어왔다. 접으면 ~540px로 들어온다.
+     여닫은 상태는 다른 그룹과 같은 규칙으로 기억한다(`data-g`가 있으면 `restoreGroupState`가 맡는다). */
   const renderSeries = () => {
     seriesBox.innerHTML = '';
     if (!allRows().length) return;
     const defs = seriesDefs(cfg);
     /* 시리즈가 많으면 스타일 그룹 안에서 한 번 더 접는다 — 컨트롤이 시리즈당 최대 6개씩 늘어난다 */
-    const into = defs.length > SERIES_FOLD
-      ? seriesBox.appendChild(el('details', { class: 'sub-grp' }, el('summary', {}, tf('cfg.seriesCount', { n: defs.length }))))
-      : seriesBox;
+    const fold = el('details', { class: 'sub-grp', ...(seriesOpen ? { open: '' } : {}) },
+      el('summary', {}, tf('cfg.seriesCount', { n: defs.length })));
+    fold.addEventListener('toggle', () => { seriesOpen = fold.open; try { localStorage.setItem(SERIES_OPEN_KEY, seriesOpen ? '1' : '0'); } catch (e) { /* 저장 못 해도 동작은 그대로 */ } });
+    const into = seriesBox.appendChild(fold);
     defs.forEach((def) => {
       const name = def.name;
       const st = seriesStyle(cfg, def);
