@@ -80,7 +80,9 @@
   button.primary:hover { filter: brightness(0.94); }
   button.ghost { background: transparent; }
   button.danger { color: var(--danger); }
-  button.small { font-size: var(--fs-sm); height: 26px; line-height: 24px; padding: 0 var(--sp-2); }
+  /* 좁은 자리에서 버튼 글자가 **세로로 쪼개지던 것**(기준선 줄의 `값 고정`)을 막는다 —
+     줄이 모자라면 버튼을 접을지언정 글자를 세로로 세우지 않는다 */
+  button.small { font-size: var(--fs-sm); height: 26px; line-height: 24px; padding: 0 var(--sp-2); white-space: nowrap; flex: none; }
   input[type="color"] { width: 30px; height: 24px; padding: 1px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-1); cursor: pointer; }
   label.inline { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-2); }
 
@@ -134,12 +136,17 @@
   .chart-card .head button { flex: none; }
   .chart-card .head .name { font-weight: 600; margin-right: auto; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .chart-card .body { display: flex; align-items: stretch; }
+  /* 설정 패널 폭은 사용자가 정한다(`--cfg-w`) — 한국어 라벨과 선택지가 292px에서 자주 두 줄로 접혔다.
+     절반 폭 카드에서는 상한을 둔다: 카드가 좁은데 패널까지 넓히면 그림이 남지 않는다. */
   .chart-card .cfg {
-    width: 292px; flex: none; border-right: 1px solid var(--border);
+    width: var(--cfg-w, 300px); flex: none; border-right: 1px solid var(--border);
     padding: 10px 12px; overflow-y: auto; max-height: 640px; font-size: 13px;
   }
+  .chart-card.half .cfg { width: min(var(--cfg-w, 300px), 320px); }
   .chart-card .cfg.hidden { display: none; }
-  .cfg-search { width: 100%; margin: 0 0 8px; font-size: 12.5px; }
+  .cfg-search { flex: 1; min-width: 0; font-size: 12.5px; }
+  .cfg-search-box .top { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; }
+  .cfg-search-box .top select { flex: none; width: 62px; font-size: 12px; padding: 0 2px; }
   .cfg-noresult { margin: 0 0 var(--sp-2); }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
@@ -155,9 +162,10 @@
   /* 시리즈가 많을 때만 쓰는 한 겹 더 접기 — 검색은 `details.grp`만 훑으므로 일부러 그 클래스를 안 쓴다 */
   details.sub-grp > summary { cursor: pointer; color: var(--ink-muted); font-size: var(--fs-xs); padding: var(--sp-1) 0; user-select: none; }
   .row { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-2) 0; flex-wrap: wrap; }
-  .row > .lbl { width: 78px; flex: none; color: var(--ink-muted); font-size: var(--fs-sm); }
+  .row > .lbl { width: var(--cfg-lbl, 84px); flex: none; color: var(--ink-muted); font-size: var(--fs-sm); }
   .row select, .row input[type="text"] { flex: 1; min-width: 60px; }
-  .row input[type="number"] { width: 74px; }
+  /* 숫자 칸이 74px일 때 한국어 placeholder(`시작`)가 스피너에 밀려 잘렸다 — 글자가 잘리면 무슨 칸인지 알 수 없다 */
+  .row input[type="number"] { width: 92px; min-width: 0; flex: 0 1 auto; }
   .hint { color: var(--ink-muted); font-size: var(--fs-xs); line-height: 1.55; margin: var(--sp-1) 0; }
   /* 컨트롤 4개를 좁은 패널에 밀어 넣으면 어디를 골라야 할지 알 수 없다 — 좁으면 줄로 접히게 둔다 */
   .filter-block { border-left: 2px solid var(--grid); padding-left: var(--sp-2); margin: var(--sp-2) 0; }
@@ -170,10 +178,12 @@
   .filter-rule b { color: var(--ink-2); font-weight: 600; }
   .filter-vals { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 2px 0 8px 6px; }
   .filter-vals label.inline { font-size: 12px; gap: 4px; }
-  .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
-  .series-row .sname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-  .series-row .slabel { flex: 1; min-width: 0; font-size: 12px; }
-  .series-row select { width: 92px; flex: none; }
+  /* 한 줄에 다 못 넣으면 **접는다**. 예전에는 강제로 한 줄이라 이름이 밀려 사라지고 오른쪽 컨트롤이 잘렸다
+     (기준선 줄: 이름 + 뱃지 + 버튼 + 방향 + 음영 + ×). */
+  .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+  .series-row .sname { flex: 1 1 96px; min-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .series-row .slabel { flex: 1 1 96px; min-width: 72px; font-size: 12px; }
+  .series-row select { width: 92px; flex: 0 1 auto; min-width: 78px; max-width: 100%; }
   .series-row input[type="number"] { width: 52px; }
   .series-block { margin: 6px 0; padding-bottom: 4px; border-bottom: 1px dashed var(--grid); }
   .series-block:last-child { border-bottom: none; }
@@ -390,7 +400,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.36.1';
+const APP_VERSION = 'v0.37';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -496,6 +506,25 @@ function toggleTheme() {
   THEME = effectiveDark() ? 'light' : 'dark';   // 현재 상태를 뒤집어 명시적으로 고정
   localStorage.setItem(THEME_KEY, THEME);
   applyTheme();
+}
+/* ===== 설정 패널 폭 =====
+   폭이 고정 292px이라 한국어 라벨·선택지가 자주 접혀 세로로 읽혔다. 페이지 폭(아래)과 같은 규칙으로
+   브라우저에 기억하고 `--cfg-w` 하나로 **모든 카드에 동시에** 적용한다(카드마다 다르면 나란히 둔 두 차트가 어긋나 보인다).
+   라벨 칸도 같이 넓혀야 뜻이 있다 — 패널만 넓히면 늘어난 자리가 전부 입력칸으로 간다. */
+const CFGW_KEY = 'vtc-visualizer:cfgw';
+const CFG_WIDTHS = { s: [264, 76], m: [300, 84], l: [360, 104], xl: [440, 128] };
+let CFGW = CFG_WIDTHS[localStorage.getItem(CFGW_KEY)] ? localStorage.getItem(CFGW_KEY) : 'm';
+function applyCfgWidth() {
+  const [w, lbl] = CFG_WIDTHS[CFGW] || CFG_WIDTHS.m;
+  document.documentElement.style.setProperty('--cfg-w', w + 'px');
+  document.documentElement.style.setProperty('--cfg-lbl', lbl + 'px');
+  for (const sel of document.querySelectorAll('.cfg-wsel')) sel.value = CFGW;
+  /* 패널이 넓어지면 그림이 좁아진다 — Plotly는 스스로 알지 못하므로 다시 재본다(접힌 차트는 reject한다) */
+  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); } });
+}
+function setCfgWidth(v) {
+  if (!CFG_WIDTHS[v]) return;
+  CFGW = v; localStorage.setItem(CFGW_KEY, v); applyCfgWidth();
 }
 /* ===== 페이지 폭(좌우) ===== */
 const WIDTH_KEY = 'vtc-visualizer:width';
@@ -849,6 +878,8 @@ const I18N = {
     'cfg.histBins': '구간 수', 'cfg.histBinsPh': '자동',
     'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
     'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
+    'cfg.widthTitle': '설정 패널 폭 — 모든 차트에 함께 적용됩니다',
+    'cfg.wS': '좁게', 'cfg.wM': '기본', 'cfg.wL': '넓게', 'cfg.wXL': '아주 넓게',
     'cfg.searchPh': '옵션 검색 (예: 로그, 정렬, 범례)',
     'cfg.caption': '캡션',
     'cfg.captionPh': '이 그림이 말하는 것 (리포트에 함께 나갑니다)',
@@ -1297,6 +1328,8 @@ const I18N = {
     'cfg.histBins': 'Bins', 'cfg.histBinsPh': 'auto',
     'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
     'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
+    'cfg.widthTitle': 'Settings panel width — applies to every chart',
+    'cfg.wS': 'Narrow', 'cfg.wM': 'Default', 'cfg.wL': 'Wide', 'cfg.wXL': 'Widest',
     'cfg.searchPh': 'Find an option (log, sort, legend…)',
     'cfg.caption': 'Caption',
     'cfg.captionPh': 'What this figure says (goes into the report)',
@@ -3600,7 +3633,12 @@ function cfgSearchBox(panel) {
     none.hidden = !q || shown > 0;
     none.textContent = q ? tf('cfg.searchNone', { q: inp.value.trim() }) : '';
   });
-  return el('div', { class: 'cfg-search-box' }, inp, none);
+  /* 폭 선택은 패널 안에 둔다 — 답답함을 느끼는 자리가 여기다(설정은 전역이라 모든 카드에 함께 적용된다) */
+  const wsel = select([['s', t('cfg.wS')], ['m', t('cfg.wM')], ['l', t('cfg.wL')], ['xl', t('cfg.wXL')]], CFGW,
+    v => setCfgWidth(v), { title: t('cfg.widthTitle') });
+  wsel.classList.add('cfg-wsel');
+  wsel.setAttribute('aria-label', t('cfg.widthTitle'));
+  return el('div', { class: 'cfg-search-box' }, el('div', { class: 'top' }, inp, wsel), none);
 }
 /* 차트별 `_open`은 세션에 저장되지 않는다(차트 UI 상태 규칙) — 그래서 새로고침하면 매번 다시 펼쳐야 했다.
    마지막으로 연 그룹을 **이 브라우저의 기본값**으로 따로 기억해 그 자리를 메운다. 스키마는 그대로다. */
@@ -6111,6 +6149,7 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
+  applyCfgWidth();
 });
 (() => {   // 팔레트 선택 — 기본은 현행, 나머지는 필요할 때 고른다
   const sel = document.getElementById('selPalette');
@@ -6212,6 +6251,7 @@ document.querySelector('.footer-ver').textContent = APP_VERSION;
 applyLang();
 applyTheme();   // CHROME·PALETTE·SEQ를 테마에 맞춰 설정 (첫 렌더 전)
 applyWidth();
+applyCfgWidth();
 loadSaved();
 renderChips(); renderDerived(); renderTable(); refreshCharts();
 tryServerAutoload();
