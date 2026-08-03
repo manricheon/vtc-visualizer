@@ -192,6 +192,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.38.1 — the search box was squeezed until its text was cut
+
+- The `One at a time` checkbox took room, so at the default width the search placeholder was **cut off**. The row now wraps instead of squeezing.
+- The clipping check only ran at `Widest`, which is why it missed this — it now runs at the **default width** too.
+
 ### v0.38 — less scrolling in the settings panel
 
 - The panel was **capped at 640px**, so a tall window bought you nothing. It now **follows the window height** (640 → 850px in a 1000px window).
