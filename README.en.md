@@ -86,7 +86,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
-| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart |
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
@@ -191,6 +191,12 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.37 — settings panel width, and clipped labels
+
+- The settings panel width is now yours to pick — **`Narrow · Default · Wide · Widest`**, next to the search box. The choice is remembered by the browser, applies to **every chart at once**, and widens the label column with it.
+- **Bug fix**: in tight rows, button labels **broke apart vertically** (`Pin to value`, `+ Add`, `+ Span`) and the shading select and `×` on a baseline row **overflowed the panel** and were cut off. Rows now wrap instead, and the baseline's name is no longer pushed out of view.
+- Numeric inputs were too narrow for their placeholder text; widened too.
 
 ### v0.36.1 — detaching a baseline from its point
 
