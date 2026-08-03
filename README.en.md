@@ -192,6 +192,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.36.1 — detaching a baseline from its point
+
+- Baselines created by clicking a point now show a **`Pin to value`** button next to the `anchored to a point` badge — it freezes the line at the current value so it stays put when the data is refreshed. Until now the only way was to delete it and re-enter the number.
+- The reverse is there too: a value-entered baseline gets **`Anchor to a point`** — press it, click a point, and the line follows that row.
+
 ### v0.36 — broken axis
 
 - New chart type **`Broken axis`** — when values split into two far-apart groups (CPU 400 ms vs GPU 8 ms) the smaller group is pinned to the floor and its members cannot be told apart. The space between is folded away so **each group reads in its own range**.
