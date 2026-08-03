@@ -192,6 +192,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.35 — baselines vanished when another file was loaded
+
+- **Bug fix**: loading one more data file made click-created **baselines and text markers immediately report "lost their anchor point" and disappear** (one press of `More examples` reproduces it).
+- The columns that identify a row were picked from **all files merged together**. Once a second file arrived, a column that exists only in that file was empty in every other row and therefore looked like a low-cardinality condition column — so measurements like `f1` and `latency_ms` entered row identity and every stored anchor stopped matching.
+- Identity is now decided **per file**: a row is identified by the schema of the file it came from, so other files coming and going cannot shift it. Re-attaching excluded/dimmed marks when the same file is reloaded is stable for the same reason.
+- Anchors from older sessions still resolve — the old-style key is looked up as well.
+
 ### v0.34 — per-series display
 
 - Each series can now draw as **points only, line only, or points + line** independently within one chart
