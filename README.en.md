@@ -192,6 +192,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.37.1 — text clipped inside its own control
+
+- Fixed: the span `From` field cut its placeholder mid-character, the panel-width option `Widest` collided with the dropdown arrow, and the marker shape `triangle-up` was cut short.
+- The box stays put and only the text is clipped, so the overflow check could not see it — the suite now measures text width against the room inside each control.
+
 ### v0.37 — settings panel width, and clipped labels
 
 - The settings panel width is now yours to pick — **`Narrow · Default · Wide · Widest`**, next to the search box. The choice is remembered by the browser, applies to **every chart at once**, and widens the label column with it.
