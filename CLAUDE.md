@@ -18,7 +18,7 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 | `index-offline.html` | 자동 생성물. 직접 수정 금지 — `python visualizer.py build-offline`로 재생성 |
 | `visualizer.py` | 보조 실행기: 로컬 서버(+폴더 자동 로드 API) 및 오프라인 빌더. CLI 출력은 영어 |
 | `example.csv` | 예시 데이터 (4 method × 6 token budget = 24행, 중복 없음, 상식적 추세 내장) — 데모·문서용. 재생성 스크립트는 커밋하지 않음 |
-| (앱 내장) | `EXTRA_CSVS`(v0.31) — 가이드 레시피 ⑮⑯⑰용 짝 데이터 3개(`methods.csv`·`wide.csv`·`repeat.csv`). **`example.csv`는 건드리지 않는다** — 컬럼이 하나 늘면 자동 분석 골든 테스트와 문서 설명이 함께 흔들린다 |
+| (앱 내장) | `EXTRA_CSVS`(v0.31) — 가이드 레시피용 짝 데이터 5개(`methods.csv`·`wide.csv`·`repeat.csv`·`seeds.csv`·`scales.csv`). **`example.csv`는 건드리지 않는다** — 컬럼이 하나 늘면 자동 분석 골든 테스트와 문서 설명이 함께 흔들린다 |
 | `README.md` | 사용자 문서 (한국어): 사용법, 입력 계약, 에이전트용 변환 요청문 |
 | `README.en.md` | README.md의 영어 완역 — **내용 변경 시 두 README를 항상 함께 갱신** |
 | `GUIDE.md` | 시각화 가이드 (한국어): 차트 선택 기준·시나리오별 레시피·전달 원칙·팀 공유 — 기능 문서가 아니라 "언제/어떻게" 문서 |
@@ -79,7 +79,17 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   필터마다 `filterRuleInfo(cfg, f)`로 맞는 행 수를 세어 `.filter-rule` 문장으로 보여준다(`cfg.filterRuleExc`/`Dim`).
   값 입력 중에도 따라와야 하므로 행을 다시 그리지 말고 **`syncRule()`로 그 줄만 제자리 갱신**할 것 — 다시 그리면 입력 포커스가 날아간다.)
 - **차트 설정 스키마**: `defaultChart()` — 새 옵션은 여기에 필드 추가부터.
-  차트 유형: scatter|line|scatter+line|bar|heatmap|dumbbell. heatmap/dumbbell은 `buildTraces` 앞부분에서 `buildHeatmap`/`buildDumbbell`로 분기(facet·베이스라인·레이블 비활성),
+  차트 유형: scatter|line|scatter+line|bar|heatmap|dumbbell|break.
+  **축 끊기**(v0.36, `isBreakType`/`brkAxisOf`/`breakRange`/`buildBreak`/`applyBreakRefs`/`chartShapes`):
+    Plotly에 끊긴 축이 없으므로 **축 둘을 domain으로 쪼개고 같은 trace를 두 벌** 그린다(뒤 벌은 `y3`/`x3`, `showlegend:false`).
+    각 축이 범위 밖을 잘라내므로 끊긴 축이 된다. **값은 절대 변환하지 않는다** — 접힌 좌표로 그리면 hover·표·CSV·리포트가 전부 가짜다.
+    **옵션이 아니라 유형인 이유**: 옵션이면 막대·보조축·facet·쌓기와 배타 조건을 손으로 다 걸어야 하고 하나만 새면 깨진 그림이 나온다.
+    한 번에 한 축만(`brkAxis`) — 둘 다 끊으면 패널이 2×2가 되고 참조 조합이 넷이 된다.
+    구간은 비우면 자동(가장 큰 빈 구간, 전체의 25% 초과 + 양쪽 점 2개 이상), 없으면 `cfg._brkNone`로 패널에 알린다.
+    **함정 셋**: ① 새 주석(축 제목·`⁄⁄`)은 **배열 끝에** 붙인다 — `plotly_relayout`이 `annotations[i]` 인덱스로 마커 드래그를 저장한다.
+    ② 도형 입구는 `chartShapes(cfg, gd)` **하나**다 — 줌 때 `baselineShapes`를 직접 부르면 참조 보정을 건너뛴다.
+    ③ 끊긴 축은 로그가 될 수 없다(UI에서 감추고 축 선택 때 그 축 스케일을 linear로 되돌린다).
+    축 제목은 회전한 paper 주석 하나로 두되 **비율을 상수로 박지 말 것** — 여백 밖으로 나가 잘린다(픽셀에서 되계산). heatmap/dumbbell은 `buildTraces` 앞부분에서 `buildHeatmap`/`buildDumbbell`로 분기(facet·베이스라인·레이블 비활성),
   buildLayout에 전용 축 분기(heatmap=이산 X·Y+컬러바, dumbbell=값 X·카테고리 Y 가로). heatmap 필드 `heatZ`/`heatAgg`/`heatText`, 덤벨은 x=카테고리·group=짝·y=값.
   v0.26 필드: `errCol`(행마다의 ± 오차 컬럼 — **집계 중에는 무시**한다. 점 하나가 여러 행을 대표하면 행마다의 오차는 그 점의 오차가 아니다.
   `DERIVED_REF_FIELDS`·`DATASET_COL_FIELDS` 양쪽에 등록되어 있다),

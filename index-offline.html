@@ -399,7 +399,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.35.1';
+const APP_VERSION = 'v0.36';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -412,6 +412,9 @@ const EXTRA_CSVS = [
   /* seed 반복 — 바이올린·ECDF 레시피(⑱)를 따라 하려면 method당 값이 여럿 있어야 한다.
      `adaptive`는 일부러 **이봉성**이다: 박스플롯이 감추는 것이 무엇인지가 이 레시피의 논거다. */
   ['seeds.csv', "method,seed,accuracy\nbaseline,0,0.7042\ndistill,0,0.6582\nadaptive,0,0.6882\nensemble,0,0.7431\nbaseline,1,0.6929\ndistill,1,0.6759\nadaptive,1,0.7522\nensemble,1,0.7463\nbaseline,2,0.7059\ndistill,2,0.6692\nadaptive,2,0.6877\nensemble,2,0.7450\nbaseline,3,0.7055\ndistill,3,0.7133\nadaptive,3,0.7435\nensemble,3,0.7310\nbaseline,4,0.7009\ndistill,4,0.7286\nadaptive,4,0.6896\nensemble,4,0.7412\nbaseline,5,0.7055\ndistill,5,0.6593\nadaptive,5,0.7512\nensemble,5,0.7279\nbaseline,6,0.7103\ndistill,6,0.7160\nadaptive,6,0.7048\nensemble,6,0.7405\nbaseline,7,0.6971\ndistill,7,0.7033\nadaptive,7,0.7340\nensemble,7,0.7251\nbaseline,8,0.6850\ndistill,8,0.6634\nadaptive,8,0.6956\nensemble,8,0.7417\nbaseline,9,0.6944\ndistill,9,0.6400\nadaptive,9,0.7399\nensemble,9,0.7396\nbaseline,10,0.7128\ndistill,10,0.7111\nadaptive,10,0.6778\nensemble,10,0.7262\nbaseline,11,0.6970\ndistill,11,0.7154\nadaptive,11,0.7561\nensemble,11,0.7221\nbaseline,12,0.7026\ndistill,12,0.7115\nadaptive,12,0.6884\nensemble,12,0.7332\nbaseline,13,0.6915\ndistill,13,0.7159\nadaptive,13,0.7405\nensemble,13,0.7320\nbaseline,14,0.6908\ndistill,14,0.6844\nadaptive,14,0.6804\nensemble,14,0.7097\nbaseline,15,0.7086\ndistill,15,0.7206\nadaptive,15,0.7274\nensemble,15,0.7336\nbaseline,16,0.7001\ndistill,16,0.6695\nadaptive,16,0.6802\nensemble,16,0.7538\nbaseline,17,0.6895\ndistill,17,0.6750\nadaptive,17,0.7400\nensemble,17,0.7658\nbaseline,18,0.6933\ndistill,18,0.6794\nadaptive,18,0.7065\nensemble,18,0.7404\nbaseline,19,0.6789\ndistill,19,0.7082\nadaptive,19,0.7448\nensemble,19,0.7406\nbaseline,20,0.7385\ndistill,20,0.6814\nadaptive,20,0.6723\nensemble,20,0.7254\nbaseline,21,0.6825\ndistill,21,0.6913\nadaptive,21,0.7285\nensemble,21,0.7376\nbaseline,22,0.6884\ndistill,22,0.6923\nadaptive,22,0.6841\nensemble,22,0.7317\nbaseline,23,0.7167\ndistill,23,0.6665\nadaptive,23,0.7436\nensemble,23,0.7318\nbaseline,24,0.6896\ndistill,24,0.6612\nadaptive,24,0.6803\nensemble,24,0.7609\nbaseline,25,0.7225\ndistill,25,0.6400\nadaptive,25,0.7382\nensemble,25,0.7422\nbaseline,26,0.6954\ndistill,26,0.7086\nadaptive,26,0.6861\nensemble,26,0.7121\nbaseline,27,0.6988\ndistill,27,0.6862\nadaptive,27,0.7554\nensemble,27,0.7609\nbaseline,28,0.7012\ndistill,28,0.6772\nadaptive,28,0.6874\nensemble,28,0.7584\nbaseline,29,0.7050\ndistill,29,0.6636\nadaptive,29,0.7421\nensemble,29,0.7425"],
+  /* 같은 지표인데 자릿수가 다른 두 백엔드 — 축 끊기 레시피(⑲)의 데이터.
+     한 축에 그리면 gpu 쪽 무리가 바닥에 붙어 아무것도 안 보인다. */
+  ['scales.csv', "backend,batch,latency_ms\ngpu,1,7.4\ngpu-int8,1,5.2\ncpu,1,406.9\ngpu,2,7.3\ngpu-int8,2,5.6\ncpu,2,423.8\ngpu,4,8.4\ngpu-int8,4,6.4\ncpu,4,460.2\ngpu,8,10.0\ngpu-int8,8,7.2\ncpu,8,513.6\ngpu,16,13.1\ngpu-int8,16,9.8\ncpu,16,653.5\ngpu,32,19.2\ngpu-int8,32,14.7\ncpu,32,923.6"],
 ];
 
 /* ---- validated categorical palette (dataviz reference, light mode, fixed order) ---- */
@@ -846,6 +849,10 @@ const I18N = {
     'cfg.y2Warn': '두 축은 눈금을 어떻게 잡느냐에 따라 없는 상관도 있어 보이게 만듭니다. 관계를 주장하려면 차트를 둘로 나누거나 한쪽을 정규화해 같은 축에 놓는 편이 안전합니다.',
     'opt.histogram': '히스토그램', 'opt.box': '박스플롯',
     'opt.violin': '바이올린', 'opt.ecdf': '누적분포(ECDF)', 'cfg.ecdfY': '이하 비율',
+    'opt.break': '축 끊기', 'cfg.brkAxis': '끊을 축', 'opt.brkY': 'Y축', 'opt.brkX': 'X축',
+    'cfg.brkRange': '끊을 구간', 'cfg.brkFrom': '이 값부터', 'cfg.brkTo': '이 값까지', 'cfg.brkMode': '표시',
+    'cfg.brkHint': '값이 두 무리로 멀리 떨어져 있을 때 그 사이를 접어 두 무리를 가까이 봅니다. 축 값은 진짜 값 그대로입니다(hover·표·내보내기 모두). 비워 두면 가장 큰 빈 구간을 찾습니다.',
+    'cfg.brkNone': '접을 만한 빈 구간이 없어 보통 차트처럼 그렸습니다. 구간을 직접 넣으면 그대로 접습니다.',
     'cfg.histBins': '구간 수', 'cfg.histBinsPh': '자동',
     'cfg.boxPoints': '점 표시', 'opt.boxAll': '모두', 'opt.boxOutliers': '이상치만', 'opt.boxNone': '없음',
     'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
@@ -1288,6 +1295,10 @@ const I18N = {
     'cfg.y2Warn': 'Two scales can manufacture a correlation that is not there, depending on how each axis is framed. To claim a relationship, split into two charts or normalise one measure onto a shared axis.',
     'opt.histogram': 'Histogram', 'opt.box': 'Box plot',
     'opt.violin': 'Violin', 'opt.ecdf': 'Cumulative (ECDF)', 'cfg.ecdfY': 'fraction at or below',
+    'opt.break': 'Broken axis', 'cfg.brkAxis': 'Break', 'opt.brkY': 'Y axis', 'opt.brkX': 'X axis',
+    'cfg.brkRange': 'Break range', 'cfg.brkFrom': 'from', 'cfg.brkTo': 'to', 'cfg.brkMode': 'Draw as',
+    'cfg.brkHint': 'When values fall into two far-apart groups, the space between is folded away so both read closely. Axis values stay real (hover, table and exports too). Leave empty to find the largest empty span.',
+    'cfg.brkNone': 'No span worth folding was found, so this drew as an ordinary chart. Enter a range to fold it anyway.',
     'cfg.histBins': 'Bins', 'cfg.histBinsPh': 'auto',
     'cfg.boxPoints': 'Points', 'opt.boxAll': 'All', 'opt.boxOutliers': 'Outliers only', 'opt.boxNone': 'None',
     'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
@@ -1591,6 +1602,11 @@ function defaultChart() {
     ptAgg: 'none',              // none | mean | median | min | max — 같은 X 점 집계(선/산점)
     ptError: 'none',            // none | std | sem — ptAgg=mean/median일 때 오차막대
     ptBand: 'none',             // none | 1 | 2 — 집계 ±kσ 음영 밴드
+    /* 축 끊기(type=break) — 구간이 비어 있으면 가장 큰 빈 구간을 자동으로 찾는다.
+       한 번에 한 축만 끊는다(둘 다 끊으면 패널이 2×2가 되고 주석·도형 참조가 네 조합이 된다). */
+    brkAxis: 'y',               // y | x — 어느 축을 끊나
+    brkFrom: '', brkTo: '',     // 접을 구간(비우면 자동)
+    brkMode: 'markers',         // markers | lines | lines+markers — 시리즈별 오버라이드가 위에 얹힌다
     facetBy: '',                // 컬럼 → 값별 작은 다중 차트(subplot 격자)
     facetCols: 0,               // 0=자동(√n), 그 외 열 수
     barMode: 'group',           // group | stack — 막대 배치
@@ -2061,8 +2077,57 @@ function facetValues(cfg) {
   const present = new Set(chartRows(cfg).map(r => String(r[cfg.facetBy])));
   return uniqueVals(cfg.facetBy).map(String).filter(v => present.has(v)).slice(0, 16);
 }
+/* ================= 축 끊기 =================
+   값이 두 무리로 멀리 떨어지면 한 축에 그린 아래쪽 무리가 납작해진다. Plotly에는 끊긴 축이 없으므로
+   **축 둘을 domain으로 쪼개 하나처럼 보이게** 한다 — 각 축이 자기 범위 밖을 잘라내므로
+   같은 trace를 두 벌 그리면 끊긴 축이 된다.
+   **값은 절대 변환하지 않는다**: 접힌 좌표로 바꿔 축 하나에 그리는 방법이 코드는 짧지만
+   hover·표·CSV·리포트가 전부 가짜 좌표를 말하게 된다(조용히 틀리는 쪽이 가장 나쁘다).
+   **옵션이 아니라 유형인 이유**: 옵션이면 막대·보조축·facet·쌓기와 배타 조건을 손으로 다 걸어야 하고
+   하나만 새면 깨진 그림이 나온다. 유형이 다르면 그 조합이 애초에 생기지 않는다
+   (히트맵·덤벨·분포가 쓰는 방식 그대로다). */
+function isBreakType(ty) { return ty === 'break'; }
+function brkAxisOf(cfg) { return cfg.brkAxis === 'x' ? 'x' : 'y'; }   // 판정은 한 곳에서
+const BRK_LOW = 0.46;        // 앞 패널 크기 (paper 비율)
+const BRK_GAP = 0.06;        // 두 패널 사이 빈 띠
+const BRK_MIN_FRAC = 0.25;   // 자동 탐지: 전체 범위의 이만큼보다 큰 빈 구간만 접는다
+/* 접을 구간. 값을 넣었으면 그대로, 비었으면 가장 큰 빈 구간.
+   접을 만한 것이 없으면 null — 그때는 보통 차트와 똑같이 그리고 패널에 그렇다고 적는다. */
+function breakRange(cfg, rows) {
+  const col = brkAxisOf(cfg) === 'x' ? cfg.x : cfg.y;
+  if (!col) return null;
+  const from = Number(cfg.brkFrom), to = Number(cfg.brkTo);
+  const has = v => v !== '' && v !== null && v !== undefined;
+  if (has(cfg.brkFrom) && has(cfg.brkTo) && Number.isFinite(from) && Number.isFinite(to) && to > from) {
+    return { from, to, auto: false };
+  }
+  const vals = [];
+  for (const r of rows) { const v = r[col]; if (typeof v === 'number' && Number.isFinite(v)) vals.push(v); }
+  if (vals.length < 4) return null;   // 문자열 축이면 여기서 걸린다(카테고리 축은 끊을 것이 없다)
+  vals.sort((a, b) => a - b);
+  const span = vals[vals.length - 1] - vals[0];
+  if (!(span > 0)) return null;
+  let bi = -1, bg = 0;
+  for (let i = 1; i < vals.length; i++) { const g = vals[i] - vals[i - 1]; if (g > bg) { bg = g; bi = i; } }
+  if (bi < 1 || bg < span * BRK_MIN_FRAC) return null;
+  if (bi < 2 || vals.length - bi < 2) return null;   // 양쪽에 점이 둘 이상 — 외톨이 한 점 때문에 축을 끊지 않는다
+  return { from: vals[bi - 1], to: vals[bi], auto: true };
+}
+function buildBreak(cfg) {
+  const rows = chartRows(cfg);
+  /* 쌓기는 두 패널에서 각각 합산돼 뜻이 없다 — UI에서도 빼지만 옛 설정 방어로 여기서도 끈다 */
+  const c = cfg.areaFill === 'stack' ? { ...cfg, areaFill: 'none' } : cfg;
+  const base = buildFacetTraces(c, rows, cfg.brkMode || 'markers', useGl(c, rows.length));
+  const br = breakRange(cfg, rows);
+  cfg._brkNone = !br;   // 안내 문구용(_ 접두사라 세션에서 자동 제외)
+  if (!br) return base;
+  const key = brkAxisOf(cfg) === 'x' ? 'xaxis' : 'yaxis', ax2 = brkAxisOf(cfg) + '3';
+  /* 뒤 패널용 한 벌. 범례는 앞 것만 낸다 — 같은 시리즈가 둘로 보이면 안 된다 */
+  return [...base, ...base.map(tr => ({ ...tr, [key]: ax2, showlegend: false, _brkUp: true }))];
+}
 function buildTraces(cfg) {
   if (isDistType(cfg.type)) return buildDistribution(cfg, cfg.type);
+  if (isBreakType(cfg.type)) return buildBreak(cfg);
   if (cfg.type === 'heatmap') return buildHeatmap(cfg);
   if (cfg.type === 'dumbbell') return buildDumbbell(cfg);
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
@@ -2781,6 +2846,35 @@ function y2Layout(cfg) {
     ticks: 'outside', tickcolor: CHROME.axis, automargin: true,
   } };
 }
+/* 기준선·레이블·마커·구간 음영은 `yref:'y'`(또는 `xref:'x'`)로 만들어진다 — 뒤 구간 값이면 둘째 축으로 옮긴다.
+   경계를 넘는 사각형은 두 조각으로 나눈다: 한 축에 두면 두 패널 사이 빈 띠를 덮어 끊긴 자리가 사라진다. */
+function applyBreakRefs(lay, br, ax) {
+  const A3 = ax + '3', REF = ax + 'ref', K0 = ax + '0', K1 = ax + '1';
+  const up = v => typeof v === 'number' && v >= br.to;
+  for (const a of lay.annotations || []) {
+    if ((!a[REF] || a[REF] === ax) && up(a[ax])) a[REF] = A3;
+  }
+  const out = [];
+  for (const sh of lay.shapes || []) {
+    if (sh[REF] !== ax) { out.push(sh); continue; }
+    const v0 = Math.min(sh[K0], sh[K1]), v1 = Math.max(sh[K0], sh[K1]);
+    if (up(v0) && up(v1)) { out.push({ ...sh, [REF]: A3 }); continue; }
+    if (!up(v0) && !up(v1)) { out.push(sh); continue; }
+    out.push({ ...sh, [K0]: v0, [K1]: br.from }, { ...sh, [REF]: A3, [K0]: br.to, [K1]: v1 });
+  }
+  lay.shapes = out;
+}
+/* 도형을 만드는 입구는 하나여야 한다 — 줌 때 음영을 다시 계산하는 자리(plotly_relayout)가
+   `baselineShapes`를 직접 부르면 축 끊기의 참조 보정을 건너뛰어 음영이 엉뚱한 축을 탄다. */
+function chartShapes(cfg, gd) {
+  const shapes = baselineShapes(cfg, gd);
+  if (!isBreakType(cfg.type)) return shapes;
+  const br = breakRange(cfg, chartRows(cfg));
+  if (!br) return shapes;
+  const lay = { shapes, annotations: [] };
+  applyBreakRefs(lay, br, brkAxisOf(cfg));
+  return lay.shapes;
+}
 function buildLayout(cfg, gd, traces) {
   const insideBg = CHROME.overlay;
   const legend = {
@@ -2878,6 +2972,58 @@ function buildLayout(cfg, gd, traces) {
     const catOrder = { label: 'category ascending', asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
     if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
   }
+  /* 축 끊기: 축 둘을 앞뒤 domain으로 쪼개고 나머지 한 축을 공유한다.
+     facet·보조축과는 유형이 달라 만날 일이 없다(그래서 유형으로 넣었다). */
+  if (isBreakType(cfg.type)) {
+    const rows = chartRows(cfg);
+    const br = breakRange(cfg, rows);
+    const ax = brkAxisOf(cfg), isX = ax === 'x';
+    const anns = [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg)];
+    const lay = {
+      title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg)}, x: 0.5 } : undefined,
+      font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
+      paper_bgcolor: CHROME.surface, plot_bgcolor: faceColor(cfg),
+      xaxis, yaxis,
+      showlegend: cfg.legendPos !== 'none',
+      legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
+      margin: { l: isX ? 64 : 76, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40,
+        t: cfg.title ? 52 : 28, b: isX ? 68 : 56 },
+      hovermode: 'closest',
+      annotations: anns,
+      shapes: baselineShapes(cfg, gd),
+      uirevision: [cfg.id, cfg.type, cfg.brkAxis, cfg.x, cfg.y, cfg.brkFrom, cfg.brkTo].join('|'),
+    };
+    if (!br) return lay;   // 접을 구간이 없으면 보통 차트와 같은 레이아웃
+    const col = isX ? cfg.x : cfg.y;
+    let lo = Infinity, hi = -Infinity;
+    for (const r of rows) { const v = r[col]; if (typeof v === 'number' && Number.isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; } }
+    const padLo = (br.from - lo) * 0.08 || Math.abs(br.from) * 0.02 || 1;
+    const padHi = (hi - br.to) * 0.08 || Math.abs(hi) * 0.02 || 1;
+    const src = isX ? xaxis : yaxis;
+    /* 끊긴 축은 로그가 될 수 없다(두 구간의 눈금 간격이 서로 거짓말한다) — UI에서도 감추고 여기서 고정한다 */
+    const first = { ...src, type: 'linear', domain: [0, BRK_LOW], range: [lo - padLo, br.from + padLo], title: undefined };
+    const second = { ...src, type: 'linear', domain: [BRK_LOW + BRK_GAP, 1], range: [br.to - padHi, hi + padHi], title: undefined,
+      anchor: isX ? 'y' : 'x' };
+    if (isX) { lay.xaxis = first; lay.xaxis3 = second; } else { lay.yaxis = first; lay.yaxis3 = second; }
+    const ink = inkOf(cfg);
+    /* 축 제목을 두 축에 각각 달면 반쪽씩 두 번 나온다 — 회전한 paper 주석 하나로 가운데에 둔다.
+       **주석은 반드시 배열 끝에 붙인다**: relayout 핸들러가 annotations[i]의 인덱스로 마커 드래그를 저장한다. */
+    /* paper 좌표는 **그리는 영역** 기준이라 음수는 여백 안쪽이다 — 비율을 상수로 박으면
+       카드가 넓어질 때 여백 밖으로 나가 잘린다(실제로 Y 제목이 통째로 사라졌다). 픽셀에서 되계산한다. */
+    const W = (gd && gd.clientWidth) || 800, H = (gd && gd.clientHeight) || 420;
+    anns.push(isX
+      ? { text: cfg.xLabel || cfg.x, xref: 'paper', yref: 'paper', x: 0.5, y: -(lay.margin.b - 16) / H, showarrow: false,
+          font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: ink } }
+      : { text: cfg.yLabel || cfg.y, xref: 'paper', yref: 'paper', x: -(lay.margin.l - 12) / W, y: 0.5, textangle: -90, showarrow: false,
+          font: { family: cfg.fontFamily, size: cfg.fontSize + 1, color: ink } });
+    /* 끊긴 자리 표시 — 없으면 두 패널이 그냥 두 그래프로 읽힌다 */
+    const mid = BRK_LOW + BRK_GAP / 2;
+    for (const q of [0, 1]) anns.push({ text: '⁄⁄', xref: 'paper', yref: 'paper',
+      x: isX ? mid : q, y: isX ? q : mid, xanchor: 'center', yanchor: 'middle', showarrow: false,
+      font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: CHROME.axis } });
+    applyBreakRefs(lay, br, ax);
+    return lay;
+  }
   // facet(작은 다중 차트): 값별 subplot 격자. 베이스라인·텍스트마커·포인트레이블은 좌표 모호로 비활성
   if (cfg.facetBy) {
     const vals = facetValues(cfg), n = vals.length || 1;
@@ -2919,7 +3065,7 @@ function buildLayout(cfg, gd, traces) {
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
     annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg)],
-    shapes: baselineShapes(cfg, gd),
+    shapes: chartShapes(cfg, gd),
     barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
     uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.y2, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
@@ -3015,7 +3161,7 @@ function renderPlot(cfg) {
         }
         if (moved) save();
         if (zoomed && c.baselines.some(b => (b.shade || 'none') !== 'none')) {
-          Plotly.relayout(gd, { shapes: baselineShapes(c, gd) });
+          Plotly.relayout(gd, { shapes: chartShapes(c, gd) });
         }
       });
     }
@@ -3486,6 +3632,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const isBar = cfg.type === 'bar';
   const isHeat = cfg.type === 'heatmap', isDumbbell = cfg.type === 'dumbbell';
   const isDist = isDistType(cfg.type);
+  const isBrk = isBreakType(cfg.type), brkAx = brkAxisOf(cfg);
   const rp = () => { renderPlot(cfg); save(); };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
   /* 라벨은 컨트롤이 **정확히 하나일 때만** `for`로 잇는다.
@@ -3522,10 +3669,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         v => switchDataset(cfg, v, rebuildPanel))),
       el('div', { class: 'hint' }, t('cfg.datasetHint')),
     ] : []),
-    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')]], cfg.type, v => { cfg.type = v; rebuildPanel(); })),
+    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')], ['break', t('opt.break')]], cfg.type,
+      v => { cfg.type = v; if (v === 'break') cfg[brkAxisOf(cfg) + 'Scale'] = 'linear'; rebuildPanel(); })),
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
-    ...(!isBar && !isHeat && !isDumbbell && !isDist ? [
+    ...(!isBar && !isHeat && !isDumbbell && !isDist && !isBrk ? [
       row(t('cfg.y2'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rebuildPanel(); }, { title: t('cfg.y2Title') })),
       ...(cfg.y2 ? [el('div', { class: 'hint' }, t('cfg.y2Warn'))] : []),
     ] : []),
@@ -3563,7 +3711,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       ...(cfg.errCol && (isBar ? cfg.barAgg !== 'none' : cfg.ptAgg !== 'none')
         ? [el('div', { class: 'hint' }, t('cfg.errColIgnored'))] : []),
     ]),
-    ...(isHeat || isDumbbell ? [] : [
+    ...(isHeat || isDumbbell || isBrk ? [] : [
       row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
           el('input', { type: 'number', value: cfg.facetCols || '', min: 1, max: 8, placeholder: t('cfg.facetColsPh'), title: t('cfg.facetColsPh'), style: 'width:56px', oninput: e => { cfg.facetCols = Number(e.target.value) || 0; rp(); } })),
       ...(cfg.facetBy ? [el('div', { class: 'hint' }, t('cfg.facetHint'))] : []),
@@ -3669,8 +3817,21 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gAxis.append(
     row(t('cfg.xLabel'), el('input', { type: 'text', value: cfg.xLabel, placeholder: cfg.x || 'auto', oninput: e => { cfg.xLabel = e.target.value; rp(); } })),
     row(t('cfg.yLabel'), el('input', { type: 'text', value: cfg.yLabel, placeholder: cfg.y || 'auto', oninput: e => { cfg.yLabel = e.target.value; rp(); } })),
-    row(t('cfg.xScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.xScale, v => { cfg.xScale = v; rp(); })),
-    row(t('cfg.yScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.yScale, v => { cfg.yScale = v; rp(); })),
+    ...(isBrk && brkAx === 'x' ? [] : [row(t('cfg.xScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.xScale, v => { cfg.xScale = v; rp(); }))]),
+    ...(isBrk && brkAx === 'y' ? [] : [row(t('cfg.yScale'), select([['linear', t('opt.linear')], ['log', t('opt.log')]], cfg.yScale, v => { cfg.yScale = v; rp(); }))]),
+    /* 축 끊기 설정 — 끊긴 축은 로그가 될 수 없으므로 축을 고를 때 그 축의 스케일을 선형으로 되돌린다 */
+    ...(isBrk ? [
+      row(t('cfg.brkAxis'), select([['y', t('opt.brkY')], ['x', t('opt.brkX')]], brkAx,
+        v => { cfg.brkAxis = v; cfg[v + 'Scale'] = 'linear'; rebuildPanel(); })),
+      row(t('cfg.brkRange'),
+        el('input', { type: 'number', step: 'any', value: cfg.brkFrom, placeholder: t('cfg.brkFrom'), 'aria-label': t('cfg.brkFrom'),
+          oninput: e => { cfg.brkFrom = e.target.value; rp(); } }),
+        el('input', { type: 'number', step: 'any', value: cfg.brkTo, placeholder: t('cfg.brkTo'), 'aria-label': t('cfg.brkTo'),
+          oninput: e => { cfg.brkTo = e.target.value; rp(); } })),
+      el('div', { class: 'hint' }, t(cfg._brkNone ? 'cfg.brkNone' : 'cfg.brkHint')),
+      row(t('cfg.brkMode'), select([['markers', t('opt.modeMarkers')], ['lines', t('opt.modeLines')], ['lines+markers', t('opt.modeBoth')]],
+        cfg.brkMode || 'markers', v => { cfg.brkMode = v; rp(); })),
+    ] : []),
     row(t('cfg.xRange'), el('input', { type: 'number', value: cfg.xMin, placeholder: 'min', step: 'any', oninput: e => { cfg.xMin = e.target.value; rp(); } }),
                  el('input', { type: 'number', value: cfg.xMax, placeholder: 'max', step: 'any', oninput: e => { cfg.xMax = e.target.value; rp(); } })),
     row(t('cfg.yRange'), el('input', { type: 'number', value: cfg.yMin, placeholder: 'min', step: 'any', oninput: e => { cfg.yMin = e.target.value; rp(); } }),
@@ -3755,7 +3916,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
       row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
           select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
-      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')], ['stack', t('opt.stackFill')]], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+      /* 쌓기는 축 끊기에서 뺀다 — 합이 두 패널로 갈려 누적의 뜻이 사라진다 */
+      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')],
+        ...(isBrk ? [] : [['stack', t('opt.stackFill')]])], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
       ...(cfg.areaFill === 'stack' ? [el('div', { class: 'hint' }, t('cfg.stackHint'))] : []),
       el('div', { class: 'hint' }, t('cfg.styleHint')),
     ]),
@@ -4870,7 +5033,7 @@ function anChartTitle(ins) {
   return tf('an.ct.rel', { a: p.a, b: p.b });
 }
 const AN_TYPE_KEY = { scatter: 'opt.scatter', line: 'opt.line', 'scatter+line': 'opt.scatterLine',
-  bar: 'opt.bar', heatmap: 'opt.heatmap', dumbbell: 'opt.dumbbell' };
+  bar: 'opt.bar', heatmap: 'opt.heatmap', dumbbell: 'opt.dumbbell', break: 'opt.break' };
 /* 인사이트가 어떤 차트 설정에 대응하는지 한 줄로 — 기존 차트와 대조하거나 손으로 재현할 때의 좌표 */
 function anChartSpec(ov) {
   const parts = [t(AN_TYPE_KEY[ov.type] || ov.type), `X=${ov.x}`, `Y=${ov.y}`];
