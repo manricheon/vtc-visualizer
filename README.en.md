@@ -86,6 +86,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
 | Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
+| **Card summary** | With the settings collapsed, the header shows `type · X × Y · group · filter count · dataset` on one line |
 | **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart. The panel height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
 | Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
@@ -191,6 +192,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.39 — what a collapsed card is showing
+
+- Collapse the settings and the card header now carries a **one-line summary** — `Scatter + line · tokens × accuracy · group method · filters 1`. No more reopening the panel just to see what the chart is.
+- It hides while the panel is open (the same information is right below), follows every settings change, and follows the language.
 
 ### v0.38.1 — the search box was squeezed until its text was cut
 

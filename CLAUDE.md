@@ -168,11 +168,16 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **이벤트**: `plotly_click` → `showPointPopover`(베이스라인 추가/제거 · 포인트 제외(`_excluded`, 전 차트 공통) · 텍스트 마커 추가 메뉴),
   `plotly_clickannotation` → 포인트 레이블 개별 숨김 / 텍스트 마커 편집(`showMarkerEditPopover`),
   `plotly_relayout` → 주석 드래그 오프셋 저장(`_kind`별로 `labelOffsets` 또는 `textMarkers`) 및 줌 시 음영 재계산
+- **카드 요약**(v0.39): `cardSpecText(cfg)` + `applyCardSpec(cfg)` — **설정을 접었을 때만** 보인다(펼쳐져 있으면 같은 내용이 두 번이다).
+  리포트용 `chartSpecText`와 따로 두는 이유: 그쪽은 로그축·집계까지 적어 헤더 한 줄에서 흐른다.
+  갱신은 `renderPlot`(모든 설정 변경이 거친다) · 설정 토글 · `relabelCards`(언어) 세 곳.
 - **차트를 표로**(v0.26): 카드 헤더 `표` → `toggleChartTable()`/`renderChartTable()`, 상태는 `cfg._asTable`(`_` 접두사라 세션 제외).
   컬럼은 `chartTableCols()`(그 차트가 실제로 쓰는 필드만), 행은 `chartRows()`(그 차트의 필터·데이터셋 적용) —
   **그림과 다른 행을 보여주면 표가 거짓말이 된다**. 그래서 `renderPlot`이 끝날 때마다 다시 그린다.
   `CHART_TABLE_MAX`(300)에서 자르고 캡션에 전체 행 수를 적는다.
   **카드 헤더에 버튼을 추가·이동하면 `relabelCards()`의 labels/titles 배열도 같이 고쳐야 한다** — 위치로 붙인다.
+  헤더에는 이름 다음에 `.spec`(요약, v0.39)이 있다 — `relabelCards`는 `.head button`만 세므로 안전하지만,
+  **`nth-child`로 헤더 버튼을 집는 코드는 전부 어긋난다**(검증 스위트가 실제로 깨졌다). 텍스트로 찾을 것.
 - **부분 렌더링**(v0.12): `refreshCharts()`(전체 재생성)는 세션 복원·전체 초기화·init에서만 쓴다. 그 외에는
   `appendChartCard()`(추가) · 카드 `remove()`(삭제) · `relabelCards()`(언어 전환) · `refreshCfgPanels()`(데이터 변경) ·
   카드 하나 `replaceWith`(프리셋) 로 국소 갱신 — **전체 재생성은 줌·설정 패널 접힘·스크롤·포커스를 모두 날린다**.
