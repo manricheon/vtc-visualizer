@@ -184,7 +184,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   차트별 UI 상태는 `_` 접두사 필드(`_open`{그룹키}·`_cfgHidden`)에 두면 `serializableChart()`가 세션에서 자동 제외.
   **예외: 카드 접힘 `collapsed`는 정식 필드로 세션에 남긴다**(v0.40) — 줌·패널 펼침 같은 일시 상태가 아니라
   "이 차트는 지금 안 본다"는 의도다. 대신 `chartPreset()`에서는 지운다(프리셋을 적용했더니 접히면 놀란다).
-  접기는 `setCollapsed(cfg, on)` 한 곳으로 — 그림·조작 안내 줄·버튼 글자를 함께 다룬다(안내만 남으면 접은 뜻이 준다).
+  접기는 `setCollapsed(cfg, on)` 한 곳으로 — 카드에 `.folded` 클래스를 걸어 **몸통 전체**(설정 패널·그림·표·캡션·안내)를 감춘다.
+  **그림만 감추면 안 된다**(v0.40.1에서 고쳤다): 설정을 펼쳐 둔 카드는 길이가 그대로라 "접었는데 아무 일도 안 일어난다"가 된다.
+  접힌 카드에서는 설정이 열려 있어도 헤더 요약을 보인다(`applyCardSpec`) — 아래에 아무것도 없으니 유일한 단서다.
+  검증에서 접힘을 볼 때는 `plot.style.display`가 아니라 **실제로 보이는 높이**를 봐야 한다(클래스로 감춘다).
   설정 그룹은 `data-g` 속성으로 식별하고 `restoreGroupState()`가 복원(요약 텍스트는 언어 종속이라 키로 쓰면 안 된다).
   카드를 버릴 때는 `purgePlot()` — `responsive:true`가 등록한 resize 리스너는 purge에서만 해제된다. 단 **렌더 중(`gd._vizRendering`)에는 purge 금지**(Plotly 내부 promise가 깨진다),
   전체 재생성 경로에서는 참조만 끊는다. `Plotly.Plots.resize`는 접힌 차트(`_collapsed`, display:none)에서 reject하므로 항상 건너뛴다.

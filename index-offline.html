@@ -136,6 +136,12 @@
   #charts { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
   .chart-card { padding: 0; overflow: hidden; margin-bottom: 0; flex: 1 1 100%; }
   .chart-card.half { flex-basis: calc(50% - 8px); }
+  /* 접기는 **탭을 접는 것**이다 — 그림만 감추면 설정 패널이 열려 있는 카드는 그대로 길어서
+     "접었는데 아무 일도 안 일어난다"가 된다(실제 보고). 헤더 한 줄만 남긴다. */
+  .chart-card.folded > .body,
+  .chart-card.folded > .chart-table,
+  .chart-card.folded > .plot-caption,
+  .chart-card.folded > .plot-hint { display: none; }
   @media (max-width: 860px) { .chart-card.half { flex-basis: 100%; } }
   .chart-card .head {
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -426,7 +432,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.40';
+const APP_VERSION = 'v0.40.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -3551,11 +3557,12 @@ function applyCardSpec(cfg) {
   const card = cardOf(cfg);
   const sp = card && card.querySelector('.head .spec');
   if (!sp) return;
-  sp.hidden = !cfg._cfgHidden;
+  /* 설정이 펼쳐져 있으면 같은 내용이 아래에 보이므로 숨긴다 — 단 **접혀 있으면 아래가 없다** */
+  sp.hidden = !(cfg._cfgHidden || cfg.collapsed);
   if (!sp.hidden) sp.textContent = cardSpecText(cfg);
 }
 function renderChartCard(cfg) {
-  const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : ''), 'data-chart': cfg.id });
+  const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : '') + (cfg.collapsed ? ' folded' : ''), 'data-chart': cfg.id });
 
   const chartNo = state.charts.indexOf(cfg) + 1;
   const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
@@ -3565,8 +3572,8 @@ function renderChartCard(cfg) {
   plotDivs[cfg.id] = plotDiv;
 
   if (cfg._cfgHidden) cfgPanel.classList.add('hidden');   // 설정 패널 접힘은 카드가 다시 그려져도 유지
-  if (cfg.collapsed) plotDiv.style.display = 'none';
-  const specSpan = el('span', { class: 'spec', hidden: cfg._cfgHidden ? undefined : '' }, cfg._cfgHidden ? cardSpecText(cfg) : '');
+  const specShown = cfg._cfgHidden || cfg.collapsed;
+  const specSpan = el('span', { class: 'spec', hidden: specShown ? undefined : '' }, specShown ? cardSpecText(cfg) : '');
   const head = el('div', { class: 'head' },
     nameSpan, specSpan,
     el('button', { class: 'small', title: t('card.collapseTitle'), onclick: e => {
@@ -3599,7 +3606,7 @@ function renderChartCard(cfg) {
   card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
     el('div', { class: 'chart-table', hidden: '' }),
     capDiv,
-    el('div', { class: 'plot-hint', hidden: cfg.collapsed ? '' : undefined }, t('card.plotHint')));
+    el('div', { class: 'plot-hint' }, t('card.plotHint')));
   if (cfg._asTable) renderChartTable(cfg, card);
   return card;
 }
@@ -4437,13 +4444,14 @@ function setCollapsed(cfg, on) {
   cfg.collapsed = !!on;
   const card = cardOf(cfg);
   if (card) {
-    const plot = plotDivs[cfg.id], hint = card.querySelector('.plot-hint');
+    card.classList.toggle('folded', cfg.collapsed);
     const btn = card.querySelector('.head button');
-    if (plot) plot.style.display = cfg.collapsed ? 'none' : '';
-    if (hint) hint.hidden = cfg.collapsed;
     if (btn) btn.textContent = cfg.collapsed ? '▸' : '▾';
+    const plot = plotDivs[cfg.id];
+    /* 접혀 있는 동안 창 크기가 바뀌었을 수 있다 — 펼 때 한 번 다시 잰다 */
     if (!cfg.collapsed && plot && plot.data) Plotly.Plots.resize(plot);
   }
+  applyCardSpec(cfg);   // 접힌 카드는 헤더 한 줄뿐이라 요약이 유일한 단서다
   save();
 }
 /* 하나라도 펼쳐져 있으면 모두 접고, 전부 접혀 있으면 모두 편다 — 버튼 하나로 왕복한다 */
