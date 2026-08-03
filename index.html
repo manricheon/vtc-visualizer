@@ -146,7 +146,8 @@
   .chart-card .cfg.hidden { display: none; }
   .cfg-search { flex: 1; min-width: 0; font-size: 12.5px; }
   .cfg-search-box .top { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; }
-  .cfg-search-box .top select { flex: none; width: 62px; font-size: 12px; padding: 0 2px; }
+  /* 폭 이름이 길어지면(`아주 넓게`) 화살표에 겹친다 — 내용에 맞추되 검색칸을 다 먹지 않게 상한만 둔다 */
+  .cfg-search-box .top select { flex: none; width: auto; max-width: 45%; font-size: 12px; padding: 0 4px; }
   .cfg-noresult { margin: 0 0 var(--sp-2); }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
@@ -183,12 +184,15 @@
   .series-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
   .series-row .sname { flex: 1 1 96px; min-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   .series-row .slabel { flex: 1 1 96px; min-width: 72px; font-size: 12px; }
-  .series-row select { width: 92px; flex: 0 1 auto; min-width: 78px; max-width: 100%; }
-  .series-row input[type="number"] { width: 52px; }
+  /* 마커 이름이 가장 긴 것(triangle-up)까지 들어가야 한다 — 잘리면 무엇을 고른 건지 알 수 없다 */
+  .series-row select { width: 104px; flex: 0 1 auto; min-width: 86px; max-width: 100%; }
+  /* 52px에서는 한국어 안내 문구(`시작`)가 반 글자에서 잘렸다 — 무슨 칸인지 알 수 없게 된다 */
+  .series-row input[type="number"] { width: 72px; min-width: 0; }
   .series-block { margin: 6px 0; padding-bottom: 4px; border-bottom: 1px dashed var(--grid); }
   .series-block:last-child { border-bottom: none; }
   .series-row.sub { margin: 2px 0 0 10px; }
-  .series-row.sub select { flex: 1; width: auto; min-width: 0; }
+  /* 시리즈 하위 줄(모드·모양·선)의 선택은 늘어나되 **가장 긴 이름(triangle-up)보다 좁아지지 않는다** */
+  .series-row.sub select { flex: 1 1 auto; width: auto; min-width: 104px; }
   .series-row.sub input[type="number"] { width: 46px; flex: none; }
   /* 텍스트 마커 목록: 고정 메모 표시 / 기준을 잃어 숨겨진 마커 */
   .tm-badge { flex: none; font-size: var(--fs-xs); color: var(--muted); border: 1px solid var(--grid); border-radius: var(--radius); padding: 1px 6px; white-space: nowrap; }
@@ -400,7 +404,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.37';
+const APP_VERSION = 'v0.37.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
