@@ -326,6 +326,7 @@
       <span class="grp">
         <button id="btnAddChart" class="primary" data-i18n="btn.addChart"></button>
         <button id="btnAnalyze" data-i18n="btn.analyze"></button>
+        <button id="btnFoldAll" data-i18n="btn.foldAll"></button>
       </span>
       <span class="grp">
         <button id="btnExportMenu" data-i18n="btn.exportMenu"></button>
@@ -416,7 +417,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.39';
+const APP_VERSION = 'v0.40';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -536,7 +537,7 @@ function applyCfgWidth() {
   document.documentElement.style.setProperty('--cfg-lbl', lbl + 'px');
   for (const sel of document.querySelectorAll('.cfg-wsel')) sel.value = CFGW;
   /* 패널이 넓어지면 그림이 좁아진다 — Plotly는 스스로 알지 못하므로 다시 재본다(접힌 차트는 reject한다) */
-  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); } });
+  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); } });
 }
 function setCfgWidth(v) {
   if (!CFG_WIDTHS[v]) return;
@@ -551,7 +552,7 @@ function applyWidth() {
   else document.documentElement.setAttribute('data-width', WIDTH);
   const b = document.getElementById('btnWidth');
   if (b) b.textContent = tf('width.label', { mode: t('width.' + WIDTH) });
-  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); } });
+  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); } });
 }
 function cycleWidth() {
   WIDTH = WIDTHS[(WIDTHS.indexOf(WIDTH) + 1) % WIDTHS.length];
@@ -945,6 +946,7 @@ const I18N = {
     'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
     'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
     'toast.sourceOverwritten': '입력에 있던 _source 컬럼을 파일명으로 덮어썼습니다 (예약된 이름입니다).',
+    'btn.foldAll': '모두 접기', 'btn.unfoldAll': '모두 펴기',
     'btn.analyze': '분석',
     'an.title': '자동 분석',
     'an.recompute': '다시 계산',
@@ -1397,6 +1399,7 @@ const I18N = {
     'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
     'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
     'toast.sourceOverwritten': 'The _source column in your input was overwritten with the filename (it is a reserved name).',
+    'btn.foldAll': 'Collapse all', 'btn.unfoldAll': 'Expand all',
     'btn.analyze': 'Analyze',
     'an.title': 'Automatic analysis',
     'an.recompute': 'Recompute',
@@ -1655,6 +1658,10 @@ function defaultChart() {
     brkAxis: 'y',               // y | x — 어느 축을 끊나
     brkFrom: '', brkTo: '',     // 접을 구간(비우면 자동)
     brkMode: 'markers',         // markers | lines | lines+markers — 시리즈별 오버라이드가 위에 얹힌다
+    /* 카드 접힘은 **세션에 남는다**(v0.40). 차트별 UI 상태는 보통 `_` 접두사로 세션에서 빼지만,
+       접힘은 줌·패널 펼침 같은 일시 상태가 아니라 "이 차트는 지금 안 본다"는 의도다 —
+       다시 열었을 때 스무 개가 전부 펼쳐져 있으면 접어 둔 뜻이 없다. */
+    collapsed: false,
     facetBy: '',                // 컬럼 → 값별 작은 다중 차트(subplot 격자)
     facetCols: 0,               // 0=자동(√n), 그 외 열 수
     barMode: 'group',           // group | stack — 막대 배치
@@ -3549,16 +3556,13 @@ function renderChartCard(cfg) {
   plotDivs[cfg.id] = plotDiv;
 
   if (cfg._cfgHidden) cfgPanel.classList.add('hidden');   // 설정 패널 접힘은 카드가 다시 그려져도 유지
-  if (cfg._collapsed) plotDiv.style.display = 'none';
+  if (cfg.collapsed) plotDiv.style.display = 'none';
   const specSpan = el('span', { class: 'spec', hidden: cfg._cfgHidden ? undefined : '' }, cfg._cfgHidden ? cardSpecText(cfg) : '');
   const head = el('div', { class: 'head' },
     nameSpan, specSpan,
     el('button', { class: 'small', title: t('card.collapseTitle'), onclick: e => {
-      cfg._collapsed = !cfg._collapsed;
-      plotDiv.style.display = cfg._collapsed ? 'none' : '';
-      e.target.textContent = cfg._collapsed ? '▸' : '▾';
-      if (!cfg._collapsed && plotDiv.data) Plotly.Plots.resize(plotDiv);
-    } }, cfg._collapsed ? '▸' : '▾'),
+      setCollapsed(cfg, !cfg.collapsed);
+    } }, cfg.collapsed ? '▸' : '▾'),
     el('button', { class: 'small', title: t('card.moveUpTitle'), onclick: () => moveChart(cfg, -1) }, '↑'),
     el('button', { class: 'small', title: t('card.moveDownTitle'), onclick: () => moveChart(cfg, 1) }, '↓'),
     el('button', { class: 'small', title: t('card.resetViewTitle'), onclick: () => {
@@ -3586,7 +3590,7 @@ function renderChartCard(cfg) {
   card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
     el('div', { class: 'chart-table', hidden: '' }),
     capDiv,
-    el('div', { class: 'plot-hint' }, t('card.plotHint')));
+    el('div', { class: 'plot-hint', hidden: cfg.collapsed ? '' : undefined }, t('card.plotHint')));
   if (cfg._asTable) renderChartTable(cfg, card);
   return card;
 }
@@ -3642,7 +3646,7 @@ function applyChartSize(cfg) {
     if (plot) { plot.style.minHeight = plot.style.height = (cfg.plotHeight || 460) + 'px'; }
   }
   requestAnimationFrame(() => {
-    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c._collapsed) Plotly.Plots.resize(gd); }
+    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); }
   });
   save();
 }
@@ -4400,7 +4404,7 @@ function relabelCards() {
     if (!card) continue;
     const b = card.querySelectorAll('.head button');
     /* 위치로 붙이므로 헤더 버튼을 추가·이동하면 이 배열도 같이 고쳐야 한다 */
-    const labels = [cfg._collapsed ? '▸' : '▾', '↑', '↓', t('card.resetView'), t('card.settings'), t('card.preset'), t('card.asTable'), 'PNG', 'SVG', t('card.duplicate'), t('btn.delete')];
+    const labels = [cfg.collapsed ? '▸' : '▾', '↑', '↓', t('card.resetView'), t('card.settings'), t('card.preset'), t('card.asTable'), 'PNG', 'SVG', t('card.duplicate'), t('btn.delete')];
     const titles = [t('card.collapseTitle'), t('card.moveUpTitle'), t('card.moveDownTitle'), t('card.resetViewTitle'), '', '', t('card.asTableTitle'), '', '', '', ''];
     b.forEach((btn, i) => { if (labels[i] !== undefined) btn.textContent = labels[i]; if (titles[i]) btn.title = titles[i]; });
     const hint = card.querySelector('.plot-hint');
@@ -4418,6 +4422,28 @@ function renumberCards() {
   });
 }
 /* 카드 하나만 추가 — 전체 재생성은 설정 패널 접힘·줌·스크롤을 모두 날린다 */
+/* 접기는 세 곳에서 부른다(카드 버튼·모두 접기·복원) — 한 함수로 모은다.
+   접힌 카드에서는 조작 안내 줄도 감춘다: 그릴 것이 없는데 "드래그 = 영역 확대"가 남아 있었다. */
+function setCollapsed(cfg, on) {
+  cfg.collapsed = !!on;
+  const card = cardOf(cfg);
+  if (card) {
+    const plot = plotDivs[cfg.id], hint = card.querySelector('.plot-hint');
+    const btn = card.querySelector('.head button');
+    if (plot) plot.style.display = cfg.collapsed ? 'none' : '';
+    if (hint) hint.hidden = cfg.collapsed;
+    if (btn) btn.textContent = cfg.collapsed ? '▸' : '▾';
+    if (!cfg.collapsed && plot && plot.data) Plotly.Plots.resize(plot);
+  }
+  save();
+}
+/* 하나라도 펼쳐져 있으면 모두 접고, 전부 접혀 있으면 모두 편다 — 버튼 하나로 왕복한다 */
+function toggleAllCollapsed() {
+  const anyOpen = state.charts.some(c => !c.collapsed);
+  for (const c of state.charts) setCollapsed(c, anyOpen);
+  const b = document.getElementById('btnFoldAll');
+  if (b) b.textContent = t(anyOpen ? 'btn.unfoldAll' : 'btn.foldAll');
+}
 function appendChartCard(cfg) {
   document.getElementById('charts').append(renderChartCard(cfg));
   updateEmptyCharts();
@@ -5892,6 +5918,7 @@ function chartPreset(cfg) {
   const p = serializableChart(cfg);
   delete p.id; delete p.title;
   delete p.textMarkers; delete p.labelOffsets; delete p.hiddenLabels;   // 특정 데이터 점에 묶인 필드는 제외
+  delete p.collapsed;   // 프리셋을 적용했더니 차트가 접히면 놀란다 — 보기 상태는 프리셋의 몫이 아니다
   const der = presetDerivedFor(cfg);
   if (der.length) p._derived = der;   // 축으로 쓰는 계산 컬럼 정의를 함께 (적용 시 없으면 복원)
   return p;
@@ -6159,6 +6186,7 @@ document.getElementById('modalBack').addEventListener('click', e => { if (e.targ
 
 document.getElementById('btnAddChart').addEventListener('click', () => addChart());
 document.getElementById('btnAnalyze').addEventListener('click', toggleAnalysis);
+document.getElementById('btnFoldAll').addEventListener('click', toggleAllCollapsed);
 document.getElementById('btnExample').addEventListener('click', () => {
   addDataset('example.csv', parseAny(EXAMPLE_CSV, 'example.csv'));
   showToast(t('toast.exampleLoaded'));
@@ -6237,6 +6265,8 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
+  const fold = document.getElementById('btnFoldAll');
+  if (fold) fold.textContent = t(state.charts.some(c => !c.collapsed) ? 'btn.foldAll' : 'btn.unfoldAll');
   applyCfgWidth();
 });
 (() => {   // 팔레트 선택 — 기본은 현행, 나머지는 필요할 때 고른다

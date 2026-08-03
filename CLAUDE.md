@@ -181,7 +181,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **부분 렌더링**(v0.12): `refreshCharts()`(전체 재생성)는 세션 복원·전체 초기화·init에서만 쓴다. 그 외에는
   `appendChartCard()`(추가) · 카드 `remove()`(삭제) · `relabelCards()`(언어 전환) · `refreshCfgPanels()`(데이터 변경) ·
   카드 하나 `replaceWith`(프리셋) 로 국소 갱신 — **전체 재생성은 줌·설정 패널 접힘·스크롤·포커스를 모두 날린다**.
-  차트별 UI 상태는 `_` 접두사 필드(`_open`{그룹키}·`_cfgHidden`·`_collapsed`)에 두면 `serializableChart()`가 세션에서 자동 제외.
+  차트별 UI 상태는 `_` 접두사 필드(`_open`{그룹키}·`_cfgHidden`)에 두면 `serializableChart()`가 세션에서 자동 제외.
+  **예외: 카드 접힘 `collapsed`는 정식 필드로 세션에 남긴다**(v0.40) — 줌·패널 펼침 같은 일시 상태가 아니라
+  "이 차트는 지금 안 본다"는 의도다. 대신 `chartPreset()`에서는 지운다(프리셋을 적용했더니 접히면 놀란다).
+  접기는 `setCollapsed(cfg, on)` 한 곳으로 — 그림·조작 안내 줄·버튼 글자를 함께 다룬다(안내만 남으면 접은 뜻이 준다).
   설정 그룹은 `data-g` 속성으로 식별하고 `restoreGroupState()`가 복원(요약 텍스트는 언어 종속이라 키로 쓰면 안 된다).
   카드를 버릴 때는 `purgePlot()` — `responsive:true`가 등록한 resize 리스너는 purge에서만 해제된다. 단 **렌더 중(`gd._vizRendering`)에는 purge 금지**(Plotly 내부 promise가 깨진다),
   전체 재생성 경로에서는 참조만 끊는다. `Plotly.Plots.resize`는 접힌 차트(`_collapsed`, display:none)에서 reject하므로 항상 건너뛴다.
