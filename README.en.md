@@ -97,7 +97,7 @@ ours,4000,4.1,0.744,MMLU
 | Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
-| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (e.g. a horizontal 0-line for delta metrics), quadrant shading in crosshair mode, removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
+| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (pick the **direction first** in the add form and the unused box locks), a **name** drawn on the chart, shading by quadrant (crosshair) or above/below (horizontal) or left/right (vertical), plus a **shade color** (empty = automatic), removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
 | **Mark best** | Settings → Point labels → Mark best: labels the highest or lowest Y automatically (one overall, or one per series). It is **re-picked from the current data on every draw**, so it moves when the data changes — unlike a hand-placed text marker |
 | **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
 | **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
@@ -125,7 +125,7 @@ ours,4000,4.1,0.744,MMLU
 | **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table. Style → `Dimmed color` can keep the **series color at low opacity** instead of gray |
 | **Export size** | Settings → Export size: presets for **paper 1-column (85mm), 2-column (170mm) and slides**, or mm/inch directly, plus dpi. The hint shows **the pixels it will save and the pt size of body text** (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
 | **Error column** | Settings → Data → Error column: when the ± value **already exists as a column** (e.g. `score_std`), it is drawn as error bars directly. Ignored while aggregating (the aggregate error bars take over there) |
-| **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis and labels it (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
+| **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis with a label and a **color** (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
 | **Stacked area** | Settings → Style → Area fill → `Stack`: stacks the series so the total and each share read together (line types only) |
 | **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
 | **Annotate an image** | `Export ▾` → `Annotate an image…`: a separate page (`annotate.html`) for putting **text, arrows, boxes and redactions** on a capture and saving it as PNG. Paste a screenshot straight in (⌘/Ctrl+V). The image never leaves the browser. **It is a separate file, so keep it next to `index.html`** |
@@ -196,6 +196,14 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.44 — let baselines do their job, and fill per series
+
+- **Horizontal and vertical baselines have existed since v0.14** — but the direction picker sat *after* the x/y boxes in the add form, so nobody found it. Now you **pick the direction first**, the box that direction does not use is locked, and a one-line explanation follows.
+- **Baselines can be named** (`Target 0.75`). Shaded spans had labels from day one; baselines did not, so a line's meaning was invisible on the chart.
+- **One-sided shading**: above/below for a horizontal line, left/right for a vertical one. Shading used to exist only as crosshair quadrants, so "everything above this line passes" could not be drawn.
+- **Shade color** is yours to pick (baselines and spans). Empty means automatic, and an `Auto` button puts it back.
+- **Area fill is now per series.** Filling several series at once hides them behind each other, so usually one or two should be filled — empty follows the chart setting, and a series can also opt *out* while the chart fills. **Stacking stays chart-wide** (stacking only some series makes the "total" unreadable).
 
 ### v0.43 — put the one-click recipes up front, fold the duplicates into one row
 
