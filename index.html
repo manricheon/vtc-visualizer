@@ -167,6 +167,15 @@
   /* 폭 이름이 길어지면(`아주 넓게`) 화살표에 겹친다 — 내용에 맞추되 검색칸을 다 먹지 않게 상한만 둔다 */
   .cfg-search-box .top select { flex: none; width: auto; max-width: 45%; font-size: 12px; padding: 0 4px; }
   .cfg-noresult { margin: 0 0 var(--sp-2); }
+  /* 간단 모드: 자주 안 쓰는 줄을 감춘다(43 → 16). **지우는 게 아니라 감추는 것**이라
+     DOM에는 그대로 있고, 값이 들어 있는 줄은 `A(row, keep)`가 애초에 `.adv`를 안 붙여 계속 보인다.
+     검색은 이걸 이긴다 — 안 그러면 검색 결과에서 조용히 빠져 "그런 옵션은 없다"가 된다. */
+  .cfg.simple .row.adv, .cfg.simple .hint.adv { display: none; }
+  .cfg.simple details.grp.alladv { display: none; }
+  .cfg.searching .row.adv { display: flex; }
+  .cfg.searching .hint.adv, .cfg.searching details.grp.alladv { display: block; }
+  .cfg-more { margin: var(--sp-2) 0 0; }
+  .cfg-more button { font-size: 12px; }
   .chart-card .plot { flex: 1; min-width: 0; min-height: 460px; }
   .chart-card .plot-caption { padding: 8px 14px 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; }
   /* 차트를 표로 — 넓은 표는 자기 안에서만 가로로 흐른다(페이지가 옆으로 밀리면 안 된다) */
@@ -423,7 +432,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.41';
+const APP_VERSION = 'v0.42';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -654,6 +663,7 @@ const I18N = {
     'cfg.group2': '모양 그룹',
     'cfg.group2Hint': '모양 그룹: 색과 별개로 마커 모양으로 구분하는 2차 그룹 (예: 색=method, 모양=frames)',
     'cfg.size': '크기 컬럼',
+    'opt.grpBasic': '기본', 'opt.grpDist': '분포', 'opt.grpSpecial': '특수',
     'opt.scatter': '산점도', 'opt.line': '선', 'opt.scatterLine': '산점도+선', 'opt.bar': '막대', 'opt.heatmap': '히트맵', 'opt.dumbbell': '덤벨(짝 비교)',
     'cfg.heatZ': '색 값(컬럼)', 'cfg.heatAgg': '집계', 'cfg.heatText': '셀 값 표시',
     'cfg.heatHint': 'X·Y 이산 축의 격자에 색 값 컬럼을 색으로 표시합니다 (같은 칸의 여러 행은 집계). 예: X=frames, Y=gazing_ratio, 색=accuracy.',
@@ -892,6 +902,7 @@ const I18N = {
     'cfg.xTick': 'X 눈금 표기', 'cfg.yTick': 'Y 눈금 표기',
     'opt.tickAuto': '자동', 'opt.tickPercent': '퍼센트 (67%)', 'opt.tickThousands': '천단위 (12,345)',
     'opt.tickSci': '지수 (1.2e+4)', 'opt.tickInt': '정수 (12)',
+    'opt.tickFix1': '소수 1자리 (0.7)', 'opt.tickFix2': '소수 2자리 (0.72)', 'opt.tickFix3': '소수 3자리 (0.718)',
     'cfg.trendStat': '적합도 표시', 'cfg.trendStatTitle': '추세선의 R²·기울기를 차트 구석에 표시합니다',
     'cfg.trendSlope': '기울기', 'opt.trendStatOn': '표시', 'opt.trendStatOff': '숨김',
     'cfg.y2': '보조 Y축(오른쪽)', 'cfg.y2Title': '스케일이 다른 두 지표를 한 차트에 — 점선·× 마커로 구분해 오른쪽 축에 그립니다',
@@ -907,6 +918,8 @@ const I18N = {
     'cfg.distHint': '값 컬럼을 Y축에서 고르세요. 그룹(색상)을 지정하면 그룹별 분포를 겹쳐 그립니다.',
     'cfg.widthTitle': '설정 패널 폭 — 모든 차트에 함께 적용됩니다',
     'cfg.oneGroup': '하나씩', 'cfg.oneGroupTitle': '한 번에 한 묶음만 펼칩니다 — 끄면 여러 묶음을 동시에 볼 수 있습니다',
+    'cfg.simple': '간단히', 'cfg.simpleTitle': '자주 쓰는 설정만 보입니다 — 값이 들어 있는 설정은 감추지 않고, 검색하면 감춘 것도 나옵니다',
+    'cfg.showAll': '고급 설정 {n}줄 더 보기', 'cfg.showSimple': '자주 쓰는 것만 보기',
     'cfg.wS': '좁게', 'cfg.wM': '기본', 'cfg.wL': '넓게', 'cfg.wXL': '아주 넓게',
     'cfg.searchPh': '옵션 검색 (예: 로그, 정렬, 범례)',
     'cfg.caption': '캡션',
@@ -1110,6 +1123,7 @@ const I18N = {
     'cfg.group2': 'Shape group',
     'cfg.group2Hint': 'Shape group: a secondary grouping shown via marker shape, independent of color (e.g. color=method, shape=frames)',
     'cfg.size': 'Size column',
+    'opt.grpBasic': 'Basic', 'opt.grpDist': 'Distribution', 'opt.grpSpecial': 'Special',
     'opt.scatter': 'Scatter', 'opt.line': 'Line', 'opt.scatterLine': 'Scatter + Line', 'opt.bar': 'Bar', 'opt.heatmap': 'Heatmap', 'opt.dumbbell': 'Dumbbell (paired)',
     'cfg.heatZ': 'Color value (column)', 'cfg.heatAgg': 'Aggregate', 'cfg.heatText': 'Show cell value',
     'cfg.heatHint': 'Colors a grid of two discrete axes by a value column (multiple rows per cell are aggregated). E.g. X=frames, Y=gazing_ratio, color=accuracy.',
@@ -1348,6 +1362,7 @@ const I18N = {
     'cfg.xTick': 'X tick format', 'cfg.yTick': 'Y tick format',
     'opt.tickAuto': 'Auto', 'opt.tickPercent': 'Percent (67%)', 'opt.tickThousands': 'Thousands (12,345)',
     'opt.tickSci': 'Scientific (1.2e+4)', 'opt.tickInt': 'Integer (12)',
+    'opt.tickFix1': '1 decimal (0.7)', 'opt.tickFix2': '2 decimals (0.72)', 'opt.tickFix3': '3 decimals (0.718)',
     'cfg.trendStat': 'Fit readout', 'cfg.trendStatTitle': 'Show the trendline R² and slope in the corner of the chart',
     'cfg.trendSlope': 'slope', 'opt.trendStatOn': 'Show', 'opt.trendStatOff': 'Hide',
     'cfg.y2': 'Second Y axis (right)', 'cfg.y2Title': 'Two metrics on different scales in one chart — drawn on the right axis with a dotted line and × markers',
@@ -1363,6 +1378,8 @@ const I18N = {
     'cfg.distHint': 'Pick the value column as the Y axis; a group (color) overlays one distribution per group.',
     'cfg.widthTitle': 'Settings panel width — applies to every chart',
     'cfg.oneGroup': 'One at a time', 'cfg.oneGroupTitle': 'Keep only one group open — turn it off to view several at once',
+    'cfg.simple': 'Essentials', 'cfg.simpleTitle': 'Shows the settings you use most — anything you have set stays visible, and search still finds the hidden ones',
+    'cfg.showAll': 'Show {n} more advanced settings', 'cfg.showSimple': 'Show essentials only',
     'cfg.wS': 'Narrow', 'cfg.wM': 'Default', 'cfg.wL': 'Wide', 'cfg.wXL': 'Widest',
     'cfg.searchPh': 'Find an option (log, sort, legend…)',
     'cfg.caption': 'Caption',
@@ -2054,6 +2071,11 @@ function hexToRgba(hex, alpha) {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 function DASHES() { return [['solid', t('dash.solid')], ['dash', t('dash.dash')], ['dot', t('dash.dot')], ['dashdot', t('dash.dashdot')]]; }
+/* 축 눈금 표기 — 값은 `buildLayout`의 `TICK_FMT` 키 그대로다(빈 값 = Plotly 기본) */
+function TICK_OPTS() {
+  return [['', t('opt.tickAuto')], ['percent', t('opt.tickPercent')], ['thousands', t('opt.tickThousands')], ['sci', t('opt.tickSci')],
+    ['0', t('opt.tickInt')], ['1', t('opt.tickFix1')], ['2', t('opt.tickFix2')], ['3', t('opt.tickFix3')]];
+}
 /* 데이터셋 하나에 실제로 값이 있는 컬럼 — 파일마다 스키마가 다를 때 축 목록을 좁히는 데 쓴다 */
 let dsColCache = null;
 function datasetColumns(name) {
@@ -3516,11 +3538,19 @@ function el(tag, attrs = {}, ...children) {
 }
 function select(options, value, onchange, attrs = {}) {
   const s = el('select', { ...attrs, onchange: e => onchange(e.target.value) });
-  for (const o of options) {
+  const mkOpt = o => {
     const [val, label] = Array.isArray(o) ? o : [o, o];
     const opt = el('option', { value: val }, label);
     if (String(val) === String(value)) opt.selected = true;
-    s.append(opt);
+    return opt;
+  };
+  for (const o of options) {
+    /* `{ label, options: [...] }`는 optgroup — 유형 11종처럼 목록이 길면 묶어야 읽힌다 */
+    if (o && !Array.isArray(o) && o.options) {
+      const g = el('optgroup', { label: o.label });
+      for (const oo of o.options) g.append(mkOpt(oo));
+      s.append(g);
+    } else s.append(mkOpt(o));
   }
   return s;
 }
@@ -3677,6 +3707,8 @@ function cfgSearchBox(panel) {
   inp.addEventListener('input', () => {
     const q = inp.value.trim().toLowerCase();
     grpSilent = true;   // 검색이 여닫는 것은 사용자의 선택이 아니다 — 기본 펼침으로 저장하지 않는다
+    /* 검색은 간단 모드를 이긴다 — 감춘 줄을 결과에서도 빼면 "그런 옵션은 없다"가 된다 */
+    panel.classList.toggle('searching', !!q);
     let shown = 0;
     panel.querySelectorAll('details.grp').forEach(g => {
       if (!q) {
@@ -3714,7 +3746,10 @@ function cfgSearchBox(panel) {
   const acc = el('input', { type: 'checkbox', class: 'cfg-accsel', ...(ACCORDION ? { checked: '' } : {}),
     onchange: e => setAccordion(e.target.checked) });
   const accLbl = el('label', { class: 'inline', title: t('cfg.oneGroupTitle') }, acc, t('cfg.oneGroup'));
-  return el('div', { class: 'cfg-search-box' }, el('div', { class: 'top' }, inp, wsel, accLbl), none);
+  const smp = el('input', { type: 'checkbox', class: 'cfg-smpsel', ...(SIMPLE ? { checked: '' } : {}),
+    onchange: e => setSimple(e.target.checked) });
+  const smpLbl = el('label', { class: 'inline', title: t('cfg.simpleTitle') }, smp, t('cfg.simple'));
+  return el('div', { class: 'cfg-search-box' }, el('div', { class: 'top' }, inp, wsel, accLbl, smpLbl), none);
 }
 /* 차트별 `_open`은 세션에 저장되지 않는다(차트 UI 상태 규칙) — 그래서 새로고침하면 매번 다시 펼쳐야 했다.
    마지막으로 연 그룹을 **이 브라우저의 기본값**으로 따로 기억해 그 자리를 메운다. 스키마는 그대로다. */
@@ -3732,6 +3767,22 @@ function setAccordion(on) {
   ACCORDION = !!on;
   localStorage.setItem(ACC_KEY, ACCORDION ? '1' : '0');
   for (const b of document.querySelectorAll('.cfg-accsel')) b.checked = ACCORDION;
+}
+/* 간단 모드 — 기본 상태에서 43줄이던 것을 16줄로. **감추는 것이지 지우는 것이 아니다**:
+   DOM에는 그대로 있고(`.adv` + CSS), 검색은 이걸 이기며, **값이 들어 있는 고급 줄은 감추지 않는다**
+   (감추면 켜 둔 보조축·분할을 끌 길이 사라진다). 폭·아코디언과 같은 급의 전역 설정이다 —
+   답답함은 사람이 느끼지 차트가 느끼지 않는다. */
+const SIMPLE_KEY = 'vtc-visualizer:simple';
+let SIMPLE = localStorage.getItem(SIMPLE_KEY) !== '0';
+function setSimple(on) {
+  SIMPLE = !!on;
+  localStorage.setItem(SIMPLE_KEY, SIMPLE ? '1' : '0');
+  for (const b of document.querySelectorAll('.cfg-smpsel')) b.checked = SIMPLE;
+  for (const p of document.querySelectorAll('.chart-card .cfg')) p.classList.toggle('simple', SIMPLE);
+  for (const b of document.querySelectorAll('.cfg-more button')) {
+    const p = b.closest('.cfg');
+    b.textContent = SIMPLE ? tf('cfg.showAll', { n: p ? p.querySelectorAll('.row.adv').length : 0 }) : t('cfg.showSimple');
+  }
 }
 /* 형제를 닫는 것은 사용자의 선택이 아니므로 기본값으로 저장하지 않는다(검색과 같은 규칙). */
 function closeSiblingGroups(panel, keep, cfg) {
@@ -3799,6 +3850,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     });
     return box;
   };
+  /* 고급 표시 — `A(el)`은 간단 모드에서 감춘다. **값이 들어 있으면(`keep`) 감추지 않는다**:
+     감추면 켜 둔 보조축·분할을 끌 길이 사라져, 화면과 설정이 어긋난 채로 남는다. */
+  const A = (node, keep) => { if (!keep) node.classList.add('adv'); return node; };
 
   /* --- 데이터 --- */
   const gData = el('details', { class: 'grp', open: '', 'data-g': 'data' }, el('summary', {}, t('cfg.data')));
@@ -3808,12 +3862,17 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         v => switchDataset(cfg, v, rebuildPanel))),
       el('div', { class: 'hint' }, t('cfg.datasetHint')),
     ] : []),
-    row(t('cfg.type'), select([['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')], ['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')], ['break', t('opt.break')]], cfg.type,
+    /* 11종을 한 목록으로 두면 읽히지 않는다 — 세 묶음으로(기본 / 분포 / 특수). 값은 그대로다 */
+    row(t('cfg.type'), select([
+      { label: t('opt.grpBasic'), options: [['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')]] },
+      { label: t('opt.grpDist'), options: [['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')]] },
+      { label: t('opt.grpSpecial'), options: [['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['break', t('opt.break')]] },
+    ], cfg.type,
       v => { cfg.type = v; if (v === 'break') cfg[brkAxisOf(cfg) + 'Scale'] = 'linear'; rebuildPanel(); })),
     row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
     row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
     ...(!isBar && !isHeat && !isDumbbell && !isDist && !isBrk ? [
-      row(t('cfg.y2'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rebuildPanel(); }, { title: t('cfg.y2Title') })),
+      A(row(t('cfg.y2'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rebuildPanel(); }, { title: t('cfg.y2Title') })), cfg.y2),
       ...(cfg.y2 ? [el('div', { class: 'hint' }, t('cfg.y2Warn'))] : []),
     ] : []),
     ...(isDist ? [
@@ -3833,26 +3892,26 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     ...(isHeat ? [] : [
       row(isDumbbell ? t('cfg.dumbbellPair') : t('cfg.group'), colSelect(cfg, 'group', { onChange: () => rebuild() })),
       ...(isDumbbell ? [el('div', { class: 'hint' }, t('cfg.dumbbellHint'))] : [
-        row(t('cfg.group2'), colSelect(cfg, 'group2', { onChange: () => rebuild() })),
-        el('div', { class: 'hint' }, t('cfg.group2Hint')),
+        A(row(t('cfg.group2'), colSelect(cfg, 'group2', { onChange: () => rebuild() })), cfg.group2),
+        A(el('div', { class: 'hint' }, t('cfg.group2Hint')), cfg.group2),
       ]),
     ]),
     ...(isBar || isHeat || isDumbbell ? [] : [
-      row(t('cfg.size'), colSelect(cfg, 'size')),
-      row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })),
+      A(row(t('cfg.size'), colSelect(cfg, 'size')), cfg.size),
+      A(row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })), cfg.colorBy),
       ...(cfg.colorBy ? [el('div', { class: 'hint' }, t('cfg.colorByHint'))] : []),
     ]),
     /* 이미 계산된 오차 컬럼(예: score_std) — 집계 오차막대(ptError/barError)는 **집계할 때만** 나오므로 그 자리를 못 메운다.
        막대에도 필요하므로 위의 산점/선 전용 묶음 밖에 둔다. 분포·히트맵·덤벨에서는 뜻이 없다. */
     ...(isHeat || isDumbbell || isDist ? [] : [
-      row(t('cfg.errCol'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.errCol,
-        v => { cfg.errCol = v; rp(); }, { title: t('cfg.errColTitle') })),
+      A(row(t('cfg.errCol'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.errCol,
+        v => { cfg.errCol = v; rp(); }, { title: t('cfg.errColTitle') })), cfg.errCol),
       ...(cfg.errCol && (isBar ? cfg.barAgg !== 'none' : cfg.ptAgg !== 'none')
         ? [el('div', { class: 'hint' }, t('cfg.errColIgnored'))] : []),
     ]),
     ...(isHeat || isDumbbell || isBrk ? [] : [
-      row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
-          el('input', { type: 'number', value: cfg.facetCols || '', min: 1, max: 8, placeholder: t('cfg.facetColsPh'), title: t('cfg.facetColsPh'), style: 'width:56px', oninput: e => { cfg.facetCols = Number(e.target.value) || 0; rp(); } })),
+      A(row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
+          el('input', { type: 'number', value: cfg.facetCols || '', min: 1, max: 8, placeholder: t('cfg.facetColsPh'), title: t('cfg.facetColsPh'), style: 'width:56px', oninput: e => { cfg.facetCols = Number(e.target.value) || 0; rp(); } })), cfg.facetBy),
       ...(cfg.facetBy ? [el('div', { class: 'hint' }, t('cfg.facetHint'))] : []),
     ]),
   );
@@ -3868,12 +3927,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       ...(cfg.barAgg === 'mean'
         ? [row(t('cfg.barError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.barError, v => { cfg.barError = v; rp(); }))]
         : []),
-      row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })),
-      row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })),
-      row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
-        el('input', { type: 'checkbox', ...(cfg.barCatX ? { checked: '' } : {}), onchange: e => { cfg.barCatX = e.target.checked; rp(); } }))),
-      row(t('cfg.barOpacity'), el('input', { type: 'range', min: 0.3, max: 1, step: 0.05, value: cfg.barOpacity, oninput: e => { cfg.barOpacity = Number(e.target.value); rp(); } })),
-      el('div', { class: 'hint' }, t('cfg.barAggHint')),
+      A(row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })), cfg.barText !== 'none'),
+      A(row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })), cfg.barSort !== 'auto'),
+      A(row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
+        el('input', { type: 'checkbox', ...(cfg.barCatX ? { checked: '' } : {}), onchange: e => { cfg.barCatX = e.target.checked; rp(); } }))), cfg.barCatX),
+      A(row(t('cfg.barOpacity'), el('input', { type: 'range', min: 0.3, max: 1, step: 0.05, value: cfg.barOpacity, oninput: e => { cfg.barOpacity = Number(e.target.value); rp(); } })), cfg.barOpacity !== defaultChart().barOpacity),
+      A(el('div', { class: 'hint' }, t('cfg.barAggHint')), cfg.barAgg !== 'none'),
     );
   }
 
@@ -3971,13 +4030,16 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       row(t('cfg.brkMode'), select([['markers', t('opt.modeMarkers')], ['lines', t('opt.modeLines')], ['lines+markers', t('opt.modeBoth')]],
         cfg.brkMode || 'markers', v => { cfg.brkMode = v; rp(); })),
     ] : []),
-    row(t('cfg.xRange'), el('input', { type: 'number', value: cfg.xMin, placeholder: 'min', step: 'any', oninput: e => { cfg.xMin = e.target.value; rp(); } }),
-                 el('input', { type: 'number', value: cfg.xMax, placeholder: 'max', step: 'any', oninput: e => { cfg.xMax = e.target.value; rp(); } })),
-    row(t('cfg.yRange'), el('input', { type: 'number', value: cfg.yMin, placeholder: 'min', step: 'any', oninput: e => { cfg.yMin = e.target.value; rp(); } }),
-                 el('input', { type: 'number', value: cfg.yMax, placeholder: 'max', step: 'any', oninput: e => { cfg.yMax = e.target.value; rp(); } })),
-    el('div', { class: 'hint' }, t('cfg.rangeHint')),
-    row(t('cfg.grid'), el('input', { type: 'checkbox', ...(cfg.grid ? { checked: '' } : {}), onchange: e => { cfg.grid = e.target.checked; rp(); } })),
-    row(t('cfg.plotFace'), select([['none', t('opt.faceNone')], ['soft', t('opt.faceSoft')], ['tint', t('opt.faceTint')]], cfg.plotFace || 'none', v => { cfg.plotFace = v; rp(); }, { title: t('cfg.plotFaceTitle') })),
+    A(row(t('cfg.xRange'), el('input', { type: 'number', value: cfg.xMin, placeholder: 'min', step: 'any', oninput: e => { cfg.xMin = e.target.value; rp(); } }),
+                 el('input', { type: 'number', value: cfg.xMax, placeholder: 'max', step: 'any', oninput: e => { cfg.xMax = e.target.value; rp(); } })), cfg.xMin !== '' || cfg.xMax !== ''),
+    A(row(t('cfg.yRange'), el('input', { type: 'number', value: cfg.yMin, placeholder: 'min', step: 'any', oninput: e => { cfg.yMin = e.target.value; rp(); } }),
+                 el('input', { type: 'number', value: cfg.yMax, placeholder: 'max', step: 'any', oninput: e => { cfg.yMax = e.target.value; rp(); } })), cfg.yMin !== '' || cfg.yMax !== ''),
+    A(el('div', { class: 'hint' }, t('cfg.rangeHint')), cfg.xMin !== '' || cfg.xMax !== '' || cfg.yMin !== '' || cfg.yMax !== ''),
+    /* 눈금 표기 — 필드도 렌더 코드(`TICK_FMT`)도 v0.14부터 있었는데 UI만 없어 세션 JSON으로만 닿았다 */
+    A(row(t('cfg.xTick'), select(TICK_OPTS(), cfg.xTick || '', v => { cfg.xTick = v; rp(); })), cfg.xTick),
+    A(row(t('cfg.yTick'), select(TICK_OPTS(), cfg.yTick || '', v => { cfg.yTick = v; rp(); })), cfg.yTick),
+    A(row(t('cfg.grid'), el('input', { type: 'checkbox', ...(cfg.grid ? { checked: '' } : {}), onchange: e => { cfg.grid = e.target.checked; rp(); } })), !cfg.grid),
+    A(row(t('cfg.plotFace'), select([['none', t('opt.faceNone')], ['soft', t('opt.faceSoft')], ['tint', t('opt.faceTint')]], cfg.plotFace || 'none', v => { cfg.plotFace = v; rp(); }, { title: t('cfg.plotFaceTitle') })), cfg.plotFace && cfg.plotFace !== 'none'),
   );
 
   /* --- 스타일 --- */
@@ -4043,27 +4105,29 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   renderSeries();
   gStyle.append(
     row(t('cfg.title'), el('input', { type: 'text', value: cfg.title, oninput: e => { cfg.title = e.target.value; setCardName(nameSpan, cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 })); rp(); } })),
-    row(t('cfg.caption'), capInput(cfg)),
-    row(t('cfg.renderMode'), select([['auto', t('opt.renderAuto')], ['svg', t('opt.renderSvg')], ['gl', t('opt.renderGl')]], cfg.renderMode || 'auto', v => { cfg.renderMode = v; rp(); }, { title: t('cfg.renderModeTitle') })),
-    row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })),
-    row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
-        el('input', { type: 'color', value: cfg.fontColor || CHROME.ink, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })),
+    A(row(t('cfg.caption'), capInput(cfg)), cfg.caption),
+    A(row(t('cfg.renderMode'), select([['auto', t('opt.renderAuto')], ['svg', t('opt.renderSvg')], ['gl', t('opt.renderGl')]], cfg.renderMode || 'auto', v => { cfg.renderMode = v; rp(); }, { title: t('cfg.renderModeTitle') })), cfg.renderMode && cfg.renderMode !== 'auto'),
+    A(row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })), cfg.fontFamily !== defaultChart().fontFamily),
+    A(row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
+        el('input', { type: 'color', value: cfg.fontColor || CHROME.ink, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })), cfg.fontSize !== defaultChart().fontSize || cfg.fontColor),
     row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside-tl', t('opt.insideTL')], ['inside-tr', t('opt.insideTR')], ['inside-bl', t('opt.insideBL')], ['inside-br', t('opt.insideBR')], ['none', t('opt.hidden')]], cfg.legendPos === 'inside' ? 'inside-tl' : cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
     row(t('cfg.chartSize'),
       el('input', { type: 'range', min: 280, max: 820, step: 20, value: cfg.plotHeight || 460, title: t('cfg.chartHeightTitle'), oninput: e => { cfg.plotHeight = Number(e.target.value) || 460; applyChartSize(cfg); } }),
       select([['full', t('opt.widthFull')], ['half', t('opt.widthHalf')]], cfg.cardWidth || 'full', v => { cfg.cardWidth = v; applyChartSize(cfg); })),
     ...(isBar ? [] : [
-      row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
+      A(row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
           el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
           el('input', { type: 'number', value: cfg.lineWidth, min: 0.5, max: 10, step: 0.5, oninput: e => { cfg.lineWidth = Number(e.target.value) || 2; rp(); } })),
-      row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
+        cfg.markerSize !== defaultChart().markerSize || cfg.lineWidth !== defaultChart().lineWidth),
+      A(row(t('cfg.lineType'), select(DASHES(), cfg.lineDash, v => { cfg.lineDash = v; rp(); renderSeries(); }),
           select([['linear', t('opt.straightLine')], ['spline', t('opt.spline')]], cfg.lineShape, v => { cfg.lineShape = v; rp(); })),
+        cfg.lineDash !== 'solid' || cfg.lineShape !== 'linear'),
       /* 쌓기는 축 끊기에서 뺀다 — 합이 두 패널로 갈려 누적의 뜻이 사라진다 */
-      row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')],
-        ...(isBrk ? [] : [['stack', t('opt.stackFill')]])], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
+      A(row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')],
+        ...(isBrk ? [] : [['stack', t('opt.stackFill')]])], cfg.areaFill, v => { cfg.areaFill = v; rp(); })), cfg.areaFill !== 'none'),
       ...(cfg.areaFill === 'stack' ? [el('div', { class: 'hint' }, t('cfg.stackHint'))] : []),
-      row(t('cfg.mutedStyle'), select([['gray', t('opt.mutedGray')], ['color', t('opt.mutedColor')]],
-        cfg.mutedStyle || 'gray', v => { cfg.mutedStyle = v; rp(); }, { title: t('cfg.mutedStyleTitle') })),
+      A(row(t('cfg.mutedStyle'), select([['gray', t('opt.mutedGray')], ['color', t('opt.mutedColor')]],
+        cfg.mutedStyle || 'gray', v => { cfg.mutedStyle = v; rp(); }, { title: t('cfg.mutedStyleTitle') })), cfg.mutedStyle === 'color'),
       el('div', { class: 'hint' }, t('cfg.styleHint')),
     ]),
     seriesBox,
@@ -4126,9 +4190,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   renderLabelLists();
   gLabel.append(
     ...(isBar ? [] : [   // 막대의 값 표시는 "막대 옵션"에서 — 텍스트 마커 목록만 유지
-      row(t('cfg.show'), el('input', { type: 'checkbox', ...(cfg.showLabels ? { checked: '' } : {}), onchange: e => { cfg.showLabels = e.target.checked; rp(); } })),
-      row(t('cfg.labelCol'), colSelect(cfg, 'labelCol', { emptyLabel: t('opt.auto') })),
-      el('div', { class: 'hint' }, t('cfg.labelHint')),
+      A(row(t('cfg.show'), el('input', { type: 'checkbox', ...(cfg.showLabels ? { checked: '' } : {}), onchange: e => { cfg.showLabels = e.target.checked; rp(); } })), cfg.showLabels),
+      A(row(t('cfg.labelCol'), colSelect(cfg, 'labelCol', { emptyLabel: t('opt.auto') })), cfg.showLabels || cfg.labelCol),
+      A(el('div', { class: 'hint' }, t('cfg.labelHint')), cfg.showLabels),
       hiddenBox,
     ]),
     markerBox,
@@ -4236,28 +4300,28 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const gAdv = el('details', { class: 'grp', 'data-g': 'adv' }, el('summary', {}, t('cfg.advanced')));
   gAdv.append(
     row(t('cfg.trend'), select([['none', t('opt.none')], ['linear', t('opt.trendLinear')], ['poly2', t('opt.trendPoly2')], ['log', t('opt.trendLog')], ['exp', t('opt.trendExp')], ['power', t('opt.trendPower')], ['movavg', t('opt.trendMovavg')]], cfg.trend, v => { cfg.trend = v; rp(); })),
-    row(t('cfg.trendStyle'), select(DASHES(), cfg.trendDash, v => { cfg.trendDash = v; rp(); }),
-        el('input', { type: 'number', value: cfg.trendWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.trendWidthTitle'), oninput: e => { cfg.trendWidth = Number(e.target.value) || 1.5; rp(); } })),
-    row(t('cfg.trendStat'), select([['auto', t('opt.trendStatOn')], ['none', t('opt.trendStatOff')]], cfg.trendStat || 'auto', v => { cfg.trendStat = v; rp(); }, { title: t('cfg.trendStatTitle') })),
-    row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })),
-    el('div', { class: 'hint' }, t('cfg.trendHint')),
-    row(t('cfg.ptAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.ptAgg, v => { cfg.ptAgg = v; rebuildPanel(); })),
+    A(row(t('cfg.trendStyle'), select(DASHES(), cfg.trendDash, v => { cfg.trendDash = v; rp(); }),
+        el('input', { type: 'number', value: cfg.trendWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.trendWidthTitle'), oninput: e => { cfg.trendWidth = Number(e.target.value) || 1.5; rp(); } })), cfg.trend !== 'none'),
+    A(row(t('cfg.trendStat'), select([['auto', t('opt.trendStatOn')], ['none', t('opt.trendStatOff')]], cfg.trendStat || 'auto', v => { cfg.trendStat = v; rp(); }, { title: t('cfg.trendStatTitle') })), cfg.trend !== 'none'),
+    A(row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })), cfg.trend !== 'none'),
+    A(el('div', { class: 'hint' }, t('cfg.trendHint')), cfg.trend !== 'none'),
+    A(row(t('cfg.ptAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.ptAgg, v => { cfg.ptAgg = v; rebuildPanel(); })), cfg.ptAgg !== 'none'),
     ...(cfg.ptAgg !== 'none' ? [
       row(t('cfg.ptError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.ptError, v => { cfg.ptError = v; rp(); })),
       row(t('cfg.ptBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.ptBand, v => { cfg.ptBand = v; rp(); })),
       el('div', { class: 'hint' }, t('cfg.ptAggHint')),
     ] : []),
-    row('Pareto', el('input', { type: 'checkbox', ...(cfg.pareto ? { checked: '' } : {}), onchange: e => { cfg.pareto = e.target.checked; rp(); } })),
-    row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })),
-    row(t('cfg.paretoFade'), el('input', { type: 'checkbox', ...(cfg.paretoFade ? { checked: '' } : {}), onchange: e => { cfg.paretoFade = e.target.checked; rp(); } })),
-    row(t('cfg.paretoStyle'), select(DASHES(), cfg.paretoDash || 'solid', v => { cfg.paretoDash = v; rp(); }),
+    A(row('Pareto', el('input', { type: 'checkbox', ...(cfg.pareto ? { checked: '' } : {}), onchange: e => { cfg.pareto = e.target.checked; rebuildPanel(); } })), cfg.pareto),
+    A(row(t('cfg.paretoDir'), select([['min-x-max-y', t('opt.paretoMinMax')], ['max-x-max-y', t('opt.paretoMaxMax')], ['min-x-min-y', t('opt.paretoMinMin')], ['max-x-min-y', t('opt.paretoMaxMin')]], cfg.paretoDir, v => { cfg.paretoDir = v; rp(); })), cfg.pareto),
+    A(row(t('cfg.paretoFade'), el('input', { type: 'checkbox', ...(cfg.paretoFade ? { checked: '' } : {}), onchange: e => { cfg.paretoFade = e.target.checked; rp(); } })), cfg.pareto),
+    A(row(t('cfg.paretoStyle'), select(DASHES(), cfg.paretoDash || 'solid', v => { cfg.paretoDash = v; rp(); }),
         el('input', { type: 'number', value: cfg.paretoWidth, min: 0.5, max: 10, step: 0.5, title: t('cfg.paretoWidthTitle'),
           oninput: e => { cfg.paretoWidth = Number(e.target.value) || 2; rp(); } }),
         el('input', { type: 'color', value: cfg.paretoColor || CHROME.ink2, title: t('cfg.paretoColorTitle'),
           oninput: e => { cfg.paretoColor = e.target.value; rp(); } }),
         /* 색 입력은 빈 값을 가질 수 없다 — 테마 자동으로 되돌릴 길을 따로 둔다 */
         ...(cfg.paretoColor ? [el('button', { class: 'small', title: t('cfg.paretoColorAuto'),
-          onclick: () => { cfg.paretoColor = ''; rebuildPanel(); } }, t('opt.auto'))] : [])),
+          onclick: () => { cfg.paretoColor = ''; rebuildPanel(); } }, t('opt.auto'))] : [])), cfg.pareto),
     ...(cfg.pareto ? [el('div', { class: 'hint' }, t('cfg.paretoHint'))] : []),
   );
 
@@ -4289,8 +4353,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         else { const [w, u] = v.split(':'); cfg.expUnit = u; cfg.expW = w; }
         rebuildPanel();
       })),
-    row(t('cfg.expUnit'), select([['screen', t('opt.expScreen')], ['mm', 'mm'], ['in', 'inch']], cfg.expUnit,
-      v => { cfg.expUnit = v; rebuildPanel(); })),
+    A(row(t('cfg.expUnit'), select([['screen', t('opt.expScreen')], ['mm', 'mm'], ['in', 'inch']], cfg.expUnit,
+      v => { cfg.expUnit = v; rebuildPanel(); })), cfg.expUnit !== 'screen'),
     ...(cfg.expUnit === 'screen' ? [] : [
       row(t('cfg.expSize'), expW, expH),
       row('dpi', expDpi),
@@ -4305,7 +4369,18 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   panel.append(gData, ...(gBar ? [gBar] : []), gFilter, gAxis, gStyle,
     ...(heatDumb ? [] : [gLabel, gBase]), ...(isBar || heatDumb ? [] : [gAdv]), gExp);
   restoreGroupState(cfg, panel);
+  /* 남는 것이 하나도 없는 묶음은 간단 모드에서 통째로 감춘다 — 열었더니 비어 있으면 고장으로 읽힌다.
+     **줄이 아예 없는 묶음(필터·기준선)은 폼이 본체**이므로 세지 않는다. */
+  for (const g of panel.querySelectorAll('details.grp')) {
+    const rows = g.querySelectorAll('.row');
+    g.classList.toggle('alladv', rows.length > 0 && [...rows].every(r => r.classList.contains('adv')));
+  }
+  panel.classList.toggle('simple', SIMPLE);
   panel.prepend(cfgSearchBox(panel));
+  /* 감춘 것이 있다는 말이 없으면 사라진 것으로 읽힌다 — 켤 길을 그 자리에 둔다 */
+  const nAdv = panel.querySelectorAll('.row.adv').length;
+  if (nAdv) panel.append(el('div', { class: 'cfg-more' },
+    el('button', { class: 'small', onclick: () => setSimple(!SIMPLE) }, SIMPLE ? tf('cfg.showAll', { n: nAdv }) : t('cfg.showSimple'))));
 
   function rebuild() { renderSeries(); }
 }
