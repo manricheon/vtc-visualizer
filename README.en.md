@@ -74,72 +74,94 @@ ours,4000,4.1,0.744,MMLU
 
 ## Features
 
+### Getting data in
+
 | Feature | How |
 |---|---|
-| Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
-| **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
-| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) · **broken axis** (fold away the gap when values split into two far-apart groups — axis values stay real) |
-| **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
-| **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
-| **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
-| **Option search** | Type an option name in the search box above the settings panel to filter it down. **Hidden advanced rows are searchable too** |
-| **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). **Anything you have set stays visible**, and `Show N more advanced settings` at the bottom opens them all |
+| **Collapsible data card** | The `▾` in the data-input header folds the card to a single line once your files are loaded (245 → 52px). **Dropping files still works while collapsed**, and a one-line summary keeps showing what is loaded |
 | **Recipe chips** | Loading data adds a `Try one of these:` row to the data card — only recipes that **actually draw** with the current columns, and clicking one applies it to the first chart (no new cards) |
-| **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
-| **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
-| Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
-| Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
-| **Collapse cards** | `▾` in the header folds the card down to a single header line (the summary stays). The state is saved in the session, and `Collapse all` folds every card at once |
-| **Card summary** | With the settings collapsed, the header shows `type · X × Y · group · filter count · dataset` on one line |
-| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart. The panel height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
-| Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
-| Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
-| Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
-| **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
-| **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
-| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (pick the **direction first** in the add form and the unused box locks), a **name** drawn on the chart, shading by quadrant (crosshair) or above/below (horizontal) or left/right (vertical), plus a **shade color** (empty = automatic), removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
-| **Mark best** | Settings → Point labels → Mark best: labels the highest or lowest Y automatically (one overall, or one per series). It is **re-picked from the current data on every draw**, so it moves when the data changes — unlike a hand-placed text marker |
-| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
-| **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
-| **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
-| **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
-| **Trend lines** | Settings → Advanced: linear / quadratic / log / exponential / power / moving-average fits per series (dash & width adjustable), optional **error band (±1σ/±2σ)** shading |
-| **Shape group (3rd dimension)** | Settings → Data → Shape group: color = group 1, **marker shape = group 2**. E.g. color=method, shape=frames keeps method colors while distinguishing frames by shape |
-| Text marker styling | Global font size/color/background/arrow in the Point labels group; per-marker color/size override in the click-to-edit popup |
-| Line smoothing | Settings → Style → line shape: straight/spline, solid/dash/dot |
-| **Area fill** | Settings → Style → Area fill: soft pastel band under each line in the series color |
-| **Bar charts** | Type → Bar: **grouped/stacked**, **vertical/horizontal**, **aggregation** of rows sharing the same X (mean · sum · median · min · max · count), **error bars (±std dev/±std error)** with mean, **value labels** at bar ends, name/value **sorting**, opacity, **treat numeric X as categories** (even spacing) — Settings → Bar options. E.g. X=method, Y=accuracy, aggregate=mean |
-| Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
-| Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
-| **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
-| **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
-| **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
-| **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
 | **Example data** | `Load example data` brings the 24-row basic set; `More examples` adds five companions (metadata, a wide CSV, standard deviations, repeated seeds, two backends orders of magnitude apart) so guide recipes ⑮⑯⑰ can be followed as written |
 | **Melt (wide → long)** | The `⇲` button on a dataset chip: turns a file whose columns are spread sideways (`baseline, ours, ablation`) into **one row per measurement** as a new dataset. The original is untouched, and the new name column works as a group/facet/filter straight away |
 | **Watch folder** | The `Watch folder` checkbox, shown when running via `visualizer.py`: **reloads files as they change**. Leave it on while a run is in progress — exclusions and fading survive, and a file that briefly disappears is not dropped from the screen |
-| **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
 | **Join across files** | Computed columns → kind `Look up from another file`: finds a value in another file **by key and attaches it as one column** (e.g. `params_b` from `models.csv` onto `runs.csv`). Only columns present in **both** files are offered as keys, and picking one immediately tells you **how many rows will find a match**. Several matches fold via first/mean/sum/min/max/count. **Rows are never multiplied** |
-| **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
-| **Point aggregate · error bars** | Settings → Advanced → Point aggregate: summarize points sharing the same X (e.g. seed repeats) by mean/median/… + **error bars (±σ/SE) · error band** |
-| **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table. Style → `Dimmed color` can keep the **series color at low opacity** instead of gray |
-| **Export size** | Settings → Export size: presets for **paper 1-column (85mm), 2-column (170mm) and slides**, or mm/inch directly, plus dpi. The hint shows **the pixels it will save and the pt size of body text** (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
-| **Error column** | Settings → Data → Error column: when the ± value **already exists as a column** (e.g. `score_std`), it is drawn as error bars directly. Ignored while aggregating (the aggregate error bars take over there) |
-| **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis with a label and a **color** (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
-| **Stacked area** | Settings → Style → Area fill → `Stack`: stacks the series so the total and each share read together (line types only) |
-| **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
-| **Annotate an image** | `Export ▾` → `Annotate an image…`: a separate page (`annotate.html`) for putting **text, arrows, boxes and redactions** on a capture and saving it as PNG. Paste a screenshot straight in (⌘/Ctrl+V). The image never leaves the browser. **It is a separate file, so keep it next to `index.html`** |
-| Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
-| **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
-| Raw data | Bottom table: search, click-to-sort (**or Enter on the header**), per-dataset delete, **uncheck a row to exclude it from charts**, **`Fade` column to de-emphasise it**. Numeric columns are right-aligned so digits line up |
-| **Keyboard & accessibility** | Usable without a mouse: a **skip-to-charts** link on the first Tab, a real label on every settings control, popovers and the modal move focus inside on open and back to the opening button on Escape (Tab cannot leak out of the modal), table headers sort on Enter. **Fade** — previously point-click only — has a table column, and **baselines can be added by value** from the settings panel |
+| **Computed columns** | "Computed columns" below the data input: derive a new column — binary op (A−B, A/B, …) or **delta/retention vs a reference** (e.g. vs dense). Source file untouched; usable directly as axis/filter |
+| **Label-join column** | Computed columns → kind `Label join`: instead of computing a value, it **joins values from several columns into a text column**, with per-part prefix/suffix text and a separator between them (e.g. `method` + `frames` → `baseline · 8frm`). The result works straight away as a group, facet, filter or bar X axis |
 | **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. **The data is untouched** and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
+| Raw data | Bottom table: search, click-to-sort (**or Enter on the header**), per-dataset delete, **uncheck a row to exclude it from charts**, **`Fade` column to de-emphasise it**. Numeric columns are right-aligned so digits line up |
+| **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws **only that file's rows**, with the axis, group and filter lists narrowed to **the columns that file actually has**. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
+| Filters | Settings → Filters: pick a column → categorical columns get **value checkboxes (multi-select** — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) **or the "Select" operator for multi-select values**. Each filter runs in **Exclude** (drop non-matching rows) or **Dim** (fade non-matching rows into the background = rule-based highlight) mode |
+| Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
+| **Exclude a point** | **Click** a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
+| **Focus / de-emphasize** | **Click** a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table. Style → `Dimmed color` can keep the **series color at low opacity** instead of gray |
+| **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
+
+### Drawing the chart
+
+| Feature | How |
+|---|---|
+| Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (**undo** from the toast) — multiple charts per page |
+| **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) · **broken axis** (fold away the gap when values split into two far-apart groups — axis values stay real) |
+| Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
+| **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
+| **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
+| **Aggregate** | Settings → Data → Aggregate: fold the rows that share an X (or a heatmap cell) into one point by mean, median, sum… One row, whatever the chart type |
+| **Error** | Settings → Data → Error: `none / <column> / std dev / std error`. A precomputed ± column (e.g. `score_std`) is drawn as-is, and with a **mean** aggregate you can pick σ/SE instead (σ around a median, min or max is not that point's spread, so it is not offered). The column is ignored while aggregating. The ±kσ band lives in Settings → Advanced |
+| **Bar charts** | Type → Bar: **grouped/stacked**, **vertical/horizontal**, **aggregation** of rows sharing the same X (mean · sum · median · min · max · count), **error bars (±std dev/±std error)** with mean, **value labels** at bar ends, name/value **sorting**, opacity, **treat numeric X as categories** (even spacing) — Settings → Bar options (aggregate and error live in **Data**). E.g. X=method, Y=accuracy, aggregate=mean |
+| **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
+| **Shape group (3rd dimension)** | Settings → Data → Shape group: color = group 1, **marker shape = group 2**. E.g. color=method, shape=frames keeps method colors while distinguishing frames by shape |
+| **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
+| **Trend lines** | Settings → Advanced: linear / quadratic / log / exponential / power / moving-average fits per series (dash & width adjustable), optional **error band (±1σ/±2σ)** shading |
+| Pareto frontier | Settings → Advanced: pick the "better" direction (e.g. lower X · higher Y) |
+| **Mark best** | Settings → Point labels → Mark best: labels the highest or lowest Y automatically (one overall, or one per series). It is **re-picked from the current data on every draw**, so it moves when the data changes — unlike a hand-placed text marker |
+| **Stacked area** | Settings → Style → Area fill → `Stack`: stacks the series so the total and each share read together (line types only) |
+| **Area fill** | Settings → Style → Area fill: soft pastel band under each line in the series color |
+| Line smoothing | Settings → Style → line shape: straight/spline, solid/dash/dot |
+| Series styling | Settings → Style: per-series color, **editable legend name**, marker symbol/size, **line style (solid/dash/dot) and width**, **display mode (points / line / points + line)**, font |
+
+### Making it readable
+
+| Feature | How |
+|---|---|
+| **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
+| **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
+| Legend position | Settings → Style → Legend: right · top · **inside corner (top-left/top-right/bottom-left/bottom-right)** · hidden |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + **full/half width** (half places two charts side by side). A top-bar **width toggle** (normal/wide/full) sets the whole page width The **settings panel width** (narrow/default/wide/widest) is picked above the panel and applies to every chart. The panel height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
+| **Reorder & collapse cards** | `↑`/`↓` in the card header reorder, `▾` folds the plot. Zoom and settings-panel state survive adding charts or switching language |
+| **Collapse cards** | `▾` in the header folds the card down to a single header line (the summary stays). The state is saved in the session, and `Collapse all` folds every card at once |
+| **Card summary** | With the settings collapsed, the header shows `type · X × Y · group · filter count · dataset` on one line |
+| **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). **Anything you have set stays visible**, and `Show N more advanced settings` at the bottom opens them all |
+| **Option search** | Type an option name in the search box above the settings panel to filter it down. **Hidden advanced rows are searchable too** |
+| **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
+| **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
+| **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
+| **Keyboard & accessibility** | Usable without a mouse: a **skip-to-charts** link on the first Tab, a real label on every settings control, popovers and the modal move focus inside on open and back to the opening button on Escape (Tab cannot leak out of the modal), table headers sort on Enter. **Fade** — previously point-click only — has a table column, and **baselines can be added by value** from the settings panel |
+
+### Baselines and annotations
+
+| Feature | How |
+|---|---|
+| **Baselines** | **Click** a point → "Add baseline" → thin dashed h/v lines. **Multiple baselines**, each switchable between **crosshair / horizontal only / vertical only** (pick the **direction first** in the add form and the unused box locks), a **name** drawn on the chart, shading by quadrant (crosshair) or above/below (horizontal) or left/right (vertical), plus a **shade color** (empty = automatic), removable from the settings panel, and it is **anchored to that point (row)** so it follows the new value when data is refreshed (baselines typed in as values stay pinned to the value). If the anchor point disappears it is not drawn in the wrong place — a ⚠ appears and you can `Re-anchor` it |
+| **Span shading** | Settings → Baselines → `＋ Span`: paints a **range** on one axis with a label and a **color** (a recommended band, an out-of-memory region…). If a baseline is "one line", this is "this range" |
+| **Text markers** | **Click** a point → "Add text marker" → an arrowed callout. Drag to move, click to edit/delete. Each marker is **anchored to that point (row)**, so it follows the new value when the data is refreshed. `＋ Text marker` under Settings → Point labels builds one **by picking a row** instead (no mouse needed) |
+| **Pinned notes** | Settings → Point labels → `＋ Pinned note`: a note tied to no data point, parked in a corner of the chart (`n=24 · measured 2026-07`). It stays put when the data or axes change, and can be dragged anywhere |
+| **Lost-anchor warning** | If the anchor row disappears (filter, exclusion, deletion) or the axis column changes, the marker is **hidden rather than drawn in the wrong place**, and you're told. The settings list keeps it with a ⚠ and a reason, plus `Re-anchor` to attach it to another point |
+| Point labels | Settings → Point labels: **drag** to fine-tune positions, **click** to hide individually. Duplicates collapse to one; overlaps auto-avoid |
+| Text marker styling | Global font size/color/background/arrow in the Point labels group; per-marker color/size override in the click-to-edit popup |
+| **Annotate an image** | `Export ▾` → `Annotate an image…`: a separate page (`annotate.html`) for putting **text, arrows, boxes and redactions** on a capture and saving it as PNG. Paste a screenshot straight in (⌘/Ctrl+V). The image never leaves the browser. **It is a separate file, so keep it next to `index.html`** |
+
+### Exporting and picking up where you left off
+
+| Feature | How |
+|---|---|
+| Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
+| **Export size** | Settings → Export size: presets for **paper 1-column (85mm), 2-column (170mm) and slides**, or mm/inch directly, plus dpi. The hint shows **the pixels it will save and the pt size of body text** (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
+| **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
+| **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
 | **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They **assume no column names** — roles (category, sweep knob, score, cost) are matched against your current data by **value distribution**, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
 
 ### Tip: which chart, when?
-
 Chart-choice criteria (trend → line, magnitude → bar, trade-off → scatter), per-scenario recipes (mean + error bars,
 stacked, rankings, Pareto…), third-dimension techniques, and presentation polish are collected in the
 **[Visualization Guide (GUIDE.en.md)](GUIDE.en.md)**.
@@ -197,6 +219,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.45 — a collapsible data card, and a documentation cleanup
+
+- **The data-input card now collapses** (`▾` in its header). Once the files are in, that card held 245px of nothing to do — collapsed it is 52px and the first chart starts at 142px instead of 335px. **Dropping files still works while collapsed** (the whole page has always been a drop target). It never collapses while there is no data — a first-time visitor would lose the place to start.
+- **Documentation cleanup**: ① v0.43 moved aggregation and error into one row but left **ten stale labels** in the feature table and the guide (`Bar options → Aggregate`, `Advanced → Point aggregate`, `Error column`) — following the docs led to a setting that was no longer there. ② The 63-row feature table is now **five grouped tables** (getting data in / drawing / readability / baselines and annotations / exporting). ③ Changelog entries older than v0.40 are folded away.
+
 ### v0.44 — let baselines do their job, and fill per series
 
 - **Horizontal and vertical baselines have existed since v0.14** — but the direction picker sat *after* the x/y boxes in the add form, so nobody found it. Now you **pick the direction first**, the box that direction does not use is locked, and a one-line explanation follows.
@@ -230,6 +257,9 @@ The version shows next to the title (top-right) and in the footer, matching the 
 
 - **Bug fix**: collapsing hid **only the plot**, so a card with its settings panel open stayed exactly as tall (making `Collapse all` look broken). The **whole card body** now folds away, leaving one header line — 905px to 77px.
 - A collapsed card shows its header summary even when the settings are open — with the body gone, that line is the only clue left.
+
+<details>
+<summary>Older releases (v0.1 – v0.40)</summary>
 
 ### v0.40 — collapsing sticks, and works on all cards at once
 
@@ -611,3 +641,5 @@ Measured the slow paths on large data and fixed them (numbers at 20k rows).
 ---
 
 © mrc
+
+</details>
