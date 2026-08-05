@@ -45,6 +45,11 @@ One-line summary: **change → line, magnitude → bar, trade-off → scatter.**
 
 Recipes use the UI labels verbatim. `Settings → …` refers to each chart card's `⚙ Settings` panel.
 
+Two things make the recipes easier to follow.
+
+- **You do not have to build the first few charts by hand.** Loading data adds a `Try one of these:` row to the data card — only recipes that **actually draw** with your columns, applied to the first chart on click. If you don't like the result, the toast's `Undo` puts it back.
+- **The settings panel starts in `Essentials`** — the 16 rows you use most. If a recipe mentions something you cannot see, type its name in the search box (it finds hidden rows too) or hit `Show … more advanced settings` at the bottom. Anything you have already set stays visible, so nothing you turned on can disappear.
+
 ### ① Mean performance per method — "Which method is best?"
 
 > Type=`Bar`, X axis=`method`, Y axis=`accuracy`, Group (color)=`method`
@@ -94,6 +99,8 @@ type=`Line`, Settings → Style → Area fill=`Stack (cumulative area)`. The top
 
 ![Cumulative area chart showing per-method cost stacking across the budget](assets/guide/r12-stack-area.png)
 
+- **A line chart can fill under one series only** — the fill picker on that series row (`Fill area`). Filling just the protagonist keeps the others readable; stacking stays a chart-wide setting, because stacking only some series makes the "total" unreadable.
+
 ### ⑤ Ranking chart — "Throughput order at a glance"
 
 > Type=`Bar`, X axis=`method`, Y axis=`throughput_fps`, Group (color)=`method`
@@ -124,6 +131,8 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 - **Click** the key point → `💬 Add text marker` for an annotation (drag to position; style it in the Point labels group). The marker is **anchored to that point**, so it still points at it after next week's refresh
 - For text that belongs to **no single point** — measurement conditions, sample size — use `＋ Pinned note` in the Point labels group; it holds its spot through data and axis changes
 - Style → Font size 15–16 (back-of-the-room test); with 2–3 series move the legend to `Inside chart` to save space
+- With several charts, put focus in a card and use **`Alt+↑`/`Alt+↓` to reorder**, `Alt+←` to collapse the ones you are not looking at (or the `▾`·`↑`·`↓` buttons in the header)
+- To **make several charts look alike at once**, use Style → `Copy this look to…` on your reference chart — only "how it looks" travels (font, size, legend position, chart size); axes, group and filters stay put
 - Export with `PNG` (3× resolution, for slides) or `SVG` (papers, vector editing)
 - **When you have a submission spec**, pick a preset such as `Paper, 2 columns (170mm)` under Settings → `Export size`. The hint reports the pixels it will save and the pt of body text, so it is immediately clear that small text calls for **a bigger font, not a higher dpi**
 
@@ -339,8 +348,24 @@ What reads well on screen and what reads well in a paper are different things.
 
 - **If the text is small, raise the font size, not the dpi.** The hint shows the resulting pt — dpi does not change the physical text size.
 - The single `Error` row picks **column or statistic** — a precomputed `_std` column draws as-is, and `Std dev`/`Std error` appear only when the aggregate is `Mean` (the column is ignored while aggregating).
+- **Name your baselines** — the name box in Settings → Baselines prints e.g. `Target 0.72` next to the line. A bare line cannot tell the reader whether it is the target or last year's number.
+- **To paint pass/fail, shade one side** — `Shade above`/`Shade below` for a horizontal line, `right`/`left` for a vertical one. Pick the direction **first** when adding a baseline (the box that direction does not use is locked). The shade color is yours too; leave it empty to follow the theme.
 - **Span shading says what a baseline cannot** — if a baseline is "this line", a span is "this range" (a recommended band, an out-of-memory region).
 - Figures in the markdown report follow the same spec.
+
+### ⑳ Four figures on one sheet — panel layout
+
+The (a)–(d) panel figure that papers want is usually assembled by hand somewhere else. The tool can produce it directly.
+
+> Draw every chart you want first (use Style → `Copy this look to…` to match fonts and sizes if needed)
+> Top bar `Export ▾` → `Several figures on one sheet…` → Columns=`2`, Panel labels=`(a) (b) (c)`, unit=`mm`, width=`170`, dpi=`300`
+
+![Four charts laid out in two columns, each panel labelled (a)–(d)](assets/guide/r18-sheet.png)
+
+- **The width is the width of the whole sheet**, not of one panel. 170mm for a two-column paper, 85mm for a single column.
+- **Each panel keeps the aspect ratio it has on screen.** Stretching panels to equal heights would give each a different tick spacing, which makes the comparison lie — if you want them to match, set each chart's `Chart size` first.
+- Pick the charts to include with the checkboxes. Collapsed cards count too, as long as they have been drawn.
+- To add captions or arrows on top, open the saved PNG with `Export ▾` → `Annotate an image…`.
 
 ### ⑭ Choosing colors — where is the figure going?
 
