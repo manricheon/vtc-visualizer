@@ -222,6 +222,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.47 — the guide catches up with the tool
+
+- The visualization guide (both languages) had **stalled at v0.41.** Nothing from v0.42–v0.46 had reached the recipes, so following the guide led to places that no longer matched the screen.
+- Added **two orientation lines** ahead of the recipes — build the first chart from the `Try one of these:` chips, and remember the settings panel starts in `Essentials`, so anything you cannot see is one search (or one click) away.
+- New recipe **⑳ Four figures on one sheet** (panel layout), including that the width is the width of the whole sheet and that each panel keeps its own aspect ratio. One new figure (`r18-sheet.png`).
+- Folded into existing recipes: **baseline names and one-sided shading** (⑰ submission spec), **per-series area fill** (④ cost breakdown), **card shortcuts and copying the look** (⑦ presentation polish).
+
 ### v0.46.1 — what the full audit turned up
 
 - Ran a full pass over the code, docs and features: **40 suites, 736 checks green**; opened the offline file with the network cut and confirmed **all 11 chart types draw with zero outbound requests**; round-tripped **all 93 chart-config fields** through a session export/import without drift; and verified the 64 git tags line up 1:1 with the 64 changelog entries.
