@@ -189,7 +189,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.47';
+const APP_VERSION = 'v0.48';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -283,14 +283,17 @@ function showToast(msg) {
    화면 좌표는 그릴 때·집을 때만 환산한다(scale). 화면 좌표로 저장하면 창 크기가 결과를 바꾼다. */
 let img = null;              // HTMLImageElement
 let marks = [];              // {kind, x, y, x2, y2, text, color, width, font}
-let undoStack = [];          // marks의 스냅샷 — 되돌리기는 상태 통째로가 가장 단순하고 안 틀린다
+/* 되돌리기 항목 = `{ marks, img }` — 상태를 통째로 담는 것이 가장 단순하고 안 틀린다.
+   **이미지까지 담는 이유**(v0.48): 그림을 붙이면(joinImage) 이미지 자체가 바뀌는데 마크만 되돌리면
+   그림과 마크가 어긋난다. 이미지는 **참조**라 담는 비용이 없다(상한 50은 그대로). */
+let undoStack = [];
 let sel = -1;                // 고른 마크 인덱스
 let tool = 'text';
 let view = 1;                // 화면 배율 (1 이하)
 
 const stage = document.getElementById('stage');
 const ctx = stage.getContext('2d');
-const snapshot = () => { undoStack.push(JSON.stringify(marks)); if (undoStack.length > 50) undoStack.shift(); };
+const snapshot = () => { undoStack.push({ marks: JSON.stringify(marks), img }); if (undoStack.length > 50) undoStack.shift(); };
 
 function fitView() {
   if (!img) return;
@@ -300,9 +303,12 @@ function fitView() {
   stage.width = Math.round(img.naturalWidth * view);
   stage.height = Math.round(img.naturalHeight * view);
 }
-function setImage(image) {
+/* `keepHistory`는 **붙이기 전용**이다 — 새 그림으로 바꾸는 것은 마크가 사라지는 경로라
+   되돌리기 이력을 남기면 없는 그림의 마크로 되돌아갈 수 있다(그래서 바꾸기는 지금도 물어보고 지운다). */
+function setImage(image, opt) {
   img = image;
-  marks = []; undoStack = []; sel = -1;
+  if (!(opt && opt.keepHistory)) { marks = []; undoStack = []; }
+  sel = -1;
   document.getElementById('emptyStage').hidden = true;
   stage.hidden = false;
   document.getElementById('dropzone').classList.add('has');
@@ -488,7 +494,10 @@ document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () =
 /* ---- 되돌리기·삭제 ---- */
 function undo() {
   if (!undoStack.length) { showToast(t('toast.undoNone')); return; }
-  marks = JSON.parse(undoStack.pop());
+  const snap = undoStack.pop();
+  marks = JSON.parse(snap.marks);
+  /* 붙이기를 되돌리면 이미지도 함께 돌아가야 한다 — 크기가 달라지므로 화면 배율도 다시 잡는다 */
+  if (snap.img && snap.img !== img) { img = snap.img; fitView(); syncInfo(); }
   if (sel >= marks.length) sel = -1;
   draw(); renderMarks();
 }
@@ -524,9 +533,8 @@ function joinImage(im, dir) {
   c.drawImage(im, dir === 'right' ? aw + gap : 0, dir === 'right' ? 0 : ah + gap, sw, sh);
   const out = new Image();
   out.onload = () => {
-    const keep = marks.slice();       // 붙이기는 마크를 지우지 않는다 — 좌표가 그대로이기 때문이다
-    setImage(out);
-    marks = keep;
+    snapshot();                       // 붙이기도 되돌릴 수 있어야 한다 — 이미지가 바뀌는 유일한 되돌릴 수 있는 경로다
+    setImage(out, { keepHistory: true });   // 마크는 좌표가 그대로라 살아남는다(기존 그림이 (0,0)에 남는다)
     draw(); renderMarks(); syncInfo();
     showToast(t('toast.joined'));
   };
