@@ -222,6 +222,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.46.1 — what the full audit turned up
+
+- Ran a full pass over the code, docs and features: **40 suites, 736 checks green**; opened the offline file with the network cut and confirmed **all 11 chart types draw with zero outbound requests**; round-tripped **all 93 chart-config fields** through a session export/import without drift; and verified the 64 git tags line up 1:1 with the 64 changelog entries.
+- Cleared the leftovers it found: a function nobody calls (`labelSetting`), an unused constant (`DARK_PALETTE`), and one dictionary string that never reached the screen.
+- **Recipe chips are undoable** — `applyPreset` always had undo, but the message only said "Preset applied", so it was hard to tell what had changed. It now names the recipe you clicked, and **toasts that carry an undo stay for 9 seconds** (5 was gone before you finished reading).
+- That string got a home instead of being deleted — the card keyboard shortcuts are now on the card itself (`aria-keyshortcuts` plus a tooltip). The on-screen hint line is **hidden when a card is collapsed**, so collapsed cards had no way to tell you the shortcuts.
+
 ### v0.46 — sheet layout, bulk look, shortcuts, and two images side by side
 
 - **Export several figures on one sheet** (`Export ▾` → `Several figures on one sheet…`). The submission spec landed in v0.26, but the final layout was still done by hand. Pick columns (1–4), panel labels (`(a) (b) (c)`…), sheet width in mm/inch with a dpi, the gap, and which charts to include. **Every panel keeps the aspect ratio it has on screen** — stretching panels to equal heights would give each one a different tick spacing, which makes the comparison lie.

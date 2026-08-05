@@ -463,7 +463,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.46';
+const APP_VERSION = 'v0.46.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -514,7 +514,6 @@ function gridColorOf(cfg) { return (cfg.plotFace && cfg.plotFace !== 'none') ? C
 const PALETTE_KEY = 'vtc-visualizer:palette';
 let PALETTE_THEME = PALETTE_THEMES[localStorage.getItem(PALETTE_KEY)] ? localStorage.getItem(PALETTE_KEY) : 'default';
 const LIGHT_PALETTE = PALETTE_THEMES.default.light.slice();
-const DARK_PALETTE = PALETTE_THEMES.default.dark.slice();
 let PALETTE = LIGHT_PALETTE.slice();
 /* 연속 색상용 단일-hue 시퀀셜 — 라이트는 밝음→어두움, 다크는 어두움→밝음(높은 값이 밝게) */
 const LIGHT_SEQ = [[0, '#eaf2fb'], [0.35, '#9cc4ee'], [0.7, '#3d84d6'], [1, '#12467f']];
@@ -991,6 +990,7 @@ const I18N = {
     'toast.tmReanchored': '마커를 새 점에 다시 붙였습니다.',
     'toast.presetsImported': '세션에 딸린 프리셋 {n}개를 추가했습니다.',
     'toast.presetApplied': '프리셋을 적용했습니다 (이전 설정은 덮어썼습니다).',
+    'toast.presetAppliedName': '{name}을(를) 적용했습니다 (이전 설정은 덮어썼습니다).',
     'toast.derivedCleared': '{name} 삭제 — 차트 {n}개의 축·필터 설정을 함께 정리했습니다.',
     'toast.reportPartial': '리포트를 저장했습니다 (차트 {n}장). 이미지 생성 실패: {list}',
     'report.notDrawn': '(이 차트는 아직 그려지지 않아 이미지가 없습니다)',
@@ -1471,6 +1471,7 @@ const I18N = {
     'toast.tmReanchored': 'Marker re-anchored to the new point.',
     'toast.presetsImported': 'Added {n} preset(s) bundled with the session.',
     'toast.presetApplied': 'Preset applied (the previous settings were replaced).',
+    'toast.presetAppliedName': 'Applied {name} (your previous settings were replaced).',
     'toast.derivedCleared': 'Deleted {name} — also cleared axis/filter settings on {n} chart(s).',
     'toast.reportPartial': 'Report saved ({n} charts). Image export failed for: {list}',
     'report.notDrawn': '(this chart has not been drawn yet, so there is no image)',
@@ -2237,12 +2238,6 @@ function resolveMarker(cfg, m, rowsByKey) {
   const x = r[cfg.x], y = r[cfg.y];
   if (x === null || x === undefined || y === null || y === undefined) return { mode: 'point', stale: 'gone' };
   return { mode: 'point', x, y, row: r };
-}
-function labelSetting(map, series, r, x, y) {
-  const rk = pointKeyRow(series, r);
-  if (map && Object.prototype.hasOwnProperty.call(map, rk)) return { key: rk, val: map[rk] };
-  const vk = pointKey(series, x, y);
-  return { key: rk, val: map ? map[vk] : undefined, legacy: vk };
 }
 function logv(v) { return Math.log10(v); }
 function axCoord(v, scale) { return (scale === 'log' && typeof v === 'number') ? logv(v) : v; }
@@ -3674,7 +3669,8 @@ function showToast(msg, actionLabel, action) {
   if (action) toastEl.append(el('button', { onclick: () => { action(); toastEl.classList.remove('show'); } }, actionLabel));
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 5000);
+  /* 되돌릴 것이 있으면 더 오래 남긴다 — 5초는 "무엇이 바뀌었지?"를 읽는 사이에 사라진다 */
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), action ? 9000 : 5000);
 }
 
 /* ================= chart card UI ================= */
@@ -3754,6 +3750,10 @@ function renderChartCard(cfg) {
   const chartNo = state.charts.indexOf(cfg) + 1;
   const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
   card.setAttribute('aria-label', nameSpan.textContent);
+  /* 단축키는 조작 안내 줄에도 적혀 있지만 **접힌 카드에서는 그 줄이 감춰진다** —
+     카드 자체에 붙여 두면 보조 기술이 언제든 읽어 주고, 마우스로도 툴팁으로 보인다. */
+  card.setAttribute('aria-keyshortcuts', 'Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight');
+  card.title = t('card.keysTitle');
   const cfgPanel = el('div', { class: 'cfg' });
   const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
@@ -4707,6 +4707,7 @@ function relabelCards() {
     b.forEach((btn, i) => { if (labels[i] !== undefined) btn.textContent = labels[i]; if (titles[i]) btn.title = titles[i]; });
     const hint = card.querySelector('.plot-hint');
     if (hint) hint.textContent = t('card.plotHint');
+    card.title = t('card.keysTitle');
     const nameSpan = card.querySelector('.head .name');
     if (nameSpan && !cfg.title) setCardName(nameSpan, tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }));
     applyCardSpec(cfg);   // 요약 문구도 언어를 따라야 한다
@@ -5690,7 +5691,7 @@ function renderStarterChips() {
         /* 새 차트를 만들지 않고 **첫 카드**에 적용한다 — 누를 때마다 카드가 쌓이면 그게 더 나쁘다 */
         if (!state.charts.length) addChart();
         const c = state.charts[0];
-        applyPreset(c, s.cfg);
+        applyPreset(c, s.cfg, t('sp.' + s.key));
         cardOf(c) && cardOf(c).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       },
     }, '▷ ' + t('sp.' + s.key)));
@@ -6386,7 +6387,7 @@ function chartPreset(cfg) {
   if (der.length) p._derived = der;   // 축으로 쓰는 계산 컬럼 정의를 함께 (적용 시 없으면 복원)
   return p;
 }
-function applyPreset(cfg, preset) {
+function applyPreset(cfg, preset, label) {
   const prev = JSON.parse(JSON.stringify(serializableChart(cfg)));   // 설정을 통째로 덮어쓰므로 되돌릴 수 있어야 한다
   const keep = { id: cfg.id, title: cfg.title };
   /* 곁들여 한 일은 토스트를 따로 띄우지 않고 마지막 한 줄에 모은다 —
@@ -6422,7 +6423,7 @@ function applyPreset(cfg, preset) {
   const card = cardOf(cfg);   // 유형이 바뀔 수 있으므로 이 카드만 재구성 (다른 카드의 줌·패널 상태는 보존)
   if (card) { purgePlot(cfg.id); card.replaceWith(renderChartCard(cfg)); renderPlot(cfg); } else refreshCharts();
   save();
-  showToast([t('toast.presetApplied'), ...notes].join(' · '), t('toast.undo'), () => {
+  showToast([label ? tf('toast.presetAppliedName', { name: label }) : t('toast.presetApplied'), ...notes].join(' · '), t('toast.undo'), () => {
     for (const k of Object.keys(cfg)) if (!k.startsWith('_')) delete cfg[k];
     Object.assign(cfg, prev);
     const c2 = cardOf(cfg);
