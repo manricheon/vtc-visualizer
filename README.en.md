@@ -222,6 +222,14 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.49 — one rule for undo
+
+- Undo was **uneven** — copying the look had it, **copying filters did not**, and deleting a marker, baseline or span was final. All of these now carry `Undo`: **copying filters · deleting markers/baselines/spans · showing all columns · deleting a saved preset · importing a session · un-dimming points**.
+- Deletions from a list come back **to their original position**. Re-appending at the end changes the order, which reads as "I undid it and it still changed".
+- **Importing a session** replaces everything you were working on and could not be undone. The previous saved state is kept and restored on undo (the cheapest possible snapshot — no data copying).
+- Copying filters and copying the look were **the same screen and nearly the same code**, so they are now one function — which is also why undo had gone missing from one of them.
+- **Actions that already confirm do not also offer undo** (reset everything, remove a dataset). Asking twice devalues the question.
+
 ### v0.48 — three bugs the audit turned up
 
 - **Fix ①**: `Reset everything` did **not clear computed-column definitions**. Right after the reset, autosave wrote them straight back into the storage it had just cleared, so they survived a refresh.

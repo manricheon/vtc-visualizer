@@ -73,6 +73,11 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   드롭은 접어도 받는다 — 리스너가 원래부터 `document.body`에 있다(드롭존 상자는 안내와 버튼일 뿐이다).
 - **레시피 칩**(v0.43): `renderStarterChips()`가 `#starterChips`에 `starterList()`를 그린다(`renderChips` 끝에서 부르므로 데이터·언어 변경을 함께 탄다).
   **새 차트를 만들지 않고 첫 카드에 `applyPreset`** 한다 — 누를 때마다 카드가 쌓이면 그게 더 나쁘다. 팝오버 입구(`showPresetMenu`)는 그대로 둔다(거기서 찾던 사람이 있다).
+- **되돌리기 규칙**(v0.49): **여러 개를 한 번에 바꾸거나 되살릴 길이 없는 동작에는 `showToast(…, t('toast.undo'), …)`를 단다.**
+  목록 항목 삭제는 `removeFromList(list, i, msg, after)` 하나로 — **자리(인덱스)까지** 되살린다(끝에 붙이면 순서가 바뀌어 "되돌렸는데 달라졌다"가 된다).
+  세션 가져오기는 데이터를 복사하지 않고 **직전 `localStorage[STORAGE_KEY]` 문자열**을 들고 있다가 `restoreSession`으로 되살린다.
+  **`confirm()`이 이미 있는 자리에는 겹치지 않는다**(전체 초기화·데이터셋 삭제) — 물어보고 또 되돌릴 수 있으면 확인 대화가 값을 잃는다.
+  복사 팝오버는 `showCopyMenu(src, ev, kind)` 하나이고 `COPY_KINDS`가 무엇을 복사할지만 정한다 — 두 벌로 두었더니 되돌리기가 한쪽에만 붙어 있었다.
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지, **그룹 없는 차트의 시리즈 이름 `'all'`도 마찬가지**(`seriesStyles`/`seriesLabels`의 키라 번역하면 언어 전환 때 사용자가 정한 색·이름이 사라진다 — v0.31.1에서 `t('all')`을 리터럴로 되돌렸다).
