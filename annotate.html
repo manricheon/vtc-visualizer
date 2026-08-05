@@ -112,6 +112,17 @@
   #joinDialog h3 { margin: 0 0 6px; font-size: var(--fs-md); }
   #joinDialog p { margin: 0 0 12px; font-size: var(--fs-sm); color: var(--ink-2); }
   #joinDialog .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* 좁은 화면 — 본문(index.html)에는 860px 분기가 있는데 이 페이지에는 하나도 없었다(v0.50).
+     캔버스는 원래 `fitView`가 폭에 맞추므로, 줄어들 때 곤란한 것은 **머리글과 목록**뿐이다. */
+  @media (max-width: 860px) {
+    .wrap { padding: 12px 12px 48px; }
+    header.app { gap: var(--sp-2); }
+    header.app .sub { flex-basis: 100%; }        /* 설명은 제목 아래 줄로 */
+    nav.actions { margin-left: 0; flex-basis: 100%; }
+    #stageWrap { max-height: 55vh; }
+    .marks { max-height: 160px; }
+    #joinDialog .box { max-width: 92vw; }
+  }
 </style>
 </head>
 <body>
@@ -189,7 +200,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.49';
+const APP_VERSION = 'v0.50';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -562,11 +573,30 @@ function loadFile(file) {
    Escape·취소는 아무 일도 하지 않는다(들고 있던 그림을 잃지 않는다). */
 function showJoinDialog(onPick) {
   const box = document.getElementById('joinDialog');
-  const done = how => { box.hidden = true; document.removeEventListener('keydown', esc); onPick(how); };
-  const esc = e => { if (e.key === 'Escape') done(''); };
+  /* 본문 팝오버·모달과 같은 규칙(v0.50): 연 것을 기억했다 되돌리고, Tab이 상자 밖으로 새지 않게 가둔다.
+     **배경을 눌러 닫을 때는 포커스를 되돌리지 않는다** — 방금 누른 것을 빼앗지 않기 위해서다(index.html의 `hidePopover(restore)`와 같은 판단). */
+  const opener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+  const done = (how, restore) => {
+    box.hidden = true;
+    document.removeEventListener('keydown', keys, true);
+    box.onmousedown = null;
+    if (restore && opener && opener.isConnected && opener.focus) opener.focus();
+    onPick(how);
+  };
+  const keys = e => {
+    if (e.key === 'Escape') { e.preventDefault(); done('', true); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...box.querySelectorAll('button')].filter(b => b.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
   box.hidden = false;
-  box.querySelectorAll('button').forEach(b => { b.onclick = () => done(b.getAttribute('data-join')); });
-  document.addEventListener('keydown', esc);
+  box.querySelectorAll('button').forEach(b => { b.onclick = () => done(b.getAttribute('data-join'), true); });
+  /* 배경(오버레이) 클릭 = 취소 */
+  box.onmousedown = e => { if (e.target === box) done('', false); };
+  document.addEventListener('keydown', keys, true);
   const first = box.querySelector('button');
   if (first) first.focus();
 }
