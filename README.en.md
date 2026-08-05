@@ -81,7 +81,9 @@ ours,4000,4.1,0.744,MMLU
 | **Chart types** | scatter · line · scatter+line · bar · **heatmap** (2D grid by color) · **dumbbell** (paired per category) · **histogram** · **box plot** (distributions) · **violin** (the shape, not just the quartiles) · **ECDF** (what fraction sits at or below a value) · **broken axis** (fold away the gap when values split into two far-apart groups — axis values stay real) |
 | **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
-| **Option search** | Type an option name in the search box above the settings panel to filter it down |
+| **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
+| **Option search** | Type an option name in the search box above the settings panel to filter it down. **Hidden advanced rows are searchable too** |
+| **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). **Anything you have set stays visible**, and `Show N more advanced settings` at the bottom opens them all |
 | **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
@@ -193,6 +195,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.42 — the settings you actually use, first
+
+- The settings panel opened with **46 rows**. With **`Essentials` (on by default)** it now shows **16** — 3,004 → 1,520px with every group expanded.
+- It **hides, it does not remove**: ① **anything you have set stays visible** (hiding it would take away the only way to turn off a second axis or facet you enabled), ② **search still finds the hidden rows**, ③ `Show N more advanced settings` at the bottom opens them in one click. The choice is remembered by the browser and applies to every chart (same class as panel width and `One at a time`).
+- The **11 chart types are grouped into three** — `Basic` (scatter, line, scatter+line, bar) / `Distribution` (histogram, box, violin, ECDF) / `Special` (heatmap, dumbbell, broken axis).
+- **Axis tick format** (percent, thousands, scientific, fixed decimals) finally has a control. The feature shipped in v0.14 but **had no UI**, so it was reachable only by editing a session file.
 
 ### v0.41 — pick the color of dimmed points
 
