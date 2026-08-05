@@ -437,7 +437,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.43';
+const APP_VERSION = 'v0.44';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -712,6 +712,13 @@ const I18N = {
     'cfg.seriesColor': '색',
     'cfg.seriesModeTitle': '이 시리즈의 표시 — 차트 유형과 다르게 둘 수 있습니다(참고용은 선만, 원자료는 점만)',
     'opt.modeAuto': '유형 따름', 'opt.modeMarkers': '점만', 'opt.modeLines': '선만', 'opt.modeBoth': '점+선',
+    'opt.fillAuto': '채우기: 차트 따름', 'opt.fillNone': '채우기 없음', 'opt.fillOn': '영역 채움',
+    'cfg.seriesFillTitle': '이 시리즈만 선 아래를 채웁니다 (빈 값 = 차트 설정을 따름). 쌓기는 차트 전체 설정으로만 둡니다',
+    'cfg.blLabel': '이름', 'cfg.blShadeTitle': '기준선 한쪽을 옅게 칠합니다',
+    'cfg.blShadeColor': '음영 색 (비우면 자동)', 'cfg.blShadeColorAuto': '음영 색을 자동으로 되돌리기',
+    'opt.shadeUp': '위쪽 음영', 'opt.shadeDown': '아래쪽 음영', 'opt.shadeRight': '오른쪽 음영', 'opt.shadeLeft': '왼쪽 음영',
+    'cfg.blDirBoth': '십자선 — x와 y를 둘 다 넣습니다.', 'cfg.blDirH': '가로선 — y 값만 씁니다 (예: 목표 정확도).',
+    'cfg.blDirV': '세로선 — x 값만 씁니다 (예: 예산 한도).',
     'cfg.seriesUp': '{name} 위로 (범례·그리는 순서만 — 색은 그대로)',
     'cfg.seriesDown': '{name} 아래로 (범례·그리는 순서만 — 색은 그대로)',
     'cfg.seriesOrderReset': '순서 되돌리기',
@@ -1176,6 +1183,13 @@ const I18N = {
     'cfg.seriesColor': 'Colour',
     'cfg.seriesModeTitle': 'How this series draws — it may differ from the chart type (a reference curve as a line only, raw data as points only)',
     'opt.modeAuto': 'Follow type', 'opt.modeMarkers': 'Points only', 'opt.modeLines': 'Line only', 'opt.modeBoth': 'Points + line',
+    'opt.fillAuto': 'Fill: follow chart', 'opt.fillNone': 'No fill', 'opt.fillOn': 'Fill area',
+    'cfg.seriesFillTitle': 'Fill under this series only (empty = follow the chart setting). Stacking stays a chart-wide setting',
+    'cfg.blLabel': 'Name', 'cfg.blShadeTitle': 'Shade one side of the baseline',
+    'cfg.blShadeColor': 'Shade color (empty = automatic)', 'cfg.blShadeColorAuto': 'Reset the shade color to automatic',
+    'opt.shadeUp': 'Shade above', 'opt.shadeDown': 'Shade below', 'opt.shadeRight': 'Shade right', 'opt.shadeLeft': 'Shade left',
+    'cfg.blDirBoth': 'Crosshair — needs both x and y.', 'cfg.blDirH': 'Horizontal line — uses the y value only (e.g. a target accuracy).',
+    'cfg.blDirV': 'Vertical line — uses the x value only (e.g. a budget limit).',
     'cfg.seriesUp': 'Move {name} up (legend and draw order only — the colour stays)',
     'cfg.seriesDown': 'Move {name} down (legend and draw order only — the colour stays)',
     'cfg.seriesOrderReset': 'Reset order',
@@ -1673,7 +1687,10 @@ function defaultChart() {
     hiddenLabels: [],           // pointKey[] — 개별 숨긴 포인트 레이블
     renderMode: 'auto',         // auto | svg | gl — 점이 많으면 WebGL(scattergl)로 그린다 (auto)
     caption: '',                // 보고서·발표용 설명 (차트 아래 표시, 마크다운 리포트에 포함)
-    baselines: [],              // [{x, y, shade, dir}] — shade: none|ur|ul|lr|ll, dir: both|h|v (기본 both)
+    /* [{x, y, shade, dir, label, shadeColor}] — dir: both|h|v (기본 both)
+       shade: both면 사분면 none|ur|ul|lr|ll, h면 none|up|down, v면 none|right|left (v0.44)
+       shadeColor·label은 빈 값이 기본(색은 자동, 이름은 안 그림) */
+    baselines: [],
     /* [{x, y, text, ax, ay, rk?, xc?, yc?, anchor?}] — 클릭으로 추가하는 자유 주석.
        rk = 앵커 행의 정체성 키(rowKey), xc/yc = 앵커를 잡을 때의 축 컬럼 — 그릴 때 현재 행에서 값을 다시 읽는다.
        anchor:'paper'면 데이터와 무관한 고정 메모로 x·y가 0~1 비율 좌표.
@@ -1721,7 +1738,7 @@ function defaultChart() {
     cardWidth: 'full',          // full | half — 절반이면 두 차트 나란히
     heatZ: '', heatAgg: 'mean', heatText: 'none',   // 히트맵: 색 값 컬럼·집계·셀 값 표시
     errCol: '',                 // 숫자 컬럼 → 행마다 ± 오차막대 (이미 계산된 std 컬럼이 있을 때). 집계 중에는 무시
-    spans: [],                  // [{axis:'x'|'y', from, to, label}] — 구간 음영(권장 범위·OOM 구간 등)
+    spans: [],                  // [{axis:'x'|'y', from, to, label, color}] — 구간 음영(권장 범위·OOM 구간 등, color 빈 값=자동)
     /* 내보내기 규격: 화면 그대로(screen) 또는 물리 크기(mm/in).
        물리 크기는 96 CSS dpi 기준 픽셀로 환산하고 `scale`에 dpi/96을 준다 —
        그래야 글자 크기가 dpi와 무관하게 같은 물리 크기로 나온다(px 그대로 키우면 글자만 작아진다). */
@@ -2064,6 +2081,14 @@ function seriesMode(st, chartMode) {
   if (st.mode === 'both') return 'lines+markers';
   return chartMode;
 }
+/* 시리즈의 실제 영역 채우기 — 모드와 같은 규칙이다(빈 값 = 차트 설정을 따름).
+   **쌓기(`stack`)는 시리즈별로 두지 않는다**: 일부만 쌓으면 "합"이 무엇의 합인지 그림에서 읽히지 않는다.
+   그래서 시리즈 값은 `none|tozeroy` 둘뿐이고, 차트가 쌓기일 때 그 시리즈만 빼는 것(`none`)까지만 허용한다. */
+function seriesFill(st, chartFill) {
+  if (st.fill === 'none') return 'none';
+  if (st.fill === 'tozeroy') return 'tozeroy';
+  return chartFill;
+}
 function seriesStyle(cfg, def) {
   const o = cfg.seriesStyles[def.name] || {};
   return {
@@ -2075,6 +2100,8 @@ function seriesStyle(cfg, def) {
     /* 빈 값 = 차트 유형을 따른다. 시리즈마다 점만/선만/점+선을 달리 쓰고 싶은 경우가 있다 —
        참고용 곡선은 선만 옅게, 주인공은 점+선, 원자료는 점만. */
     mode: o.mode || '',
+    /* 같은 규칙의 영역 채우기(v0.44) — 여럿을 겹쳐 채우면 서로를 가리므로 보통 한둘만 채운다 */
+    fill: o.fill || '',
   };
 }
 function hexToRgba(hex, alpha) {
@@ -2316,10 +2343,11 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
          선이 없는 시리즈에 영역 채우기·쌓기를 걸면 그리지 못할 것을 그리려 든다. */
       const myMode = seriesMode(st, lineMode);
       const hasLine = myMode.includes('lines');
-      const useFill = hasLine && cfg.areaFill === 'tozeroy';
+      const myFill = seriesFill(st, cfg.areaFill);   // 시리즈별 오버라이드(v0.44) — 빈 값이면 차트 설정
+      const useFill = hasLine && myFill === 'tozeroy';
       /* 쌓기: 막대에는 있는데 선에는 없어서 구성비 추이를 못 그렸다.
          Plotly의 stackgroup은 **본 시리즈 trace에만** 준다 — 추세선·흐리게·__fillbase가 끼면 합이 틀어진다. */
-      const useStack = hasLine && cfg.areaFill === 'stack';
+      const useStack = hasLine && myFill === 'stack';
       const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumnsAll().includes(cfg.colorBy);
       let npts = pts.filter(r => !isMutedRow(cfg, r));   // 강조(일반)
       const mpts = pts.filter(r => isMutedRow(cfg, r));    // 흐리게(배경 맥락) — 클릭 흐리게 + 흐리게 필터
@@ -2877,6 +2905,33 @@ function baselineShapes(cfg, gd) {
       { type: 'line', xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: by, y1: by,
         line: { color: CHROME.muted, width: 1, dash: 'dot' } });
     const shade = b.shade || 'none';
+    /* 음영 색: 빈 값 = 지금까지의 파란 기가 도는 자동색(`paretoColor`와 같은 규칙).
+       직접 고른 색은 조금 더 진하게 깐다 — 자동값의 0.06으로는 고른 색이 보이지 않는다. */
+    const shFill = b.shadeColor ? hexToRgba(b.shadeColor, 0.14) : 'rgba(42,120,214,0.06)';
+    /* 한쪽 방향 음영 — 가로선 위/아래, 세로선 좌/우. 반대 축은 paper라 줌과 무관하게 화면을 가로지른다.
+       사분면(both)과 달리 "이 선 위쪽은 합격"처럼 **선 하나에 대한 판정**을 그린다. */
+    if (dir !== 'both' && shade !== 'none') {
+      const onY = dir === 'h';            // 가로선 → 값은 y, 띠는 y축을 따라 위/아래
+      const v = onY ? by : bx;
+      if (typeof v === 'number') {
+        const far = shade === 'up' || shade === 'right' ? 1 : 0;   // paper가 아니라 데이터 축의 끝
+        const rng = (() => {
+          const scale = onY ? cfg.yScale : cfg.xScale;
+          if (gd && gd._fullLayout && gd._fullLayout[onY ? 'yaxis' : 'xaxis']) {
+            const r = gd._fullLayout[onY ? 'yaxis' : 'xaxis'].range;
+            return scale === 'log' ? r.map(z => Math.pow(10, z)) : r;
+          }
+          const vals = chartRows(cfg).map(r => r[onY ? cfg.y : cfg.x]).filter(z => typeof z === 'number');
+          return vals.length ? [Math.min(...vals), Math.max(...vals)] : [v, v];
+        })();
+        const end = far ? Math.max(...rng) : Math.min(...rng);
+        shapes.push({
+          type: 'rect', layer: 'below', line: { width: 0 }, fillcolor: shFill,
+          ...(onY ? { xref: 'paper', x0: 0, x1: 1, yref: 'y', y0: Math.min(v, end), y1: Math.max(v, end) }
+                  : { yref: 'paper', y0: 0, y1: 1, xref: 'x', x0: Math.min(v, end), x1: Math.max(v, end) }),
+        });
+      }
+    }
     if (dir === 'both' && shade !== 'none' && typeof bx === 'number' && typeof by === 'number') {
       let xr = [bx, bx], yr = [by, by];
       if (gd && gd._fullLayout && gd._fullLayout.xaxis && gd._fullLayout.yaxis) {
@@ -2896,7 +2951,7 @@ function baselineShapes(cfg, gd) {
       }
       shapes.push({
         type: 'rect', xref: 'x', yref: 'y', x0: xr[0], x1: xr[1], y0: yr[0], y1: yr[1],
-        fillcolor: 'rgba(42,120,214,0.06)', line: { width: 0 }, layer: 'below',
+        fillcolor: shFill, line: { width: 0 }, layer: 'below',
       });
     }
   }
@@ -2909,7 +2964,7 @@ function baselineShapes(cfg, gd) {
     const [lo, hi] = a < b ? [a, b] : [b, a];
     const onX = (sp.axis || 'x') === 'x';
     shapes.push({
-      type: 'rect', layer: 'below', line: { width: 0 }, fillcolor: hexToRgba(CHROME.ink2, 0.07),
+      type: 'rect', layer: 'below', line: { width: 0 }, fillcolor: sp.color ? hexToRgba(sp.color, 0.14) : hexToRgba(CHROME.ink2, 0.07),
       ...(onX ? { xref: 'x', yref: 'paper', x0: lo, x1: hi, y0: 0, y1: 1 }
               : { xref: 'paper', yref: 'y', x0: 0, x1: 1, y0: lo, y1: hi }),
     });
@@ -2958,6 +3013,30 @@ function spanAnnotations(cfg) {
       ...(onX ? { xref: 'x', yref: 'paper', x: axCoord(mid, cfg.xScale), y: 1, yanchor: 'bottom' }
               : { xref: 'paper', yref: 'y', x: 0.01, xanchor: 'left', y: axCoord(mid, cfg.yScale) }),
     });
+  }
+  return out;
+}
+/* 기준선 이름 — 구간 음영(`spans`)에는 처음부터 라벨이 있었는데 기준선에는 없어서
+   "이 선이 목표치인지 작년 값인지"를 그림만 보고는 알 수 없었다. 축과 나란한 선에 붙은 글자가
+   곧 "축에 붙은 텍스트"라, 여섯 번째 주석 체계를 만들지 않고 이쪽을 채운다.
+   좌표 규약: **annotation은 log10**(shapes는 원시 값) — `axCoord`를 반드시 거친다. */
+function baselineAnnotations(cfg) {
+  const out = [];
+  if (!cfg.baselines || !cfg.baselines.length) return out;
+  const rows = cfg.baselines.some(b => b.rk) ? markerAnchorRows(cfg) : null;
+  for (const b of cfg.baselines) {
+    if (!b.label) continue;
+    const at = resolveBaseline(cfg, b, rows);
+    if (at.stale) continue;               // 기준을 잃은 선은 그리지 않으므로 이름도 없다
+    const dir = b.dir || 'both';
+    const font = { family: cfg.fontFamily, size: Math.max(9, cfg.fontSize - 2), color: CHROME.ink2 };
+    if (dir !== 'v' && typeof at.y === 'number') {
+      out.push({ text: b.label, showarrow: false, _kind: 'baseline', font,
+        xref: 'paper', x: 0.99, xanchor: 'right', yref: 'y', y: axCoord(at.y, cfg.yScale), yanchor: 'bottom' });
+    } else if (dir === 'v' && typeof at.x === 'number') {
+      out.push({ text: b.label, showarrow: false, _kind: 'baseline', font,
+        xref: 'x', x: axCoord(at.x, cfg.xScale), xanchor: 'left', yref: 'paper', y: 0.99, yanchor: 'top' });
+    }
   }
   return out;
 }
@@ -3104,7 +3183,7 @@ function buildLayout(cfg, gd, traces) {
     const rows = chartRows(cfg);
     const br = breakRange(cfg, rows);
     const ax = brkAxisOf(cfg), isX = ax === 'x';
-    const anns = [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg)];
+    const anns = [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg), ...baselineAnnotations(cfg)];
     const lay = {
       title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg)}, x: 0.5 } : undefined,
       font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg)},
@@ -3190,7 +3269,7 @@ function buildLayout(cfg, gd, traces) {
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
     margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
     hovermode: 'closest',
-    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg)],
+    annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg), ...baselineAnnotations(cfg)],
     shapes: chartShapes(cfg, gd),
     barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
@@ -4128,6 +4207,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           ...(['scatter', 'line', 'scatter+line'].includes(cfg.type) ? [
             named(select([['', t('opt.modeAuto')], ['markers', t('opt.modeMarkers')], ['lines', t('opt.modeLines')], ['both', t('opt.modeBoth')]],
               st.mode || '', v => upd({ mode: v }), { title: t('cfg.seriesModeTitle') }), 'cfg.seriesModeTitle'),
+            /* 영역 채우기도 시리즈별로 — 여럿을 한 차트에 겹쳐 채우면 서로를 가리므로 보통 한둘만 채운다.
+               쌓기는 여기 없다: 일부만 쌓으면 그 "합"이 무엇의 합인지 그림에서 읽히지 않는다(차트 전체 설정으로만 둔다). */
+            named(select([['', t('opt.fillAuto')], ['none', t('opt.fillNone')], ['tozeroy', t('opt.fillOn')]],
+              st.fill || '', v => upd({ fill: v }), { title: t('cfg.seriesFillTitle') }), 'cfg.seriesFillTitle'),
           ] : []),
           named(select(SYMBOLS, st.symbol, v => upd({ symbol: v }), { title: t('cfg.markerShapeTitle') }), 'cfg.markerShapeTitle'),
           named(el('input', { type: 'number', value: st.msize, min: 3, max: 40, title: t('cfg.markerSizeTitle'), oninput: e => upd({ msize: Number(e.target.value) || cfg.markerSize }) }), 'cfg.markerSizeTitle'),
@@ -4266,12 +4349,30 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         tail.push(el('button', { class: 'small', title: t('cfg.blAnchorTitle'),
           onclick: () => startReanchor(cfg, i, 'baseline') }, t('cfg.blAnchor')));
       }
+      /* 이름 — 구간 음영에는 있던 것이 기준선에는 없었다. "목표 0.75"처럼 선이 무엇인지는 그림에 적혀야 한다 */
+      const nameIn = el('input', { type: 'text', class: 'slabel', value: b.label || '', placeholder: t('cfg.blLabel'),
+        'aria-label': `${bname} ${t('cfg.blLabel')}` });
+      nameIn.addEventListener('input', () => { b.label = nameIn.value; rp(); save(); });
+      /* 음영 선택지는 방향을 따라간다 — 십자면 사분면, 가로선이면 위/아래, 세로선이면 좌/우 */
+      const shadeOpts = dir === 'both'
+        ? [['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]]
+        : dir === 'h' ? [['none', t('opt.shadeNone')], ['up', t('opt.shadeUp')], ['down', t('opt.shadeDown')]]
+        : [['none', t('opt.shadeNone')], ['right', t('opt.shadeRight')], ['left', t('opt.shadeLeft')]];
+      const shadeVal = shadeOpts.some(o => o[0] === (b.shade || 'none')) ? (b.shade || 'none') : 'none';
       baseBox.append(el('div', { class: 'series-row' + (at.stale ? ' tm-stale' : '') },
         el('span', { class: 'sname', title: bname }, bname),
+        nameIn,
         ...tail,
-        select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], dir, v => { b.dir = v; renderBaseList(); rp(); }),
-        // 사분면 음영은 십자(both)일 때만 의미가 있음
-        ...(dir === 'both' ? [select([['none', t('opt.shadeNone')], ['ur', t('opt.shadeUR')], ['ul', t('opt.shadeUL')], ['lr', t('opt.shadeLR')], ['ll', t('opt.shadeLL')]], b.shade || 'none', v => { b.shade = v; rp(); })] : []),
+        select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], dir,
+          v => { b.dir = v; b.shade = 'none'; renderBaseList(); rp(); }, { title: t('cfg.addBaselineDir') }),
+        select(shadeOpts, shadeVal, v => { b.shade = v; renderBaseList(); rp(); }, { title: t('cfg.blShadeTitle') }),
+        /* 음영 색 — 빈 값 = 자동(`paretoColor`와 같은 규칙). 색 입력은 빈 값을 못 가지므로 되돌릴 버튼을 함께 둔다 */
+        ...(shadeVal !== 'none' ? [
+          el('input', { type: 'color', value: b.shadeColor || '#2a78d6', title: t('cfg.blShadeColor'),
+            oninput: e => { b.shadeColor = e.target.value; rp(); save(); } }),
+          ...(b.shadeColor ? [el('button', { class: 'small', title: t('cfg.blShadeColorAuto'),
+            onclick: () => { delete b.shadeColor; renderBaseList(); rp(); } }, t('opt.auto'))] : []),
+        ] : []),
         el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.baselines.splice(i, 1); cfg._blStaleShown = undefined; renderBaseList(); rp(); } }, '×'),
       ));
     });
@@ -4283,17 +4384,28 @@ function buildCfgPanel(cfg, panel, nameSpan) {
      (그리고 "정확히 0.80"처럼 데이터 점에 없는 기준선은 클릭으로 만들 수가 없었다.) */
   const blX = el('input', { type: 'number', step: 'any', placeholder: 'x', 'aria-label': t('cfg.addBaselineX') });
   const blY = el('input', { type: 'number', step: 'any', placeholder: 'y', 'aria-label': t('cfg.addBaselineY') });
-  const blDir = select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], 'both', () => {});
+  /* 방향을 **먼저** 고른다 — 가로선/세로선은 v0.14부터 됐는데 선택이 x·y 뒤에 있어 아무도 못 찾았다.
+     고른 방향이 안 쓰는 칸은 잠근다: 넣어 봐야 무시되는 값을 받으면 "왜 안 그려지지"가 된다. */
+  const blDir = select([['both', t('opt.blBoth')], ['h', t('opt.blH')], ['v', t('opt.blV')]], 'both', () => syncBlDir());
   blDir.setAttribute('aria-label', t('cfg.addBaselineDir'));
+  const blHint = el('span', { class: 'hint', style: 'flex:1 1 100%' });
+  const syncBlDir = () => {
+    const d = blDir.value;
+    blX.disabled = d === 'h'; blY.disabled = d === 'v';
+    if (blX.disabled) blX.value = '';
+    if (blY.disabled) blY.value = '';
+    blHint.textContent = t(d === 'h' ? 'cfg.blDirH' : d === 'v' ? 'cfg.blDirV' : 'cfg.blDirBoth');
+  };
   const addBaseline = () => {
     const dir = blDir.value;
     const x = blX.value === '' ? null : Number(blX.value), y = blY.value === '' ? null : Number(blY.value);
     /* 방향이 요구하는 값이 없으면 아무 선도 그려지지 않는다 — 조용히 넘기지 말고 알린다 */
     if ((dir !== 'h' && x === null) || (dir !== 'v' && y === null)) { alert(t('cfg.addBaselineNeed')); return; }
-    cfg.baselines.push({ x, y, shade: 'none', dir });
+    cfg.baselines.push({ x, y, shade: 'none', dir, label: '' });
     blX.value = ''; blY.value = '';
-    renderBaseList(); rp(); blX.focus();
+    renderBaseList(); rp(); (dir === 'h' ? blY : blX).focus();
   };
+  syncBlDir();
   /* 구간 음영 — 베이스라인은 선이라 "이 범위"를 말할 수 없다(권장 대역, 메모리 초과 구간 …) */
   const spanBox = el('div');
   const renderSpanList = () => {
@@ -4305,6 +4417,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       lab.addEventListener('input', () => { sp.label = lab.value; rp(); save(); });
       spanBox.append(el('div', { class: 'series-row' },
         el('span', { class: 'sname', title: nm }, nm), lab,
+        /* 띠 색도 기준선 음영과 같은 규칙 — 빈 값 = 자동, 되돌릴 버튼 동반 */
+        el('input', { type: 'color', value: sp.color || '#52514e', title: t('cfg.blShadeColor'),
+          'aria-label': `${nm} ${t('cfg.blShadeColor')}`, oninput: e => { sp.color = e.target.value; rp(); save(); } }),
+        ...(sp.color ? [el('button', { class: 'small', title: t('cfg.blShadeColorAuto'),
+          onclick: () => { delete sp.color; renderSpanList(); rp(); } }, t('opt.auto'))] : []),
         el('button', { class: 'small danger', title: t('btn.removeItem'),
           onclick: () => { cfg.spans.splice(i, 1); renderSpanList(); rp(); } }, '×'),
       ));
@@ -4328,8 +4445,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gBase.append(
     el('div', { class: 'hint' }, t('cfg.baselineHint')),
     baseBox,
-    el('div', { class: 'series-row' }, blX, blY, blDir,
-      el('button', { class: 'small', onclick: addBaseline }, t('cfg.addBaseline'))),
+    el('div', { class: 'series-row' }, blDir, blX, blY,
+      el('button', { class: 'small', onclick: addBaseline }, t('cfg.addBaseline')), blHint),
     el('div', { class: 'hint' }, t('cfg.spanHint')),
     spanBox,
     el('div', { class: 'series-row' }, spAxis, spFrom, spTo,

@@ -119,11 +119,18 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `scattergl`은 stackgroup을 지원하지 않으므로 `useGl()`이 쌓기일 때 **무조건 SVG**를 고른다 — 안 그러면 조용히 겹쳐 그려진다),
   `expUnit`/`expW`/`expH`/`expDpi`(내보내기 규격 — `exportSize()`가 물리 크기를 **96 CSS dpi 기준 픽셀**로 바꾸고 `scale`에 dpi/96을 준다.
   이래야 글자가 dpi와 무관하게 같은 물리 크기로 나온다(픽셀만 키우면 글자만 작아진다). 리포트 그림도 같은 함수를 쓴다).
-  주요 필드: `baselines[{x,y,shade,dir}]`(다중, dir=both|h|v — 가로/세로 단독 선, 음영은 both만), `textMarkers[{x,y,text,ax,ay,rk?,xc?,yc?,anchor?}]`(→ 아래 "텍스트 마커 앵커"), `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
+  주요 필드: `baselines[{x,y,shade,dir,label,shadeColor}]`(다중, dir=both|h|v — 가로/세로 단독 선.
+    **음영은 방향을 따라간다**(v0.44): both=사분면 `ur|ul|lr|ll`, h=`up|down`, v=`right|left` — 한쪽 음영은 반대 축을 `paper`로 두어 줌과 무관하게 화면을 가로지른다.
+    `shadeColor`·`spans[].color`는 **빈 값=자동**(`paretoColor`와 같은 규칙, `자동` 버튼 동반)이고 직접 고른 색은 알파 0.14로 깐다(자동값 0.06으로는 고른 색이 안 보인다).
+    `label`은 `baselineAnnotations()`가 그리며 **배열 끝에** 붙는다(축 끊기 함정 ①: `plotly_relayout`이 인덱스로 마커 드래그를 저장한다). 좌표는 annotation이므로 `axCoord`(log10)를 거친다.
+    **텍스트 마커에 축 앵커를 더하지 않은 이유**: 축과 나란한 선에 붙은 글자가 곧 그것이고, 앵커 종류가 늘면 `resolveMarker`의 분기와 stale 판정이 한 겹 더 깊어진다), `textMarkers[{x,y,text,ax,ay,rk?,xc?,yc?,anchor?}]`(→ 아래 "텍스트 마커 앵커"), `hiddenLabels[pointKey]`, `labelOffsets{key:{ax,ay}}`,
   `group2`(마커 모양 2차 그룹 — **`group`이 비어도 단독으로 시리즈를 나눈다**(색은 하나, 모양만 구분). 범례는 `legendPos: 'none'`일 때만 숨긴다 — 시리즈 수로 자동 판단하지 않는다 — 시리즈는 `seriesDefs()`가 (group×group2) 콤보로 생성, 색=colorIdx·모양=symIdx, trace에 `_g`/`_g2` 메타),
   `trend`(none|linear|poly2|log|exp|power|movavg — 시리즈별 피팅, `trendTraces`/`linreg`/`poly2fit`) + `trendDash`/`trendWidth` + `trendBand`(none|1|2 — 잔차 ±kσ `__trendband` 음영 trace 쌍),
   `tmFontSize`/`tmColor`/`tmBg`/`tmArrow`(텍스트 마커 전역 스타일, `textMarkers[i].color/.size`로 개별 오버라이드),
   `lineShape`(linear|spline), `lineDash`(전역 선 종류, 시리즈별 `seriesStyles[name].dash`/`lwidth`로 오버라이드),
+  `seriesStyles[name].fill`(v0.44 — 시리즈별 영역 채우기 `''|none|tozeroy`, `seriesFill(st, cfg.areaFill)` 하나가 해석한다. **빈 값 = 차트 설정을 따름**.
+    쌓기(`stack`)는 시리즈 값으로 두지 않는다 — 일부만 쌓으면 그 합이 무엇의 합인지 그림에서 읽히지 않는다. 차트가 쌓기일 때 그 시리즈만 빼는 것(`none`)까지만 된다.
+    **`hasLine` 판정 뒤에 온다** — 선이 없는 시리즈에 채우기를 걸면 그리지 못할 것을 그리려 든다),
   `seriesStyles[name].mode`(v0.34 — 시리즈별 표시 모드 markers|lines|both, **빈 값 = 차트 유형을 따름**. `seriesMode(st, lineMode)` 하나가 해석하고
     `buildFacetTraces`(facet·비facet 공용 경로)가 흐리게 조각·본 trace·보조축에 같은 값을 쓴다. **`hasLine`을 이 모드로 판정**해야 한다 —
     차트 유형으로 판정하면 선이 없는 시리즈에 영역 채우기·쌓기가 걸려 그리지 못할 것을 그리려 든다. 모르는 값은 유형으로 폴백(옛 세션 방어).
