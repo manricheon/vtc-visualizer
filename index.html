@@ -114,6 +114,10 @@
   #dropzone.drag { background: var(--hover); border-color: var(--accent); color: var(--accent); }
   #dropzone .btns { margin-top: var(--sp-3); display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; }
   #datasetChips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  /* 레시피 칩 — 데이터를 넣은 직후 "누르면 되는 것"이 보이는 자리 */
+  #starterChips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  #starterChips .lbl { color: var(--ink-muted); font-size: var(--fs-sm); }
+  #starterChips .chip-btn { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--hover); border: 1px solid var(--border); border-radius: 999px;
@@ -371,6 +375,7 @@
       </div>
     </div>
     <div id="datasetChips"></div>
+    <div id="starterChips" hidden></div>
     <details id="derivedPanel" class="grp" hidden></details>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" multiple hidden>
     <input type="file" id="folderInput" webkitdirectory multiple hidden>
@@ -432,7 +437,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.42';
+const APP_VERSION = 'v0.43';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -635,6 +640,7 @@ const I18N = {
     'pt.presetNamePrompt': '프리셋 이름 (같은 이름은 덮어씀)',
     'pt.noPresets': '저장한 프리셋이 없습니다 — 위 기본 프리셋으로 시작하거나, 차트를 다듬은 뒤 저장하세요.',
     'pt.starterTitle': '기본 (지금 데이터에 맞춰 적용)',
+    'starter.title': '이렇게 그려보기:',
     'pt.savedTitle': '저장한 프리셋',
     'sp.avg': '항목별 평균 비교 (막대)',
     'sp.sweep': '스윕 추세 (선)',
@@ -795,7 +801,10 @@ const I18N = {
     'table.restoreMuted': '흐림 {n}행 모두 해제',
     'btn.exportCsv': 'CSV 내보내기', 'btn.exportAll': '모든 차트 PNG',
     'cfg.colorBy': '연속 색상(컬럼)', 'cfg.colorByHint': '숫자 컬럼 값을 색 그라데이션으로 (그룹 색과 상호배타 · 산점/선 전용)',
-    'cfg.ptAgg': '점 집계', 'cfg.ptError': '오차막대', 'cfg.ptBand': '오차 밴드',
+    'cfg.ptAgg': '점 집계', 'cfg.ptError': '오차막대', 'cfg.ptBand': '집계 밴드',
+    'cfg.agg': '집계', 'cfg.aggTitle': '같은 X(또는 같은 칸)의 여러 행을 하나로 요약합니다',
+    'cfg.error': '오차', 'cfg.errorTitle': '이미 있는 오차 컬럼을 쓰거나, 평균 집계에서 나온 표준편차·표준오차를 씁니다',
+    'cfg.errMeanOnly': '표준편차·표준오차는 평균 집계에서만 뜻이 있어 목록에서 빠집니다 — 중앙값·최소·최대 둘레의 σ는 그 점의 산포가 아닙니다.',
     'cfg.ptAggHint': '같은 X의 여러 점(예: seed 반복)을 평균 등으로 요약. 오차막대/밴드는 표준편차(σ)·표준오차(SE) 기준.',
     'opt.aggMedianShort': '중앙값',
     'cfg.facet': '분할 (작은 다중 차트)', 'cfg.facetColsPh': '열',
@@ -1095,6 +1104,7 @@ const I18N = {
     'pt.presetNamePrompt': 'Preset name (same name overwrites)',
     'pt.noPresets': 'No presets saved yet — start from a built-in above, or polish a chart and save it.',
     'pt.starterTitle': 'Built-in (fitted to the current data)',
+    'starter.title': 'Try one of these:',
     'pt.savedTitle': 'Saved presets',
     'sp.avg': 'Average per item (bar)',
     'sp.sweep': 'Sweep trend (line)',
@@ -1255,7 +1265,10 @@ const I18N = {
     'table.restoreMuted': 'Un-fade all {n} rows',
     'btn.exportCsv': 'Export CSV', 'btn.exportAll': 'All charts PNG',
     'cfg.colorBy': 'Continuous color (column)', 'cfg.colorByHint': 'Color by a numeric column as a gradient (mutually exclusive with group color · scatter/line only)',
-    'cfg.ptAgg': 'Point aggregate', 'cfg.ptError': 'Error bars', 'cfg.ptBand': 'Error band',
+    'cfg.ptAgg': 'Point aggregate', 'cfg.ptError': 'Error bars', 'cfg.ptBand': 'Aggregate band',
+    'cfg.agg': 'Aggregate', 'cfg.aggTitle': 'Summarize the rows that share an X value (or a cell) into one point',
+    'cfg.error': 'Error', 'cfg.errorTitle': 'Use an existing error column, or the standard deviation / standard error from a mean aggregate',
+    'cfg.errMeanOnly': 'Std dev and std error only apply to a mean aggregate, so they are not offered here — σ around a median, min or max is not that point\u0027s spread.',
     'cfg.ptAggHint': 'Summarize points sharing the same X (e.g. seed repeats) by mean, etc. Error bars/band use std dev (σ) / std error (SE).',
     'opt.aggMedianShort': 'Median',
     'cfg.facet': 'Facet (small multiples)', 'cfg.facetColsPh': 'cols',
@@ -2338,7 +2351,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
         traces.push({ x: mx, y: mx.map(() => floor), type: 'scatter', mode: 'lines',
           line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip', name: `${name} __fillbase` });
       }
-      if (cfg.ptAgg !== 'none' && cfg.ptBand !== 'none' && hasLine && errs) {   // ±kσ 음영 밴드
+      if (spreadOK(cfg.ptAgg) && cfg.ptBand !== 'none' && hasLine && errs) {   // ±kσ 음영 밴드
         const k = Number(cfg.ptBand);
         traces.push({ name: `${name} __ptband`, x: mx, y: my.map((v, i) => v - k * errs[i]), type: 'scatter', mode: 'lines', line: { width: 0, shape: cfg.lineShape }, showlegend: false, hoverinfo: 'skip' });
         traces.push({ name: `${name} __ptband`, x: mx, y: my.map((v, i) => v + k * errs[i]), type: 'scatter', mode: 'lines', line: { width: 0, shape: cfg.lineShape }, fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.12), showlegend: false, hoverinfo: 'skip' });
@@ -2375,7 +2388,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
         marker, line: { color: st.color, width: st.lwidth, shape: cfg.lineShape, dash: st.dash },
         ...(useFill ? { fill: 'tonexty', fillcolor: hexToRgba(st.color, 0.10) } : {}),
         ...(useStack ? { stackgroup: 'one', fillcolor: hexToRgba(st.color, 0.55) } : {}),
-        ...(cfg.ptAgg !== 'none' && cfg.ptError !== 'none' ? { error_y: { type: 'data', array: errs, visible: true, color: st.color, thickness: 1.2, width: 4 } } : {}),
+        ...(spreadOK(cfg.ptAgg) && cfg.ptError !== 'none' ? { error_y: { type: 'data', array: errs, visible: true, color: st.color, thickness: 1.2, width: 4 } } : {}),
         /* 이미 계산된 오차 컬럼(예: score_std)을 그대로 쓴다. **집계 중에는 무시한다** —
            집계하면 점이 여러 행을 대표하므로 행마다의 오차는 그 점의 오차가 아니다(ptError가 그 자리를 맡는다). */
         ...(cfg.ptAgg === 'none' && cfg.errCol ? { error_y: { type: 'data', visible: true, color: st.color, thickness: 1.2, width: 4,
@@ -2407,6 +2420,25 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
   return traces;
 }
 /* 같은 X 값의 행들을 하나의 막대로 집계 (barAgg). mean이면 std/sem도 계산 */
+/* 집계·오차는 유형마다 다른 필드에 살지만(막대 `barAgg`/`barError`, 히트맵 `heatAgg`, 그 외 `ptAgg`/`ptError`)
+   사용자에게는 **한 가지 일**이다. 화면은 한 줄로 묶고, 어느 필드에 쓸지는 여기서 정한다.
+   필드를 합치지는 않는다 — 세션 하위 호환이 깨지고, 옵션 집합도 유형마다 다르다(막대의 합계·개수). */
+function aggField(cfg) { return cfg.type === 'bar' ? 'barAgg' : cfg.type === 'heatmap' ? 'heatAgg' : 'ptAgg'; }
+function aggOf(cfg) { return cfg[aggField(cfg)] || 'none'; }
+/* σ는 **평균 둘레에서만** 뜻이 있다 — 중앙값·최소·최대 둘레의 표준편차는 그 점의 산포가 아니다.
+   값은 지우지 않고 렌더에서만 무시한다(옛 세션이 median+오차막대로 저장돼 있을 수 있다). */
+function spreadOK(agg) { return agg === 'mean'; }
+/* 오차의 출처는 하나뿐이다 — 이미 있는 컬럼이거나, 집계에서 나온 통계이거나. 한 select에 담는다. */
+function errOf(cfg) {
+  if (cfg.errCol) return 'col:' + cfg.errCol;
+  const v = cfg.type === 'bar' ? cfg.barError : cfg.ptError;
+  return v && v !== 'none' ? v : '';
+}
+function setErrChoice(cfg, v) {
+  cfg.errCol = v.slice(0, 4) === 'col:' ? v.slice(4) : '';
+  const stat = (v === 'std' || v === 'sem') ? v : 'none';
+  cfg.barError = stat; cfg.ptError = stat;   // 유형을 바꿔도 뜻이 남게 둘 다 쓴다
+}
 function aggregateBars(pts, kind) {
   if (!kind || kind === 'none') return { xs: pts.map(p => p.x), ys: pts.map(p => p.y), stds: [], sems: [] };
   const order = [], groups = new Map();
@@ -3884,7 +3916,6 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     // 히트맵: 색 값 컬럼 + 집계 + 셀 값
     ...(isHeat ? [
       row(t('cfg.heatZ'), select([['', t('opt.select')], ...chartNumCols(cfg).map(c => [c, c])], cfg.heatZ, v => { cfg.heatZ = v; rp(); })),
-      row(t('cfg.heatAgg'), select([['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.heatAgg, v => { cfg.heatAgg = v; rp(); })),
       row(t('cfg.heatText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.heatText, v => { cfg.heatText = v; rp(); })),
       el('div', { class: 'hint' }, t('cfg.heatHint')),
     ] : []),
@@ -3901,13 +3932,25 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       A(row(t('cfg.colorBy'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.colorBy, v => { cfg.colorBy = v; rp(); })), cfg.colorBy),
       ...(cfg.colorBy ? [el('div', { class: 'hint' }, t('cfg.colorByHint'))] : []),
     ]),
-    /* 이미 계산된 오차 컬럼(예: score_std) — 집계 오차막대(ptError/barError)는 **집계할 때만** 나오므로 그 자리를 못 메운다.
-       막대에도 필요하므로 위의 산점/선 전용 묶음 밖에 둔다. 분포·히트맵·덤벨에서는 뜻이 없다. */
-    ...(isHeat || isDumbbell || isDist ? [] : [
-      A(row(t('cfg.errCol'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).map(c => [c, c])], cfg.errCol,
-        v => { cfg.errCol = v; rp(); }, { title: t('cfg.errColTitle') })), cfg.errCol),
-      ...(cfg.errCol && (isBar ? cfg.barAgg !== 'none' : cfg.ptAgg !== 'none')
-        ? [el('div', { class: 'hint' }, t('cfg.errColIgnored'))] : []),
+    /* 집계와 오차는 유형마다 다른 필드에 살지만 한 가지 일이다 — 화면에서는 한 줄씩(`aggField`/`errOf`).
+       분포는 스스로 요약하고, 덤벨은 짝의 값을 그대로 찍으므로 둘 다 뜻이 없다. */
+    ...(isDumbbell || isDist ? [] : [
+      A(row(t('cfg.agg'), select(isHeat ? [['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]]
+        : isBar ? [['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['median', t('opt.aggMedian')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')], ['count', t('opt.aggCount')]]
+        : [['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]],
+        aggOf(cfg), v => { cfg[aggField(cfg)] = v; rebuildPanel(); }, { title: t('cfg.aggTitle') })),
+        isBar || isHeat || aggOf(cfg) !== 'none'),
+      ...(isHeat ? [] : [
+        /* 오차의 출처는 하나뿐이다 — 이미 있는 컬럼이거나, 평균에서 나온 통계이거나 */
+        A(row(t('cfg.error'), select([['', t('opt.noneParen')],
+          ...chartNumCols(cfg).map(c => ['col:' + c, c]),
+          ...(spreadOK(aggOf(cfg)) ? [['std', t('opt.errStd')], ['sem', t('opt.errSem')]] : [])],
+          errOf(cfg), v => { setErrChoice(cfg, v); rp(); }, { title: t('cfg.errorTitle') })), errOf(cfg)),
+        /* 집계 중에는 행마다의 오차 컬럼을 무시한다 — 점 하나가 여러 행을 대표하면 그 행의 오차가 아니다 */
+        ...(cfg.errCol && aggOf(cfg) !== 'none' ? [el('div', { class: 'hint' }, t('cfg.errColIgnored'))] : []),
+        /* 평균이 아니면 σ 자체가 뜻이 없다 — 목록에서 빼고, 옛 세션이 켜 둔 값은 렌더에서 무시한다 */
+        ...(aggOf(cfg) !== 'none' && !spreadOK(aggOf(cfg)) ? [el('div', { class: 'hint' }, t('cfg.errMeanOnly'))] : []),
+      ]),
     ]),
     ...(isHeat || isDumbbell || isBrk ? [] : [
       A(row(t('cfg.facet'), colSelect(cfg, 'facetBy', { onChange: () => rebuildPanel() }),
@@ -3923,10 +3966,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     gBar.append(
       row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
       row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
-      row(t('cfg.barAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['sum', t('opt.aggSum')], ['median', t('opt.aggMedian')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')], ['count', t('opt.aggCount')]], cfg.barAgg, v => { cfg.barAgg = v; rebuildPanel(); })),
-      ...(cfg.barAgg === 'mean'
-        ? [row(t('cfg.barError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.barError, v => { cfg.barError = v; rp(); }))]
-        : []),
+      /* 집계·오차는 "데이터" 묶음의 한 줄로 옮겼다(유형마다 필드는 그대로) */
       A(row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })), cfg.barText !== 'none'),
       A(row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })), cfg.barSort !== 'auto'),
       A(row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
@@ -4305,9 +4345,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     A(row(t('cfg.trendStat'), select([['auto', t('opt.trendStatOn')], ['none', t('opt.trendStatOff')]], cfg.trendStat || 'auto', v => { cfg.trendStat = v; rp(); }, { title: t('cfg.trendStatTitle') })), cfg.trend !== 'none'),
     A(row(t('cfg.errorBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.trendBand, v => { cfg.trendBand = v; rp(); })), cfg.trend !== 'none'),
     A(el('div', { class: 'hint' }, t('cfg.trendHint')), cfg.trend !== 'none'),
-    A(row(t('cfg.ptAgg'), select([['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]], cfg.ptAgg, v => { cfg.ptAgg = v; rebuildPanel(); })), cfg.ptAgg !== 'none'),
-    ...(cfg.ptAgg !== 'none' ? [
-      row(t('cfg.ptError'), select([['none', t('opt.none')], ['std', t('opt.errStd')], ['sem', t('opt.errSem')]], cfg.ptError, v => { cfg.ptError = v; rp(); })),
+    /* 집계·오차막대는 "데이터" 묶음으로 옮겼다 — 밴드는 여기 남는다(추세 밴드와 나란히 놓여야 둘이 다른 것임이 읽힌다) */
+    ...(spreadOK(cfg.ptAgg) ? [
       row(t('cfg.ptBand'), select([['none', t('opt.none')], ['1', t('opt.band1')], ['2', t('opt.band2')]], cfg.ptBand, v => { cfg.ptBand = v; rp(); })),
       el('div', { class: 'hint' }, t('cfg.ptAggHint')),
     ] : []),
@@ -5440,6 +5479,31 @@ function renderChips() {
       el('button', { title: t('melt.title'), onclick: e => showMeltPopover(d, e) }, '⇲'),
       el('button', { title: t('btn.delete'), onclick: () => askRemoveDataset(d.id) }, '×'),
     ));
+  }
+  renderStarterChips();
+}
+/* 레시피 칩 — `starterList()`는 v0.17부터 "지금 데이터에서 역할이 채워지는 레시피"만 내놓는데,
+   입구가 **카드 안 `프리셋` 팝오버 하나**였다. 차트를 이미 만든 사람만 볼 수 있는 자리다.
+   데이터를 넣은 **직후 눈에 보이는 곳**으로 옮긴다(팝오버 쪽도 그대로 둔다 — 거기서 찾던 사람이 있다). */
+function renderStarterChips() {
+  const box = document.getElementById('starterChips');
+  if (!box) return;
+  box.innerHTML = '';
+  const list = state.datasets.length ? starterList() : [];
+  if (!list.length) { box.hidden = true; return; }
+  box.hidden = false;
+  box.append(el('span', { class: 'lbl' }, t('starter.title')));
+  for (const s of list) {
+    box.append(el('button', {
+      class: 'chip-btn', title: chartSpecText({ ...defaultChart(), ...s.cfg }),
+      onclick: () => {
+        /* 새 차트를 만들지 않고 **첫 카드**에 적용한다 — 누를 때마다 카드가 쌓이면 그게 더 나쁘다 */
+        if (!state.charts.length) addChart();
+        const c = state.charts[0];
+        applyPreset(c, s.cfg);
+        cardOf(c) && cardOf(c).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      },
+    }, '▷ ' + t('sp.' + s.key)));
   }
 }
 /* ---- wide → long 녹이기 ----

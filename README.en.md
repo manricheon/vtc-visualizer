@@ -84,6 +84,7 @@ ours,4000,4.1,0.744,MMLU
 | **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
 | **Option search** | Type an option name in the search box above the settings panel to filter it down. **Hidden advanced rows are searchable too** |
 | **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). **Anything you have set stays visible**, and `Show N more advanced settings` at the bottom opens them all |
+| **Recipe chips** | Loading data adds a `Try one of these:` row to the data card — only recipes that **actually draw** with the current columns, and clicking one applies it to the first chart (no new cards) |
 | **Automatic analysis** | `Analyze` in the top bar → a column profile (kind, missing, quantiles) plus findings ordered **data problems → interpretation cautions → findings**. Each tier carries a one-line note on **how to verify it**, and `＋ Chart` (or `Go to chart` when one already matches) opens the supporting chart. Findings also print their chart recipe (type · X · Y · group) so they are easy to line up against a chart. Duplicate columns, Simpson's paradox and crossovers are filtered out, and instead of p-values you get raw differences with direction consistency |
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (**either side alone is fine**), grid |
@@ -195,6 +196,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.43 — put the one-click recipes up front, fold the duplicates into one row
+
+- **Recipe chips**: the data card now shows `Try one of these: ▷ Average per item · ▷ Sweep trend · …`. The built-in presets shipped in v0.17 but lived **only in the `Presets` popover inside a chart card**, so you had to already have a chart to find them. Clicking one applies it to the **first chart**; no cards pile up.
+- **Aggregation is one row.** The same verb sat in three different places (bar options, advanced point aggregate, heatmap aggregate). It is now `Data → Aggregate`, and the tool picks which field to write.
+- **Error is one row** too: `none / <column> / std dev / std error`. Error only ever has one source, but it had three settings (`Error column`, `Error bars`, bar error bars).
+- **Bug fix**: standard-deviation error bars and bands were also drawn for **median / min / max** aggregates. σ around a median is not that point's spread — it now draws for **mean only** (the stored setting is kept, just ignored while rendering).
 
 ### v0.42 — the settings you actually use, first
 
