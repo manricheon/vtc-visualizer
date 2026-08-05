@@ -463,7 +463,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.48';
+const APP_VERSION = 'v0.49';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -830,6 +830,10 @@ const I18N = {
     'pt.excludePoint': '🚫 이 포인트 제외',
     'toast.excluded': '{n}개 포인트가 그래프에서 제외되었습니다.',
     'toast.muted': '{n}개 포인트를 흐리게(배경) 처리했습니다.',
+    'toast.unmuted': '{n}개 점의 흐리게를 풀었습니다.',
+    'toast.markerRemoved': '텍스트 마커를 지웠습니다.', 'toast.baselineRemoved': '기준선을 지웠습니다.', 'toast.spanRemoved': '구간 음영을 지웠습니다.',
+    'toast.presetRemoved': '프리셋 {name}을(를) 지웠습니다.', 'toast.presetRestored': '프리셋 {name}을(를) 되살렸습니다.',
+    'toast.sessionImported': '세션을 가져왔습니다 (이전 작업은 덮어썼습니다).',
     'pt.mute': '🔅 흐리게 (강조 안 함)', 'pt.unmute': '🔆 흐림 해제',
     'table.restoreMuted': '흐림 {n}행 모두 해제',
     'btn.exportCsv': 'CSV 내보내기', 'btn.exportAll': '모든 차트 PNG',
@@ -1311,6 +1315,10 @@ const I18N = {
     'pt.excludePoint': '🚫 Exclude this point',
     'toast.excluded': '{n} point(s) excluded from the chart.',
     'toast.muted': '{n} point(s) de-emphasized (background).',
+    'toast.unmuted': 'Un-dimmed {n} point(s).',
+    'toast.markerRemoved': 'Text marker removed.', 'toast.baselineRemoved': 'Baseline removed.', 'toast.spanRemoved': 'Span shading removed.',
+    'toast.presetRemoved': 'Deleted preset {name}.', 'toast.presetRestored': 'Restored preset {name}.',
+    'toast.sessionImported': 'Session imported (your previous work was replaced).',
     'pt.mute': '🔅 De-emphasize (fade)', 'pt.unmute': '🔆 Un-fade',
     'table.restoreMuted': 'Un-fade all {n} rows',
     'btn.exportCsv': 'Export CSV', 'btn.exportAll': 'All charts PNG',
@@ -3506,7 +3514,11 @@ function showPointPopover(c, gd, p, mouseEv) {
         if (hit.length) {
           const refresh = () => { for (const ch of state.charts) renderPlot(ch); renderTable(); analysisStale(); save(); };
           refresh();
-          if (!already) showToast(tf('toast.muted', { n: hit.length }), t('toast.undo'), () => { hit.forEach(r => delete r._muted); refresh(); });
+          /* 켤 때만 알리던 것을 끌 때도 — 같은 동작의 반대 방향인데 한쪽만 되돌릴 수 있으면 규칙이 아니다 */
+          showToast(tf(already ? 'toast.unmuted' : 'toast.muted', { n: hit.length }), t('toast.undo'), () => {
+            hit.forEach(r => { if (already) r._muted = true; else delete r._muted; });
+            refresh();
+          });
         }
       },
     }, allRows().some(r => r[c.x] === p.x && r[c.y] === p.y && r._muted) ? t('pt.unmute') : t('pt.mute')),
@@ -4170,7 +4182,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   gFilter.append(
     el('div', { class: 'hint' }, t('cfg.filterHint')),
     fBox,
-    el('button', { class: 'small', onclick: e => showFilterCopyMenu(cfg, e) }, t('cfg.copyFilters')),
+    el('button', { class: 'small', onclick: e => showCopyMenu(cfg, e, 'filters') }, t('cfg.copyFilters')),
     el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '', mode: 'exclude' }); renderFilters(); } }, t('cfg.addFilter')));
 
   /* --- 축 --- */
@@ -4298,7 +4310,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       el('div', { class: 'hint' }, t('cfg.styleHint')),
       /* 필터 복사와 같은 자리·같은 모양 — 여러 차트를 같은 규격으로 맞추는 일은 필터만의 것이 아니다 */
       ...(state.charts.length > 1 ? [el('div', { class: 'row' },
-        el('button', { class: 'small', onclick: e => showLookCopyMenu(cfg, e) }, t('cfg.copyLook')))] : []),
+        el('button', { class: 'small', onclick: e => showCopyMenu(cfg, e, 'look') }, t('cfg.copyLook')))] : []),
     ]),
     seriesBox,
   );
@@ -4353,7 +4365,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         el('input', { type: 'color', value: m.color || cfg.tmColor || cfg.fontColor || CHROME.ink, title: t('cfg.tmMarkerColorTitle'), oninput: e => { m.color = e.target.value; rp(); } }),
         el('input', { type: 'text', value: m.text, style: 'flex:1', oninput: e => { m.text = e.target.value; rp(); } }),
         ...tail,
-        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.textMarkers.splice(i, 1); cfg._tmStaleShown = undefined; renderLabelLists(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => removeFromList(cfg.textMarkers, i, t('toast.markerRemoved'),
+          () => { cfg._tmStaleShown = undefined; renderLabelLists(); rp(); }) }, '×'),
       ));
     });
   };
@@ -4420,7 +4433,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           ...(b.shadeColor ? [el('button', { class: 'small', title: t('cfg.blShadeColorAuto'),
             onclick: () => { delete b.shadeColor; renderBaseList(); rp(); } }, t('opt.auto'))] : []),
         ] : []),
-        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => { cfg.baselines.splice(i, 1); cfg._blStaleShown = undefined; renderBaseList(); rp(); } }, '×'),
+        el('button', { class: 'small danger', title: t('btn.removeItem'), onclick: () => removeFromList(cfg.baselines, i, t('toast.baselineRemoved'),
+          () => { cfg._blStaleShown = undefined; renderBaseList(); rp(); }) }, '×'),
       ));
     });
     gBase.querySelector('summary').textContent = tf('cfg.baselineCount', { n: cfg.baselines.length });
@@ -4470,7 +4484,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         ...(sp.color ? [el('button', { class: 'small', title: t('cfg.blShadeColorAuto'),
           onclick: () => { delete sp.color; renderSpanList(); rp(); } }, t('opt.auto'))] : []),
         el('button', { class: 'small danger', title: t('btn.removeItem'),
-          onclick: () => { cfg.spans.splice(i, 1); renderSpanList(); rp(); } }, '×'),
+          onclick: () => removeFromList(cfg.spans, i, t('toast.spanRemoved'), () => { renderSpanList(); rp(); }) }, '×'),
       ));
     });
   };
@@ -4896,9 +4910,15 @@ function showColumnsMenu(mouseEv) {
      숫자만 남기는 단축은 두지 않았다 — 숨김이 도구 전체에 적용되므로 method 같은 그룹 컬럼이
      통째로 사라져 그룹 지정이 조용히 불가능해진다. */
   const used = all.filter(c => { const u = colUsage(c); return u.charts.length || u.deps.length; });
+  /* 일괄 버튼은 한 번에 여러 컬럼을 뒤집는다 — 개별 체크박스와 달리 손으로 되돌리기 어렵다 */
+  const bulk = (next, msg) => {
+    const before = state.hiddenCols.slice();
+    setHidden(next);
+    showToast(msg, t('toast.undo'), () => setHidden(before));
+  };
   popover.append(list, el('div', { class: 'pp-row' },
-    el('button', { onclick: () => setHidden([]) }, t('col.showAll')),
-    ...(used.length ? [el('button', { onclick: () => setHidden(all.filter(c => !used.includes(c))) }, t('col.usedOnly'))] : []),
+    el('button', { onclick: () => bulk([], t('col.showAll')) }, t('col.showAll')),
+    ...(used.length ? [el('button', { onclick: () => bulk(all.filter(c => !used.includes(c)), t('col.usedOnly')) }, t('col.usedOnly'))] : []),
   ), el('div', { class: 'pp-note' }, t('col.hiddenNote')));
   placePopover(mouseEv);
 }
@@ -6454,58 +6474,68 @@ function importPresets(then) {
   });
   inp.click();
 }
-/* 같은 필터를 차트 5장에 걸려면 지금은 같은 작업을 5번 해야 한다 — 대상 차트를 골라 복사한다 */
-function showFilterCopyMenu(src, ev) {
+/* 같은 것을 차트 5장에 걸려면 같은 작업을 5번 해야 했다 — 대상 차트를 골라 복사한다.
+   **필터와 보기 설정은 골격이 같다**(제목 → 모두에게 → 차트 목록 → placePopover). 두 벌로 두었더니
+   되돌리기가 한쪽(보기)에만 붙어 있었다 — 합치면 그 비대칭이 사라진다(v0.49).
+   `LOOK_FIELDS`에 **컬럼을 가리키는 필드는 절대 넣지 않는다**(x·y·group·필터·계산 컬럼):
+   차트마다 다른 데이터를 그리므로 그것까지 복사하면 그리던 그림이 통째로 바뀐다. */
+const LOOK_FIELDS = ['fontFamily', 'fontSize', 'fontColor', 'legendPos', 'plotHeight', 'cardWidth',
+  'grid', 'plotFace', 'markerSize', 'lineWidth', 'lineDash', 'lineShape', 'mutedStyle', 'renderMode',
+  'xTick', 'yTick', 'expUnit', 'expW', 'expH', 'expDpi'];
+const COPY_KINDS = {
+  filters: {
+    title: src => tf('cfg.copyFiltersTitle', { n: src.filters.length }),
+    note: () => '',
+    tag: c => (c.filters.length ? tf('cfg.copyHasFilters', { n: c.filters.length }) : ''),
+    snap: c => ({ filters: JSON.parse(JSON.stringify(c.filters)) }),
+    put: (c, src) => { c.filters = JSON.parse(JSON.stringify(src.filters)); },
+    toast: n => tf('toast.filtersCopied', { n }),
+  },
+  look: {
+    title: () => t('cfg.copyLookTitle'),
+    note: () => t('cfg.copyLookHint'),
+    tag: () => '',
+    snap: c => Object.fromEntries(LOOK_FIELDS.map(k => [k, c[k]])),
+    put: (c, src) => { for (const k of LOOK_FIELDS) c[k] = src[k]; },
+    toast: n => tf('toast.lookCopied', { n }),
+  },
+};
+/* 목록에서 항목 하나를 지우는 되돌리기 — **자리(인덱스)까지** 되살린다.
+   끝에 다시 붙이면 순서가 바뀌어 "되돌렸는데 달라졌다"가 된다(주석·기준선은 순서가 곧 목록의 뜻이다). */
+function removeFromList(list, i, msg, after) {
+  const item = list[i];
+  list.splice(i, 1);
+  after();
+  showToast(msg, t('toast.undo'), () => { list.splice(i, 0, item); after(); });
+}
+function showCopyMenu(src, ev, kind) {
+  const K = COPY_KINDS[kind];
   const others = state.charts.filter(c => c.id !== src.id);
   popover.innerHTML = '';
-  popover.append(el('div', { class: 'pp-title' }, tf('cfg.copyFiltersTitle', { n: src.filters.length })));
+  popover.append(el('div', { class: 'pp-title' }, K.title(src)));
   if (!others.length) popover.append(el('div', { class: 'pp-note' }, t('cfg.copyFiltersNone')));
+  const redraw = list => {
+    for (const c of list) { renderPlot(c); applyChartSize(c); }
+    refreshCfgPanels(); save();
+  };
   const apply = targets => {
-    for (const c of targets) {
-      c.filters = JSON.parse(JSON.stringify(src.filters));
-      renderPlot(c);
-      const card = cardOf(c), panel = card && card.querySelector('.cfg'), nm = card && card.querySelector('.head .name');
-      if (panel && nm) buildCfgPanel(c, panel, nm);
-    }
-    hidePopover(); save();
-    showToast(tf('toast.filtersCopied', { n: targets.length }));
+    /* 여러 장을 한 번에 바꾸는 동작에는 되돌리기가 규칙이다 — 잘못 누르면 손으로는 못 되돌린다 */
+    const before = targets.map(c => ({ c, old: K.snap(c) }));
+    for (const c of targets) K.put(c, src);
+    redraw(targets);
+    hidePopover();
+    showToast(K.toast(targets.length), t('toast.undo'), () => {
+      for (const { c, old } of before) Object.assign(c, old);
+      redraw(before.map(x => x.c));
+    });
   };
   if (others.length > 1) popover.append(el('button', { onclick: () => apply(others) }, tf('cfg.copyToAll', { n: others.length })));
   for (const c of others) {
     const label = c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 });
-    popover.append(el('button', { onclick: () => apply([c]) }, label + (c.filters.length ? tf('cfg.copyHasFilters', { n: c.filters.length }) : '')));
+    popover.append(el('button', { onclick: () => apply([c]) }, label + K.tag(c)));
   }
-  placePopover(ev);
-}
-/* 보기 설정을 다른 차트에도 (v0.47) — 글꼴·범례 위치·크기를 차트 5장에 맞추려면 같은 일을 5번 해야 했다.
-   **컬럼을 가리키는 필드는 절대 넣지 않는다**(x·y·group·필터·계산 컬럼): 차트마다 다른 데이터를 그리므로
-   그것까지 복사하면 그리던 그림이 통째로 바뀐다. 여기 있는 것은 전부 "어떻게 보이나"뿐이다. */
-const LOOK_FIELDS = ['fontFamily', 'fontSize', 'fontColor', 'legendPos', 'plotHeight', 'cardWidth',
-  'grid', 'plotFace', 'markerSize', 'lineWidth', 'lineDash', 'lineShape', 'mutedStyle', 'renderMode',
-  'xTick', 'yTick', 'expUnit', 'expW', 'expH', 'expDpi'];
-function showLookCopyMenu(src, ev) {
-  const others = state.charts.filter(c => c.id !== src.id);
-  popover.innerHTML = '';
-  popover.append(el('div', { class: 'pp-title' }, t('cfg.copyLookTitle')));
-  if (!others.length) popover.append(el('div', { class: 'pp-note' }, t('cfg.copyFiltersNone')));
-  const apply = targets => {
-    /* 되돌릴 수 있어야 한다 — 다섯 장을 한 번에 바꾸는 동작이라 잘못 누르면 손으로 되돌릴 수 없다 */
-    const before = targets.map(c => ({ c, old: Object.fromEntries(LOOK_FIELDS.map(k => [k, c[k]])) }));
-    const put = list => {
-      for (const { c, old } of list) Object.assign(c, old);
-      for (const { c } of list) { renderPlot(c); applyChartSize(c); }
-      refreshCfgPanels(); save();
-    };
-    for (const c of targets) for (const k of LOOK_FIELDS) c[k] = src[k];
-    for (const c of targets) { renderPlot(c); applyChartSize(c); }
-    refreshCfgPanels(); hidePopover(); save();
-    showToast(tf('toast.lookCopied', { n: targets.length }), t('toast.undo'), () => put(before));
-  };
-  if (others.length > 1) popover.append(el('button', { onclick: () => apply(others) }, tf('cfg.copyToAll', { n: others.length })));
-  for (const c of others) {
-    popover.append(el('button', { onclick: () => apply([c]) }, c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 })));
-  }
-  popover.append(el('div', { class: 'pp-note' }, t('cfg.copyLookHint')));
+  const note = K.note();
+  if (note) popover.append(el('div', { class: 'pp-note' }, note));
   placePopover(ev);
 }
 /* ---- 기본 프리셋 ----
@@ -6590,7 +6620,12 @@ function showPresetMenu(cfg, mouseEv) {
     popover.append(el('div', { class: 'pp-row' },
       el('button', { onclick: () => { applyPreset(cfg, loadPresets()[n]); hidePopover(); } }, '▶ ' + n),
       el('button', { class: 'danger', style: 'flex:0 0 auto', title: tf('pt.deletePreset', { name: n }), onclick: () => {
-        const all = loadPresets(); delete all[n]; savePresets(all); showPresetMenu(cfg, mouseEv);
+        const all = loadPresets(); const gone = all[n]; delete all[n]; savePresets(all); showPresetMenu(cfg, mouseEv);
+        /* 프리셋은 세션 밖(localStorage)에 살아 다시 만들 길이 없다 — 지운 것을 그대로 들고 있다가 되돌린다 */
+        showToast(tf('toast.presetRemoved', { name: n }), t('toast.undo'), () => {
+          const back = loadPresets(); back[n] = gone; savePresets(back);
+          showToast(tf('toast.presetRestored', { name: n }));
+        });
       } }, '×'),
     ));
   });
@@ -6736,8 +6771,16 @@ document.addEventListener('keydown', e => {
 function importSession() {
   const inp = el('input', { type: 'file', accept: '.json' });
   inp.addEventListener('change', async () => {
-    try { restoreSession(JSON.parse(await inp.files[0].text())); save(); }
-    catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
+    /* 가져오기는 지금 작업을 통째로 갈아치운다 — 되돌릴 길이 없으면 실수 한 번에 다 잃는다.
+       데이터셋을 복사하지 않고 **직전 저장 문자열**만 들고 있다가 되살린다(가장 싼 스냅샷). */
+    const prev = localStorage.getItem(STORAGE_KEY);
+    try {
+      restoreSession(JSON.parse(await inp.files[0].text())); save();
+      showToast(t('toast.sessionImported'), t('toast.undo'), () => {
+        if (prev) { restoreSession(JSON.parse(prev)); save(); }
+        else { state.datasets = []; state.charts = []; state.derived = []; state.hiddenCols = []; invalidateDataCaches(); onDataChanged(false); refreshCharts(); }
+      });
+    } catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
   });
   inp.click();
 }
