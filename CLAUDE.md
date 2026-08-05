@@ -51,6 +51,13 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   줄이 하나도 안 남는 묶음은 `alladv`로 통째로 감추되 **줄이 애초에 없는 묶음(필터·기준선)은 폼이 본체**라 세지 않는다.
   새 옵션을 더할 때의 판정: **안 건드리면 그림이 안 나오는가(기본), 덜 좋은가(고급)**. 곁들여 유형 select는 `optgroup` 셋(`기본`/`분포`/`특수`)이고,
   `select()`가 `{label, options:[...]}` 항목을 optgroup으로 받는다. `xTick`/`yTick`은 v0.14부터 필드·렌더는 있고 UI만 없던 것을 이때 냈다(`TICK_OPTS()`).
+- **집계·오차 한 줄**(v0.43): 필드는 유형마다 그대로(`barAgg`/`heatAgg`/`ptAgg`, `barError`/`ptError`/`errCol`)고 **화면만 한 줄**이다 —
+  `aggField(cfg)`가 어느 필드에 쓸지 정하고, `errOf`/`setErrChoice`가 "컬럼이냐 통계냐"를 한 select(`col:<이름>`|`std`|`sem`)에 담는다.
+  **필드를 합치지 말 것**: 세션 하위 호환이 깨지고 옵션 집합도 유형마다 다르다(막대의 합계·개수). `setErrChoice`는 `barError`·`ptError`에 **함께** 써서 유형을 바꿔도 뜻이 남게 한다.
+  **`spreadOK(agg)`(= 평균일 때만)가 σ의 유일한 관문**이다 — 중앙값·최소·최대 둘레의 표준편차는 그 점의 산포가 아니다.
+  UI에서 빼는 것으로 끝내지 말고 **렌더에서도 무시**할 것(옛 세션이 median+오차막대로 저장돼 있다). 값은 지우지 않는다.
+- **레시피 칩**(v0.43): `renderStarterChips()`가 `#starterChips`에 `starterList()`를 그린다(`renderChips` 끝에서 부르므로 데이터·언어 변경을 함께 탄다).
+  **새 차트를 만들지 않고 첫 카드에 `applyPreset`** 한다 — 누를 때마다 카드가 쌓이면 그게 더 나쁘다. 팝오버 입구(`showPresetMenu`)는 그대로 둔다(거기서 찾던 사람이 있다).
 - **i18n**: UI는 KO/EN 이중 언어(`I18N` 사전 + `t()`/`tf()`, 토글 = `#btnLangToggle`, 저장 키 `vtc-visualizer:lang`).
   **사용자에게 보이는 문자열을 추가하면 반드시 I18N 사전의 ko/en 양쪽에 키를 추가**하고 `t()`로 호출할 것.
   정적 HTML은 `data-i18n`/`data-i18n-ph` 속성 + `applyLang()`. 내부 식별자(`' 추세'` 접미사, `__fillbase`, `__trendband`)는 번역 금지, **그룹 없는 차트의 시리즈 이름 `'all'`도 마찬가지**(`seriesStyles`/`seriesLabels`의 키라 번역하면 언어 전환 때 사용자가 정한 색·이름이 사라진다 — v0.31.1에서 `t('all')`을 리터럴로 되돌렸다).
