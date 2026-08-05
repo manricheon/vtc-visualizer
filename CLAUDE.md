@@ -118,7 +118,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `legendPos`(right|top|inside-tl|inside-tr|inside-bl|inside-br|none — 구 `inside`는 좌상단으로 매핑),
   `colorBy`(숫자 컬럼 연속 색상 — group 없을 때만, 단일 trace `marker.color`+`SEQ_SCALE` 컬러바; group 있으면 무시),
   `ptAgg`(none|mean|median|min|max — 같은 X 점 집계, `aggregateBars` 재사용)/`ptError`(none|std|sem → `error_y`)/`ptBand`(none|1|2 → `__ptband` 음영),
-  행 플래그 `_muted`(제외 아님 — 옅은 회색 배경화 focus+context; buildTraces에서 muted/일반 조각 분리, `__muted` trace는 저불투명 회색·범례/추세 제외, 레이블도 생략),
+  행 플래그 `_muted`(제외 아님 — 옅은 배경화 focus+context; buildTraces에서 muted/일반 조각 분리, `__muted` trace는 저불투명·범례/추세 제외, 레이블도 생략.
+    색은 `cfg.mutedStyle`(v0.41, gray|color) — 기본은 회색(배경 맥락은 시리즈 정체성을 버려야 강조가 튄다)이고,
+    흐리게가 여러 시리즈에 걸릴 때 어느 시리즈였는지 못 읽는 문제 때문에 시리즈 색을 남기는 쪽을 고를 수 있게 두었다.
+    **불투명도(0.28)는 어느 쪽이든 같다** — 물러나는 정도를 바꾸는 옵션이 아니다. 파레토 `paretoFade`는 원래부터 색을 유지한다),
   `plotHeight`/`cardWidth`(full|half — 차트 높이·폭, `applyChartSize()`가 카드 재생성 없이 반영+`Plotly.Plots.resize`; #charts는 flex-wrap.
     카드 헤더도 `flex-wrap: wrap` + 버튼 `flex: none`이다 — 버튼 높이가 26px로 고정돼 있어 좁아지면 글자가 **박스 밖으로 흘러넘친다**(v0.22에서 고침).
     이 결함은 겉보기 높이로는 안 잡히고 `scrollHeight > clientHeight`로 봐야 한다),
