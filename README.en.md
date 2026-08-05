@@ -134,6 +134,7 @@ ours,4000,4.1,0.744,MMLU
 | **Chart controls** | drag = zoom to area · wheel = zoom · double-click = reset view · pan via the crosshair in the mode bar · `Reset view` button. Zoom survives style changes |
 | **Rendering speed** | Settings → Style → Rendering: `Auto` (WebGL above 5,000 points) / `High quality (SVG)` / `Fast (WebGL)`. SVG export stays vector even in WebGL mode |
 | **Language (KO/EN)** | Toggle button in the top-right corner (persisted) |
+| **Card shortcuts** | With focus inside a card: `Alt+↑`/`Alt+↓` reorder, `Alt+←`/`Alt+→` collapse/expand. Arrows only, so nothing collides with typing |
 | **Keyboard & accessibility** | Usable without a mouse: a **skip-to-charts** link on the first Tab, a real label on every settings control, popovers and the modal move focus inside on open and back to the opening button on Escape (Tab cannot leak out of the modal), table headers sort on Enter. **Fade** — previously point-click only — has a table column, and **baselines can be added by value** from the settings panel |
 
 ### Baselines and annotations
@@ -153,12 +154,14 @@ ours,4000,4.1,0.744,MMLU
 
 | Feature | How |
 |---|---|
+| **Several figures on one sheet** | `Export ▾` → `Several figures on one sheet…`: lays the selected charts on a 1–4 column grid and saves one PNG, with panel labels `(a) (b) (c)` and a sheet width in mm/inch at a chosen dpi. **Each panel keeps its own aspect ratio**, so tick spacing is never distorted |
 | Export | `PNG` (3×) / `SVG` per card, `All charts PNG` (whole page in one image) in the top-bar `Export ▾` menu, `Export CSV` (current filtered data) in the table |
 | **Export size** | Settings → Export size: presets for **paper 1-column (85mm), 2-column (170mm) and slides**, or mm/inch directly, plus dpi. The hint shows **the pixels it will save and the pt size of body text** (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
 | **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
 | **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting **into a single file**. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
 | Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
 | **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They **assume no column names** — roles (category, sweep knob, score, cost) are matched against your current data by **value distribution**, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
+| **Copy the look to other charts** | Settings → Style → `Copy this look to…`: font, text size/color, legend, size, grid, plot face, tick format and export spec in one go (with undo). **Settings that point at data (axes, group, filters) are never copied** |
 | **Chart presets** | `Presets` button on each card: save the current chart's **settings only** (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
 
 ### Tip: which chart, when?
@@ -218,6 +221,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.46 — sheet layout, bulk look, shortcuts, and two images side by side
+
+- **Export several figures on one sheet** (`Export ▾` → `Several figures on one sheet…`). The submission spec landed in v0.26, but the final layout was still done by hand. Pick columns (1–4), panel labels (`(a) (b) (c)`…), sheet width in mm/inch with a dpi, the gap, and which charts to include. **Every panel keeps the aspect ratio it has on screen** — stretching panels to equal heights would give each one a different tick spacing, which makes the comparison lie.
+- **Copy the look to other charts** in one action (Settings → Style). Only "how it looks" travels — font, text size, legend position, chart size, tick format, export spec — and **axes, group and filters never do** (each chart draws different data). Since it changes several charts at once, it comes with **undo**.
+- **Card shortcuts**: with focus inside a card, `Alt+↑`/`Alt+↓` reorder it and `Alt+←`/`Alt+→` collapse or expand it. No letter keys, so nothing collides with typing.
+- **Two images side by side in the annotation tool.** "Before/after" or "ours vs baseline" only reads when the two captures are one image — loading a second image now asks `Join on the right / Join below / Replace`, and **joining leaves the marks you already placed exactly where they were**.
 
 ### v0.45 — a collapsible data card, and a documentation cleanup
 

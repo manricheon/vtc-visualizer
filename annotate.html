@@ -103,6 +103,15 @@
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink-1); color: var(--page);
            padding: 8px 14px; border-radius: var(--radius); font-size: var(--fs-sm); display: none; z-index: 60; }
   #toast.show { display: block; }
+  /* 새 그림을 바꿀지 붙일지 고르는 자리 — confirm 두 번으로는 읽히지 않는다 */
+  #joinDialog { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center;
+                justify-content: center; z-index: 70; }
+  #joinDialog[hidden] { display: none; }
+  #joinDialog .box { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius);
+                     padding: 18px 20px; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,.18); }
+  #joinDialog h3 { margin: 0 0 6px; font-size: var(--fs-md); }
+  #joinDialog p { margin: 0 0 12px; font-size: var(--fs-sm); color: var(--ink-2); }
+  #joinDialog .btns { display: flex; gap: 8px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -164,11 +173,23 @@
 
   <footer>VTC Visualizer <span class="footer-ver"></span> — <span data-i18n="footer.text"></span> © mrc</footer>
 </div>
+<div id="joinDialog" role="dialog" aria-modal="true" hidden>
+  <div class="box">
+    <h3 data-i18n="join.title"></h3>
+    <p data-i18n="join.note"></p>
+    <div class="btns">
+      <button data-join="right" data-i18n="join.right"></button>
+      <button data-join="down" data-i18n="join.down"></button>
+      <button data-join="replace" data-i18n="join.replace"></button>
+      <button data-join="" class="ghost" data-i18n="join.cancel"></button>
+    </div>
+  </div>
+</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.45';
+const APP_VERSION = 'v0.46';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -189,6 +210,10 @@ const I18N = {
     'prompt.text': '넣을 문구:',
     'confirm.replace': '새 이미지를 넣으면 지금 주석 {n}개가 사라집니다(되돌릴 수 없음). 계속할까요?',
     'toast.pasted': '붙여넣은 이미지를 넣었습니다.', 'toast.exported': 'PNG로 저장했습니다.',
+    'toast.joined': '두 그림을 한 장으로 붙였습니다. 기존 마크는 그대로입니다.',
+    'join.title': '이 그림을 어떻게 할까요?',
+    'join.note': '나란히 붙이면 한 장의 이미지가 되고, 이미 찍어 둔 마크는 그 자리에 그대로 남습니다.',
+    'join.right': '오른쪽에 붙이기', 'join.down': '아래에 붙이기', 'join.replace': '새 그림으로 바꾸기', 'join.cancel': '취소',
     'toast.needImage': '이미지를 먼저 넣으세요.', 'toast.notImage': '이미지 파일이 아닙니다.',
     'toast.undoNone': '되돌릴 것이 없습니다.', 'toast.selectNone': '고른 마크가 없습니다.',
     'img.info': '{w} × {h} 픽셀 · 마크 {n}개',
@@ -212,6 +237,10 @@ const I18N = {
     'prompt.text': 'Text to place:',
     'confirm.replace': 'Loading a new image discards the {n} annotation(s) you have (no undo). Continue?',
     'toast.pasted': 'Pasted image loaded.', 'toast.exported': 'Saved as PNG.',
+    'toast.joined': 'Joined into one image. Your existing marks stayed put.',
+    'join.title': 'What should happen to this image?',
+    'join.note': 'Joining makes it one image, and the marks you already placed stay exactly where they are.',
+    'join.right': 'Join on the right', 'join.down': 'Join below', 'join.replace': 'Replace the image', 'join.cancel': 'Cancel',
     'toast.needImage': 'Add an image first.', 'toast.notImage': 'That is not an image file.',
     'toast.undoNone': 'Nothing to undo.', 'toast.selectNone': 'No mark selected.',
     'img.info': '{w} × {h} px · {n} mark(s)',
@@ -477,15 +506,61 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---- 입력 ---- */
+/* 두 그림을 나란히 (v0.48) — "전/후"나 "우리 방법 vs 기준"은 두 캡처를 한 장으로 붙여야 설명이 된다.
+   붙이는 순간 **한 장의 이미지가 된다** — 레이어를 만들지 않는다. 그래야 좌표·되돌리기·저장이 지금 그대로다.
+   기존 그림은 (0,0)에 그대로 두므로 **이미 찍어 둔 마크가 어긋나지 않는다**(오른쪽/아래로만 붙인다). */
+function joinImage(im, dir) {
+  const gap = 12, bg = getComputedStyle(document.documentElement).getPropertyValue('--surface-1').trim() || '#ffffff';
+  const aw = img.naturalWidth, ah = img.naturalHeight, bw = im.naturalWidth, bh = im.naturalHeight;
+  /* 붙이는 쪽을 **같은 높이(또는 폭)로 맞춰** 나란히 놓는다 — 비율은 유지한다 */
+  const s = dir === 'right' ? ah / bh : aw / bw;
+  const sw = Math.round(bw * s), sh = Math.round(bh * s);
+  const W = dir === 'right' ? aw + gap + sw : Math.max(aw, sw);
+  const H = dir === 'right' ? Math.max(ah, sh) : ah + gap + sh;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  c.drawImage(img, 0, 0);
+  c.drawImage(im, dir === 'right' ? aw + gap : 0, dir === 'right' ? 0 : ah + gap, sw, sh);
+  const out = new Image();
+  out.onload = () => {
+    const keep = marks.slice();       // 붙이기는 마크를 지우지 않는다 — 좌표가 그대로이기 때문이다
+    setImage(out);
+    marks = keep;
+    draw(); renderMarks(); syncInfo();
+    showToast(t('toast.joined'));
+  };
+  out.src = cv.toDataURL('image/png');
+}
 function loadFile(file) {
   if (!file || !/^image\//.test(file.type)) { showToast(t('toast.notImage')); return; }
-  /* 새 이미지는 마크를 전부 지운다 — 되돌리기도 안 되므로 물어보고 한다.
-     실수로 창에 그림 하나 떨어뜨렸다고 30분치 주석이 사라지면 안 된다. */
-  if (marks.length && !confirm(tf('confirm.replace', { n: marks.length }))) return;
+  /* 그림이 이미 있으면 **바꿀지 붙일지** 묻는다 — 여태 바꾸는 길뿐이라 두 캡처를 비교하려면 밖에서 붙여 와야 했다.
+     새 이미지로 바꾸는 것은 마크를 전부 지우고 되돌리기도 안 되므로 그쪽만 확인을 받는다. */
   const url = URL.createObjectURL(file);
   const im = new Image();
-  im.onload = () => { setImage(im); URL.revokeObjectURL(url); };
+  im.onload = () => {
+    URL.revokeObjectURL(url);
+    if (!img) { setImage(im); return; }
+    showJoinDialog(how => {
+      if (how === 'right' || how === 'down') { joinImage(im, how); return; }
+      if (how !== 'replace') return;   // 취소
+      if (marks.length && !confirm(tf('confirm.replace', { n: marks.length }))) return;
+      setImage(im);
+    });
+  };
   im.src = url;
+}
+/* 셋 중 하나를 고르는 자리라 confirm 두 번으로는 읽히지 않는다 — 작은 대화 상자 하나를 띄운다.
+   Escape·취소는 아무 일도 하지 않는다(들고 있던 그림을 잃지 않는다). */
+function showJoinDialog(onPick) {
+  const box = document.getElementById('joinDialog');
+  const done = how => { box.hidden = true; document.removeEventListener('keydown', esc); onPick(how); };
+  const esc = e => { if (e.key === 'Escape') done(''); };
+  box.hidden = false;
+  box.querySelectorAll('button').forEach(b => { b.onclick = () => done(b.getAttribute('data-join')); });
+  document.addEventListener('keydown', esc);
+  const first = box.querySelector('button');
+  if (first) first.focus();
 }
 const dz = document.getElementById('dropzone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
