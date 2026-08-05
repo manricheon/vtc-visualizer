@@ -423,7 +423,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.40.1';
+const APP_VERSION = 'v0.41';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -708,6 +708,9 @@ const I18N = {
     'opt.none': '없음', 'opt.pastelFill': '선 아래 파스텔 채우기', 'opt.stackFill': '쌓기(누적 영역)',
     'cfg.stackHint': '시리즈를 위로 쌓아 합계와 구성비를 함께 보여줍니다. 선이 있는 유형에서만 동작하고, 쌓기 중에는 WebGL 대신 SVG로 그립니다(WebGL은 쌓기를 지원하지 않습니다).',
     'cfg.styleHint': '시리즈별: 색 · 범례 이름 · 마커 모양/크기 · 선 종류/굵기',
+    'cfg.mutedStyle': '흐리게 색',
+    'cfg.mutedStyleTitle': '흐리게 처리된 점을 회색으로 물릴지, 시리즈 색을 옅게 남길지',
+    'opt.mutedGray': '회색으로', 'opt.mutedColor': '시리즈 색 유지',
     'cfg.bar': '막대 옵션',
     'cfg.barMode': '배치',
     'opt.barGroup': '나란히 (그룹)', 'opt.barStack': '쌓기 (스택)',
@@ -1161,6 +1164,9 @@ const I18N = {
     'opt.none': 'None', 'opt.pastelFill': 'Pastel fill under line', 'opt.stackFill': 'Stack (cumulative area)',
     'cfg.stackHint': 'Stacks the series so the total and each share read together. Works on line types only, and draws with SVG instead of WebGL while stacking (WebGL has no stacking).',
     'cfg.styleHint': 'Per series: color · legend name · marker shape/size · line style/width',
+    'cfg.mutedStyle': 'Dimmed color',
+    'cfg.mutedStyleTitle': 'Push dimmed points back in gray, or keep the series color at low opacity',
+    'opt.mutedGray': 'Gray', 'opt.mutedColor': 'Keep series color',
     'cfg.bar': 'Bar options',
     'cfg.barMode': 'Layout',
     'opt.barGroup': 'Side by side (group)', 'opt.barStack': 'Stacked',
@@ -1655,6 +1661,9 @@ function defaultChart() {
     lineShape: 'linear',        // linear | spline — 선 스무딩
     lineDash: 'solid',          // solid | dash | dot | dashdot — 시리즈별 오버라이드 가능
     areaFill: 'none',           // none | tozeroy — 선 아래 파스텔 영역 채우기
+    /* 흐리게 처리된 점을 회색으로 물릴지(기본, focus+context) 원래 시리즈 색을 옅게 남길지.
+       색을 남기면 흐린 쪽이 어느 시리즈였는지 읽힌다 — 흐리게가 여러 시리즈에 걸릴 때 필요하다. */
+    mutedStyle: 'gray',         // gray | color
     colorBy: '',                // 숫자 컬럼 → 연속 색상(컬러맵). group과 상호배타, 산점/선 전용
     ptAgg: 'none',              // none | mean | median | min | max — 같은 X 점 집계(선/산점)
     ptError: 'none',            // none | std | sem — ptAgg=mean/median일 때 오차막대
@@ -2279,13 +2288,15 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
       const useColorBy = cfg.colorBy && !cfg.group && cfg.ptAgg === 'none' && numericColumnsAll().includes(cfg.colorBy);
       let npts = pts.filter(r => !isMutedRow(cfg, r));   // 강조(일반)
       const mpts = pts.filter(r => isMutedRow(cfg, r));    // 흐리게(배경 맥락) — 클릭 흐리게 + 흐리게 필터
-      // 흐리게 조각: 옅은 회색·저불투명도, 범례·추세 제외 (점·hover는 유지)
+      // 흐리게 조각: 저불투명도, 범례·추세 제외 (점·hover는 유지)
+      // 색은 회색(기본)이거나 시리즈 색 — 불투명도는 어느 쪽이든 같다(뒤로 물러나는 정도를 바꾸는 옵션이 아니다)
+      const mcol = cfg.mutedStyle === 'color' ? st.color : CHROME.muted;
       if (mpts.length) {
         traces.push({
           name: `${name} __muted`, x: mpts.map(r => r[cfg.x]), y: mpts.map(r => r[cfg.y]),
           type: scat, mode: myMode, showlegend: false, opacity: 0.28,
-          marker: { color: CHROME.muted, symbol: st.symbol, size: cfg.size ? mpts.map(r => sizeScale(r[cfg.size], cfg)) : Math.max(4, st.msize - 2) },
-          line: { color: CHROME.muted, width: 1, shape: cfg.lineShape },
+          marker: { color: mcol, symbol: st.symbol, size: cfg.size ? mpts.map(r => sizeScale(r[cfg.size], cfg)) : Math.max(4, st.msize - 2) },
+          line: { color: mcol, width: 1, shape: cfg.lineShape },
           customdata: mpts.map(labelfn), hovertemplate: hoverT,
         });
       }
@@ -4051,6 +4062,8 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       row(t('cfg.areaFill'), select([['none', t('opt.none')], ['tozeroy', t('opt.pastelFill')],
         ...(isBrk ? [] : [['stack', t('opt.stackFill')]])], cfg.areaFill, v => { cfg.areaFill = v; rp(); })),
       ...(cfg.areaFill === 'stack' ? [el('div', { class: 'hint' }, t('cfg.stackHint'))] : []),
+      row(t('cfg.mutedStyle'), select([['gray', t('opt.mutedGray')], ['color', t('opt.mutedColor')]],
+        cfg.mutedStyle || 'gray', v => { cfg.mutedStyle = v; rp(); }, { title: t('cfg.mutedStyleTitle') })),
       el('div', { class: 'hint' }, t('cfg.styleHint')),
     ]),
     seriesBox,
