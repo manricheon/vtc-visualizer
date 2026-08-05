@@ -463,7 +463,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.45';
+const APP_VERSION = 'v0.46';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -676,7 +676,7 @@ const I18N = {
     'sp.dist': '값 분포 (박스플롯)',
     'pt.presetExport': '⬇ 내보내기', 'pt.presetImport': '⬆ 가져오기',
     'pt.presetHint': '프리셋은 차트 설정만 저장합니다(데이터 제외). 같은 컬럼 이름을 쓰는 데이터라면 언제든 재적용할 수 있습니다.',
-    'card.plotHint': '드래그 = 영역 확대 · 휠 = 줌 · 더블클릭 = 전체 보기 · 포인트 클릭 = 메뉴 (팬은 모드바의 십자 화살표)',
+    'card.plotHint': '드래그 = 영역 확대 · 휠 = 줌 · 더블클릭 = 전체 보기 · 포인트 클릭 = 메뉴 (팬은 모드바의 십자 화살표) · 키보드: Alt+↑/↓ 순서, Alt+←/→ 접기/펴기',
     'card.copySuffix': ' (복사)',
     'btn.delete': '삭제',
     'cfg.data': '데이터',
@@ -834,6 +834,10 @@ const I18N = {
     'pt.mute': '🔅 흐리게 (강조 안 함)', 'pt.unmute': '🔆 흐림 해제',
     'table.restoreMuted': '흐림 {n}행 모두 해제',
     'btn.exportCsv': 'CSV 내보내기', 'btn.exportAll': '모든 차트 PNG',
+    'btn.sheet': '여러 그림 한 판으로…', 'sheet.cols': '열 수', 'sheet.label': '칸 이름', 'sheet.which': '넣을 차트',
+    'sheet.gap': '칸 사이(간격)', 'sheet.save': '한 판으로 저장',
+    'sheet.hint': '고른 차트를 격자로 조판해 PNG 한 장으로 저장합니다. 칸마다 자기 비율을 지키므로 축 눈금 간격이 왜곡되지 않습니다. 폭은 판 전체 기준입니다.',
+    'toast.sheetSaved': '{n}개 그림을 한 판으로 저장했습니다 ({w}×{h}px)',
     'cfg.colorBy': '연속 색상(컬럼)', 'cfg.colorByHint': '숫자 컬럼 값을 색 그라데이션으로 (그룹 색과 상호배타 · 산점/선 전용)',
     'cfg.ptAgg': '점 집계', 'cfg.ptError': '오차막대', 'cfg.ptBand': '집계 밴드',
     'cfg.agg': '집계', 'cfg.aggTitle': '같은 X(또는 같은 칸)의 여러 행을 하나로 요약합니다',
@@ -1001,6 +1005,10 @@ const I18N = {
     'card.moveUpTitle': '위로 이동',
     'card.moveDownTitle': '아래로 이동',
     'cfg.copyFilters': '이 필터를 다른 차트에도',
+    'cfg.copyLook': '이 보기 설정을 다른 차트에도', 'cfg.copyLookTitle': '보기 설정을 복사할 차트',
+    'cfg.copyLookHint': '글꼴·글자 크기/색·범례 위치·차트 크기·그리드·면 색·마커/선 굵기·흐리게 색·눈금 표기·내보내기 규격을 복사합니다. 축·그룹·필터처럼 데이터를 가리키는 설정은 복사하지 않습니다.',
+    'toast.lookCopied': '보기 설정을 차트 {n}개에 적용했습니다',
+    'card.keysTitle': '이 카드에 포커스가 있을 때: Alt+↑/↓ 순서 이동, Alt+←/→ 접기/펴기',
     'cfg.copyFiltersTitle': '필터 {n}개를 복사할 차트',
     'cfg.copyFiltersNone': '다른 차트가 없습니다.',
     'cfg.copyToAll': '전체 {n}개 차트에 적용',
@@ -1148,7 +1156,7 @@ const I18N = {
     'sp.dist': 'Value distribution (box plot)',
     'pt.presetExport': '⬇ Export', 'pt.presetImport': '⬆ Import',
     'pt.presetHint': 'Presets store chart settings only (no data) — re-apply them to any data using the same column names.',
-    'card.plotHint': 'Drag = zoom to area · wheel = zoom · double-click = reset · click a point = menu (pan via the crosshair in the mode bar)',
+    'card.plotHint': 'Drag = zoom to area · wheel = zoom · double-click = reset · click a point = menu (pan via the crosshair in the mode bar) · keyboard: Alt+↑/↓ reorder, Alt+←/→ collapse/expand',
     'card.copySuffix': ' (copy)',
     'btn.delete': 'Delete',
     'cfg.data': 'Data',
@@ -1306,6 +1314,10 @@ const I18N = {
     'pt.mute': '🔅 De-emphasize (fade)', 'pt.unmute': '🔆 Un-fade',
     'table.restoreMuted': 'Un-fade all {n} rows',
     'btn.exportCsv': 'Export CSV', 'btn.exportAll': 'All charts PNG',
+    'btn.sheet': 'Several figures on one sheet…', 'sheet.cols': 'Columns', 'sheet.label': 'Panel labels', 'sheet.which': 'Charts to include',
+    'sheet.gap': 'Gap between panels', 'sheet.save': 'Save as one sheet',
+    'sheet.hint': 'Lays the selected charts out on a grid and saves one PNG. Each panel keeps its own aspect ratio, so tick spacing is not distorted. The width applies to the whole sheet.',
+    'toast.sheetSaved': 'Saved {n} figures on one sheet ({w}×{h}px)',
     'cfg.colorBy': 'Continuous color (column)', 'cfg.colorByHint': 'Color by a numeric column as a gradient (mutually exclusive with group color · scatter/line only)',
     'cfg.ptAgg': 'Point aggregate', 'cfg.ptError': 'Error bars', 'cfg.ptBand': 'Aggregate band',
     'cfg.agg': 'Aggregate', 'cfg.aggTitle': 'Summarize the rows that share an X value (or a cell) into one point',
@@ -1473,6 +1485,10 @@ const I18N = {
     'card.moveUpTitle': 'Move up',
     'card.moveDownTitle': 'Move down',
     'cfg.copyFilters': 'Copy these filters to…',
+    'cfg.copyLook': 'Copy this look to…', 'cfg.copyLookTitle': 'Copy the look settings to',
+    'cfg.copyLookHint': 'Copies font, text size/color, legend position, chart size, grid, plot face, marker/line width, dimmed color, tick format and export spec. Settings that point at data (axes, group, filters) are never copied.',
+    'toast.lookCopied': 'Applied the look to {n} chart(s)',
+    'card.keysTitle': 'While focus is inside this card: Alt+↑/↓ reorder, Alt+←/→ collapse/expand',
     'cfg.copyFiltersTitle': 'Copy {n} filter(s) to',
     'cfg.copyFiltersNone': 'There is no other chart.',
     'cfg.copyToAll': 'Apply to all {n} charts',
@@ -4280,6 +4296,9 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       A(row(t('cfg.mutedStyle'), select([['gray', t('opt.mutedGray')], ['color', t('opt.mutedColor')]],
         cfg.mutedStyle || 'gray', v => { cfg.mutedStyle = v; rp(); }, { title: t('cfg.mutedStyleTitle') })), cfg.mutedStyle === 'color'),
       el('div', { class: 'hint' }, t('cfg.styleHint')),
+      /* 필터 복사와 같은 자리·같은 모양 — 여러 차트를 같은 규격으로 맞추는 일은 필터만의 것이 아니다 */
+      ...(state.charts.length > 1 ? [el('div', { class: 'row' },
+        el('button', { class: 'small', onclick: e => showLookCopyMenu(cfg, e) }, t('cfg.copyLook')))] : []),
     ]),
     seriesBox,
   );
@@ -6196,6 +6215,119 @@ function insightsMd() {
     + `\n\n> ${t('an.disclaimer')}`;
 }
 /* ---- 모든 차트를 한 장 PNG로 세로 합성 ---- */
+/* 그림 여러 장을 한 판으로 (v0.46) — 제출 규격(v0.26)까지 맞춰 놓고도 마지막 조판은 손으로 하고 있었다.
+   `모든 차트 PNG`(세로로 이어 붙이기)를 열 수·라벨·규격이 있는 조판으로 넓힌 것이다(열=1이면 예전과 같다).
+   각 칸은 **자기 비율을 지킨다** — 억지로 같은 높이로 늘리면 축 눈금 간격이 칸마다 달라져 비교가 거짓말이 된다. */
+function sheetSize(opt) {
+  if (opt.unit === 'screen') return { width: 0, scale: 2 };   // width 0 = 화면 폭을 그대로 쓴다
+  const per = opt.unit === 'in' ? 96 : 96 / 25.4;
+  const dpi = Math.max(72, Math.min(1200, Number(opt.dpi) || 300));
+  return { width: Math.round(Number(opt.width) * per), scale: dpi / 96 };
+}
+const SHEET_LABELS = {
+  none: () => '',
+  abc: i => `(${String.fromCharCode(97 + i)})`,
+  ABC: i => `(${String.fromCharCode(65 + i)})`,
+  num: i => `${i + 1}.`,
+};
+async function exportSheet(opt) {
+  const cfgs = state.charts.filter(c => opt.ids.includes(c.id) && plotDivs[c.id] && plotDivs[c.id].data);
+  if (!cfgs.length) { alert(t('err.drawChartFirst')); return; }
+  const cols = Math.max(1, Math.min(4, Number(opt.cols) || 2));
+  const { width: sheetW, scale } = sheetSize(opt);
+  const gapCss = Math.max(0, Number(opt.gap) || 0) * (opt.unit === 'in' ? 96 : opt.unit === 'mm' ? 96 / 25.4 : 1);
+  const labelFn = SHEET_LABELS[opt.label] || SHEET_LABELS.none;
+  const labelH = opt.label === 'none' ? 0 : 22;
+  /* 칸 폭이 정해지면 각 그림은 자기 비율대로 높이를 갖는다 */
+  const firstGd = plotDivs[cfgs[0].id];
+  const totalCss = sheetW || (cols * (firstGd.clientWidth || 900) + gapCss * (cols - 1));
+  const cellW = Math.floor((totalCss - gapCss * (cols - 1)) / cols);
+  const cells = [];
+  for (const c of cfgs) {
+    const gd = plotDivs[c.id];
+    const gw = gd.clientWidth || 900, gh = gd.clientHeight || 460;
+    const h = Math.round(cellW * (gh / gw));
+    /* **화면 크기 그대로 뽑고 배율만 준다** — 칸 폭에 맞춰 다시 그리면 글자 크기는 그대로인 채 그림만 작아져
+       글자가 상대적으로 거대해지고 범례가 잘린다(처음에 그렇게 만들었더니 조판 그림에서 바로 드러났다). */
+    const url = await Plotly.toImage(gd, { format: 'png', width: gw, height: gh, scale: (cellW / gw) * scale });
+    const im = new Image(); im.src = url;
+    await new Promise(res => { im.onload = res; });
+    cells.push({ im, h, cfg: c });
+  }
+  const rows = [];
+  for (let i = 0; i < cells.length; i += cols) rows.push(cells.slice(i, i + cols));
+  const rowH = rows.map(r => Math.max(...r.map(x => x.h)) + labelH);
+  const totalH = rowH.reduce((a, b) => a + b, 0) + gapCss * (rows.length - 1);
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(totalCss * scale); cv.height = Math.round(totalH * scale);
+  const ctx = cv.getContext('2d');
+  ctx.scale(scale, scale);
+  ctx.fillStyle = CHROME.surface; ctx.fillRect(0, 0, totalCss, totalH);
+  ctx.textBaseline = 'top';
+  let y = 0, n = 0;
+  rows.forEach((row, ri) => {
+    let x = 0;
+    for (const cell of row) {
+      const lab = labelFn(n);
+      if (lab) {
+        ctx.fillStyle = CHROME.ink;
+        ctx.font = `600 15px ${cfgs[0].fontFamily || 'system-ui'}`;
+        ctx.fillText(lab, x, y);
+      }
+      ctx.drawImage(cell.im, x, y + labelH, cellW, cell.h);
+      x += cellW + gapCss; n++;
+    }
+    y += rowH[ri] + gapCss;
+  });
+  cv.toBlob(b => {
+    const a = el('a', { href: URL.createObjectURL(b), download: 'vtc-visualizer-sheet.png' });
+    a.click(); URL.revokeObjectURL(a.href);
+    showToast(tf('toast.sheetSaved', { n: cells.length, w: cv.width, h: cv.height }));
+  }, 'image/png');
+}
+function showSheetPopover(ev) {
+  popover.innerHTML = '';
+  const drawn = state.charts.filter(c => plotDivs[c.id] && plotDivs[c.id].data);
+  if (!drawn.length) { alert(t('err.drawChartFirst')); return; }
+  const opt = { cols: drawn.length > 1 ? 2 : 1, label: 'abc', unit: 'mm', width: 170, dpi: 300, gap: 4,
+    ids: drawn.map(c => c.id) };
+  const row = (label, ...ctrl) => el('div', { class: 'pp-row' }, el('span', { class: 'lbl' }, label), ...ctrl);
+  const num = (v, on, w = '68px') => el('input', { type: 'number', step: 'any', min: 0, value: v, style: `width:${w}`,
+    oninput: e => on(e.target.value) });
+  const sizeBox = el('div');
+  const syncSize = () => {
+    sizeBox.innerHTML = '';
+    if (opt.unit === 'screen') return;
+    sizeBox.append(
+      row(t('cfg.expSize'), num(opt.width, v => { opt.width = v; }), el('span', { class: 'lbl' }, opt.unit)),
+      row('dpi', num(opt.dpi, v => { opt.dpi = v; })),
+      row(t('sheet.gap'), num(opt.gap, v => { opt.gap = v; })),
+    );
+  };
+  syncSize();
+  const list = el('div');
+  drawn.forEach((c, i) => {
+    list.append(el('label', { class: 'inline' },
+      el('input', { type: 'checkbox', checked: '', onchange: e => {
+        opt.ids = e.target.checked ? [...opt.ids, c.id] : opt.ids.filter(id => id !== c.id);
+      } }),
+      c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 })));
+  });
+  popover.append(
+    el('div', { class: 'pp-title' }, t('btn.sheet')),
+    row(t('sheet.cols'), select([['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']], String(opt.cols), v => { opt.cols = Number(v); })),
+    row(t('sheet.label'), select([['abc', '(a) (b) (c)'], ['ABC', '(A) (B) (C)'], ['num', '1. 2. 3.'], ['none', t('opt.none')]],
+      opt.label, v => { opt.label = v; })),
+    row(t('cfg.expUnit'), select([['mm', 'mm'], ['in', 'inch'], ['screen', t('opt.expScreen')]], opt.unit,
+      v => { opt.unit = v; syncSize(); })),
+    sizeBox,
+    el('div', { class: 'pp-title' }, t('sheet.which')),
+    list,
+    el('button', { onclick: () => { hidePopover(); exportSheet(opt); } }, t('sheet.save')),
+    el('div', { class: 'pp-note' }, t('sheet.hint')),
+  );
+  placePopover(ev);
+}
 async function exportAllCharts() {
   const cfgs = state.charts.filter(c => plotDivs[c.id] && plotDivs[c.id].data);
   if (!cfgs.length) { alert(t('err.drawChartFirst')); return; }
@@ -6338,6 +6470,37 @@ function showFilterCopyMenu(src, ev) {
     const label = c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 });
     popover.append(el('button', { onclick: () => apply([c]) }, label + (c.filters.length ? tf('cfg.copyHasFilters', { n: c.filters.length }) : '')));
   }
+  placePopover(ev);
+}
+/* 보기 설정을 다른 차트에도 (v0.47) — 글꼴·범례 위치·크기를 차트 5장에 맞추려면 같은 일을 5번 해야 했다.
+   **컬럼을 가리키는 필드는 절대 넣지 않는다**(x·y·group·필터·계산 컬럼): 차트마다 다른 데이터를 그리므로
+   그것까지 복사하면 그리던 그림이 통째로 바뀐다. 여기 있는 것은 전부 "어떻게 보이나"뿐이다. */
+const LOOK_FIELDS = ['fontFamily', 'fontSize', 'fontColor', 'legendPos', 'plotHeight', 'cardWidth',
+  'grid', 'plotFace', 'markerSize', 'lineWidth', 'lineDash', 'lineShape', 'mutedStyle', 'renderMode',
+  'xTick', 'yTick', 'expUnit', 'expW', 'expH', 'expDpi'];
+function showLookCopyMenu(src, ev) {
+  const others = state.charts.filter(c => c.id !== src.id);
+  popover.innerHTML = '';
+  popover.append(el('div', { class: 'pp-title' }, t('cfg.copyLookTitle')));
+  if (!others.length) popover.append(el('div', { class: 'pp-note' }, t('cfg.copyFiltersNone')));
+  const apply = targets => {
+    /* 되돌릴 수 있어야 한다 — 다섯 장을 한 번에 바꾸는 동작이라 잘못 누르면 손으로 되돌릴 수 없다 */
+    const before = targets.map(c => ({ c, old: Object.fromEntries(LOOK_FIELDS.map(k => [k, c[k]])) }));
+    const put = list => {
+      for (const { c, old } of list) Object.assign(c, old);
+      for (const { c } of list) { renderPlot(c); applyChartSize(c); }
+      refreshCfgPanels(); save();
+    };
+    for (const c of targets) for (const k of LOOK_FIELDS) c[k] = src[k];
+    for (const c of targets) { renderPlot(c); applyChartSize(c); }
+    refreshCfgPanels(); hidePopover(); save();
+    showToast(tf('toast.lookCopied', { n: targets.length }), t('toast.undo'), () => put(before));
+  };
+  if (others.length > 1) popover.append(el('button', { onclick: () => apply(others) }, tf('cfg.copyToAll', { n: others.length })));
+  for (const c of others) {
+    popover.append(el('button', { onclick: () => apply([c]) }, c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 })));
+  }
+  popover.append(el('div', { class: 'pp-note' }, t('cfg.copyLookHint')));
   placePopover(ev);
 }
 /* ---- 기본 프리셋 ----
@@ -6540,6 +6703,31 @@ document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (modal.classList.contains('show')) { closeModal(); return; }
   if (popover.classList.contains('show')) hidePopover(true);
 });
+/* 카드 조작을 키보드로 (v0.47) — 순서 바꾸기·접기가 헤더 버튼 클릭 말고는 길이 없었다.
+   **Alt + 화살표만 쓴다**: 글자 키를 쓰면 입력칸에서 충돌하고, 화살표 단독은 스크롤·선택을 빼앗는다.
+   포커스가 그 카드 안에 있을 때만 동작하므로 "어느 카드"인지 물을 필요가 없다. */
+document.addEventListener('keydown', e => {
+  if (!e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  const card = e.target.closest && e.target.closest('.chart-card');
+  if (!card) return;
+  const cfg = state.charts.find(c => String(c.id) === card.getAttribute('data-chart'));
+  if (!cfg) return;
+  e.preventDefault();
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    /* DOM에서 노드를 옮기면 브라우저가 포커스를 잃는다 — 잃으면 다음 Alt 조합이 안 듣는다(연달아 못 옮긴다).
+       옮긴 뒤 같은 컨트롤로 되돌린다. */
+    const active = e.target;
+    moveChart(cfg, e.key === 'ArrowUp' ? -1 : 1);
+    const again = cardOf(cfg);
+    if (again) again.scrollIntoView({ block: 'nearest' });
+    if (active && active.isConnected && active.focus) active.focus();
+  } else {
+    setCollapsed(cfg, e.key === 'ArrowLeft');
+    const btn = cardOf(cfg) && cardOf(cfg).querySelector('.head button');
+    if (btn) btn.focus();   // 접으면 안쪽 컨트롤이 사라지므로 포커스를 헤더로 옮긴다
+  }
+});
 function importSession() {
   const inp = el('input', { type: 'file', accept: '.json' });
   inp.addEventListener('change', async () => {
@@ -6556,6 +6744,7 @@ document.getElementById('btnExportMenu').addEventListener('click', e => {
     el('div', { class: 'pp-title' }, t('btn.exportMenu')),
     item(t('btn.report'), exportReport),
     item(t('btn.exportAll'), exportAllCharts),
+    el('button', { onclick: e => { hidePopover(); showSheetPopover(e); } }, t('btn.sheet')),
     item(t('btn.exportStandalone'), exportStandalone),
     /* 이미지 주석은 별도 파일이다 — 같은 폴더에 있어야 열린다(서버로 띄우면 라우트가 준다) */
     item(t('btn.annotate'), () => { window.open('annotate.html', '_blank'); hidePopover(); }),
