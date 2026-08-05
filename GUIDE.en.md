@@ -48,7 +48,7 @@ Recipes use the UI labels verbatim. `Settings → …` refers to each chart card
 ### ① Mean performance per method — "Which method is best?"
 
 > Type=`Bar`, X axis=`method`, Y axis=`accuracy`, Group (color)=`method`
-> Bar options → Aggregate=`Mean`, Error bars=`±std dev`, Value labels=`Value at bar end`, Sort=`Value descending`
+> Data → Aggregate=`Mean`, Error=`Std dev` · Bar options → Value labels=`Value at bar end`, Sort=`Value descending`
 
 ![Mean accuracy per method — error bars, value labels, sorted descending](assets/guide/r1-bar-mean.png)
 
@@ -97,7 +97,7 @@ type=`Line`, Settings → Style → Area fill=`Stack (cumulative area)`. The top
 ### ⑤ Ranking chart — "Throughput order at a glance"
 
 > Type=`Bar`, X axis=`method`, Y axis=`throughput_fps`, Group (color)=`method`
-> Bar options → Orientation=`Horizontal`, Aggregate=`Mean`, Sort=`Value ascending`, Value labels=`Value at bar end`
+> Data → Aggregate=`Mean` · Bar options → Orientation=`Horizontal`, Sort=`Value ascending`, Value labels=`Value at bar end`
 
 ![Horizontal throughput ranking — value ascending puts first place on top](assets/guide/r5-ranking.png)
 
@@ -147,7 +147,7 @@ The new column doesn't change your source file, is saved in the session, and is 
 
 ### ⑨ A whole 2D sweep in one picture — heatmap
 
-> Type=`Heatmap`, X axis=`method`, Y axis=`tokens`, Color value (column)=`accuracy`, Aggregate=`Mean`, check `Show cell value`
+> Type=`Heatmap`, X axis=`method`, Y axis=`tokens`, Color value (column)=`accuracy`, Data → Aggregate=`Mean`, check `Show cell value`
 
 ![Heatmap of the method × token-budget grid, encoded as colour](assets/guide/r8-heatmap.png)
 
@@ -332,13 +332,13 @@ zero means the key is wrong, and you know before committing. Several matches fol
 What reads well on screen and what reads well in a paper are different things.
 
 > Settings → Export size → preset=`Paper, 2 columns (170mm)`, dpi=`300`
-> Settings → Data → Error column=`score_std` (when the ± value already exists as a column — the example is `accuracy_std` in `repeat.csv`)
+> Settings → Data → Error=`accuracy_std` (column) — when the ± value already exists as a column. The example is `repeat.csv`
 > Settings → Baselines → `＋ Span` to shade the range you want to call out
 
 ![A figure sized for a 170mm column, with error bars and a shaded recommended range](assets/guide/r11-spec-error-span.png)
 
 - **If the text is small, raise the font size, not the dpi.** The hint shows the resulting pt — dpi does not change the physical text size.
-- **Error bars used to appear only when aggregating**, so a precomputed `_std` column now draws directly via `Error column` (ignored while aggregating).
+- The single `Error` row picks **column or statistic** — a precomputed `_std` column draws as-is, and `Std dev`/`Std error` appear only when the aggregate is `Mean` (the column is ignored while aggregating).
 - **Span shading says what a baseline cannot** — if a baseline is "this line", a span is "this range" (a recommended band, an out-of-memory region).
 - Figures in the markdown report follow the same spec.
 

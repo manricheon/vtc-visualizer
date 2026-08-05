@@ -96,6 +96,15 @@
     text-transform: uppercase; letter-spacing: .09em;
   }
 
+  /* 데이터 카드 접기 — 파일을 다 넣으면 240px 중 할 일이 남는 것이 없다.
+     접어도 드롭은 받는다(리스너가 `document.body`에 있다). 접힘은 이 브라우저의 기본값으로 남긴다. */
+  .data-head { display: flex; align-items: baseline; gap: var(--sp-2); }
+  .data-head h2 { margin: 0 0 var(--sp-3); }
+  #dataSummary { flex: 1; min-width: 0; color: var(--ink-muted); font-size: var(--fs-sm);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #dataCard.folded { padding-bottom: var(--sp-2); }
+  #dataCard.folded .data-head h2 { margin-bottom: 0; }
+  #dataCard.folded .data-body { display: none; }
   /* ===== data input ===== */
   #dropzone {
     border: 1.5px dashed var(--axis); border-radius: var(--radius-lg);
@@ -361,22 +370,30 @@
   </header>
 
   <main>
-  <section class="card">
-    <h2 data-i18n="section.dataInput"></h2>
-    <div id="dropzone">
-      <span data-i18n="dropzone.text"></span>
-      <div class="empty-hint" data-i18n="dropzone.emptyHint"></div>
-      <div class="btns">
-        <button id="btnOpenFiles" data-i18n="btn.openFiles"></button>
-        <button id="btnOpenFolder" data-i18n="btn.openFolder"></button>
-        <button id="btnPaste" data-i18n="btn.paste"></button>
-        <button id="btnExample" class="ghost" data-i18n="btn.example"></button>
-          <button id="btnExampleMore" class="ghost" data-i18n="btn.exampleMore"></button>
-      </div>
+  <section class="card" id="dataCard">
+    <!-- 파일을 다 넣고 나면 이 카드는 240px을 차지한 채 할 일이 없다 — 차트 카드처럼 접는다.
+         드롭은 접어도 받는다(드롭 리스너는 원래 `document.body`에 붙어 있다). -->
+    <div class="data-head">
+      <h2 data-i18n="section.dataInput"></h2>
+      <span id="dataSummary"></span>
+      <button id="btnDataFold" class="small">▾</button>
     </div>
-    <div id="datasetChips"></div>
-    <div id="starterChips" hidden></div>
-    <details id="derivedPanel" class="grp" hidden></details>
+    <div class="data-body">
+      <div id="dropzone">
+        <span data-i18n="dropzone.text"></span>
+        <div class="empty-hint" data-i18n="dropzone.emptyHint"></div>
+        <div class="btns">
+          <button id="btnOpenFiles" data-i18n="btn.openFiles"></button>
+          <button id="btnOpenFolder" data-i18n="btn.openFolder"></button>
+          <button id="btnPaste" data-i18n="btn.paste"></button>
+          <button id="btnExample" class="ghost" data-i18n="btn.example"></button>
+            <button id="btnExampleMore" class="ghost" data-i18n="btn.exampleMore"></button>
+        </div>
+      </div>
+      <div id="datasetChips"></div>
+      <div id="starterChips" hidden></div>
+      <details id="derivedPanel" class="grp" hidden></details>
+    </div>
     <input type="file" id="fileInput" accept=".csv,.json,.tsv" multiple hidden>
     <input type="file" id="folderInput" webkitdirectory multiple hidden>
   </section>
@@ -437,7 +454,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.44';
+const APP_VERSION = 'v0.45';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -589,6 +606,7 @@ const I18N = {
     'section.dataInput': '데이터 입력',
     'dropzone.emptyHint': '처음이라면 예시 데이터로 30초 만에 둘러볼 수 있습니다 — 아무것도 설치하지 않아도 됩니다.',
     'dropzone.text': 'CSV / JSON 파일을 여기에 드래그 앤 드랍하세요 (여러 개 가능)',
+    'btn.dataFoldTitle': '데이터 입력 접기 (접어도 파일을 끌어다 놓을 수 있습니다)', 'btn.dataUnfoldTitle': '데이터 입력 펴기',
     'btn.openFiles': '파일 열기…',
     'btn.openFolder': '폴더 열기…',
     'btn.paste': '직접 입력…',
@@ -1060,6 +1078,7 @@ const I18N = {
     'section.dataInput': 'Data input',
     'dropzone.emptyHint': 'New here? The example data gives you a working chart in 30 seconds — nothing to install.',
     'dropzone.text': 'Drag and drop CSV / JSON files here (multiple allowed)',
+    'btn.dataFoldTitle': 'Collapse the data input (you can still drop files while collapsed)', 'btn.dataUnfoldTitle': 'Expand the data input',
     'btn.openFiles': 'Open files…',
     'btn.openFolder': 'Open folder…',
     'btn.paste': 'Paste data…',
@@ -5587,6 +5606,31 @@ function exportProfileCsv() {
 }
 
 /* ================= dataset chips ================= */
+/* 데이터 카드 접기 — 차트 카드의 접기와 같은 뜻이다("지금은 이걸 안 본다").
+   차트별이 아니라 페이지 하나의 상태라 세션이 아니라 브라우저 기본값으로 남긴다(`ACCORDION`·`SIMPLE`과 같은 급).
+   **접혀 있어도 무엇이 들어 있는지는 한 줄로 보인다** — 아래에 아무것도 없으니 그게 유일한 단서다. */
+const DATAFOLD_KEY = 'vtc-visualizer:datafold';
+let DATA_FOLDED = localStorage.getItem(DATAFOLD_KEY) === '1';
+function setDataFolded(on) {
+  DATA_FOLDED = !!on;
+  localStorage.setItem(DATAFOLD_KEY, DATA_FOLDED ? '1' : '0');
+  applyDataFold();
+}
+function applyDataFold() {
+  const card = document.getElementById('dataCard');
+  if (!card) return;
+  /* 데이터가 없으면 접지 않는다 — 처음 온 사람에게 드롭존이 사라지면 시작할 곳이 없다 */
+  const fold = DATA_FOLDED && state.datasets.length > 0;
+  card.classList.toggle('folded', fold);
+  const btn = document.getElementById('btnDataFold');
+  if (btn) { btn.textContent = fold ? '▸' : '▾'; btn.title = t(fold ? 'btn.dataUnfoldTitle' : 'btn.dataFoldTitle'); }
+  const sum = document.getElementById('dataSummary');
+  if (sum) {
+    sum.textContent = fold
+      ? state.datasets.map(d => `${d.name} (${tf('chips.rows', { n: d.rows.length })})`).join(' · ')
+      : '';
+  }
+}
 function renderChips() {
   const box = document.getElementById('datasetChips');
   box.innerHTML = '';
@@ -5598,6 +5642,7 @@ function renderChips() {
     ));
   }
   renderStarterChips();
+  applyDataFold();   // 파일이 늘고 줄 때마다 요약 줄도 따라간다
 }
 /* 레시피 칩 — `starterList()`는 v0.17부터 "지금 데이터에서 역할이 채워지는 레시피"만 내놓는데,
    입구가 **카드 안 `프리셋` 팝오버 하나**였다. 차트를 이미 만든 사람만 볼 수 있는 자리다.
@@ -6474,6 +6519,7 @@ document.getElementById('btnExampleMore').addEventListener('click', () => {
   for (const [name, csv] of EXTRA_CSVS) addDataset(name, parseAny(csv, name));
   showToast(t('toast.exampleMoreLoaded'));
 });
+document.getElementById('btnDataFold').addEventListener('click', () => setDataFolded(!DATA_FOLDED));
 /* 창 크기 변경은 Plotly의 `responsive: true`가 이미 처리한다(main과 이 브랜치가 같은 폭으로 줄어드는 것을 실측).
    같은 일을 하는 리스너를 하나 더 두면 리사이즈마다 차트당 Plotly.Plots.resize가 한 번 더 도는 것뿐이라 두지 않는다.
    정말로 디바운스하려면 responsive를 끄고 이쪽을 유일한 경로로 삼아야 하는데,
@@ -6644,6 +6690,7 @@ function setupWatchUI() {
 document.getElementById('appVersion').textContent = APP_VERSION;
 document.querySelector('.footer-ver').textContent = APP_VERSION;
 applyLang();
+applyDataFold();   // 접힘은 브라우저에 남아 있다 — 새로고침해도 그대로 열린다
 applyTheme();   // CHROME·PALETTE·SEQ를 테마에 맞춰 설정 (첫 렌더 전)
 applyWidth();
 applyCfgWidth();
