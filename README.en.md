@@ -222,6 +222,12 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.48 — three bugs the audit turned up
+
+- **Fix ①**: `Reset everything` did **not clear computed-column definitions**. Right after the reset, autosave wrote them straight back into the storage it had just cleared, so they survived a refresh.
+- **Fix ②**: joining an image in the annotation tool **wiped the whole undo history** (the join itself, and every mark placed before it). Undo entries only held marks, so an image change could not be represented — they now carry the image too, and `⌘Z` steps back past a join.
+- **Fix ③**: in the sheet layout, switching the unit to `Screen size` **hid the gap input** along with width and dpi. The gap has nothing to do with the unit, so it now stays.
+
 ### v0.47 — the guide catches up with the tool
 
 - The visualization guide (both languages) had **stalled at v0.41.** Nothing from v0.42–v0.46 had reached the recipes, so following the guide led to places that no longer matched the screen.
