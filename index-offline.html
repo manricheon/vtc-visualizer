@@ -107,7 +107,7 @@
 
   /* 데이터 카드 접기 — 파일을 다 넣으면 240px 중 할 일이 남는 것이 없다.
      접어도 드롭은 받는다(리스너가 `document.body`에 있다). 접힘은 이 브라우저의 기본값으로 남긴다. */
-  .data-head { display: flex; align-items: baseline; gap: var(--sp-2); }
+  .data-head { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; }
   .data-head h2 { margin: 0 0 var(--sp-3); }
   #dataSummary { flex: 1; min-width: 0; color: var(--ink-muted); font-size: var(--fs-sm);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -304,6 +304,9 @@
   /* ===== point-click popover ===== */
   #ptPopover {
     display: none; position: fixed; z-index: 60; min-width: 180px;
+    /* 조판·컬럼 목록처럼 내용이 긴 팝오버가 좁은 화면에서 화면 밖으로 흘렀다 —
+       상한을 두고 자기 안에서 굴린다(v0.50). 페이지가 옆으로 밀리면 안 된다. */
+    max-width: min(92vw, 420px); max-height: min(78vh, 620px); overflow: auto;
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
     box-shadow: 0 4px 16px rgba(11,11,11,0.14); padding: 6px;
   }
@@ -463,7 +466,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.49';
+const APP_VERSION = 'v0.50';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -3451,13 +3454,17 @@ function placePopover(mouseEv, label) {
     const r = anchor.getBoundingClientRect();
     cx = r.left; cy = r.bottom;
   }
-  const x = Math.min((cx || 200) + 6, window.innerWidth - 230);
-  const y = Math.min((cy || 200) + 6, window.innerHeight - 140);
+  /* 상수(230×140)로 클램프하던 것을 **실제 크기**로 — 조판 팝오버처럼 큰 것이 화면 밖으로 나갔다.
+     크기를 재려면 먼저 보여야 하므로 위치를 잡기 전에 `show`를 켜고 좌표만 나중에 정한다. */
+  popover.style.left = '-9999px'; popover.style.top = '0px';
+  popover.classList.add('show');
+  const box = popover.getBoundingClientRect();
+  const x = Math.max(4, Math.min((cx || 200) + 6, window.innerWidth - box.width - 8));
+  const y = Math.max(4, Math.min((cy || 200) + 6, window.innerHeight - box.height - 8));
   popover.style.left = x + 'px'; popover.style.top = y + 'px';
   popover.setAttribute('role', 'dialog');
   const title = label || (popover.querySelector('.pp-title') || {}).textContent;
   if (title) popover.setAttribute('aria-label', title);
-  popover.classList.add('show');
   if (anchor && anchor.getBoundingClientRect && anchor.focus) ppOpener = anchor;
   else if (document.activeElement && document.activeElement !== document.body) ppOpener = document.activeElement;
   /* 팝오버는 <body> 끝에 붙어 있어 Tab 순서가 트리거를 따라오지 않는다 — 열 때 안으로 넣어 준다 */
@@ -6330,7 +6337,7 @@ function showSheetPopover(ev) {
       el('span', { class: 'lbl' }, opt.unit === 'screen' ? 'px' : opt.unit)));
   };
   syncSize();
-  const list = el('div');
+  const list = el('div', { class: 'pp-list' });   // 차트가 많으면 목록만 굴린다(팝오버 전체가 길어지지 않게)
   drawn.forEach((c, i) => {
     list.append(el('label', { class: 'inline' },
       el('input', { type: 'checkbox', checked: '', onchange: e => {

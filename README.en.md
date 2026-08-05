@@ -222,6 +222,13 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.50 — narrow screens, and the annotation tool's dialog
+
+- **Popovers no longer run off-screen.** Placement used fixed constants (230×140); it now measures the popover, caps it (`min(92vw, 420px)` × `min(78vh, 620px)`) and lets it scroll. The sheet popover's chart list scrolls inside itself, so it stays usable even in a 480px window.
+- The data-card header **wraps** when space runs out, instead of truncating the summary.
+- The annotation tool got its **first width breakpoint** — it had no width media query at all until now.
+- Its `join / replace` dialog now follows the **same rules as the main modals**: focus moves inside, Tab cannot escape the box, and Escape returns focus to the button that opened it. Clicking the backdrop closes it **without** stealing focus back — it must not grab what you just clicked.
+
 ### v0.49 — one rule for undo
 
 - Undo was **uneven** — copying the look had it, **copying filters did not**, and deleting a marker, baseline or span was final. All of these now carry `Undo`: **copying filters · deleting markers/baselines/spans · showing all columns · deleting a saved preset · importing a session · un-dimming points**.
