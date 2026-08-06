@@ -72,6 +72,8 @@ Files keep merging as you add them. Re-adding the same filename replaces it.
 | `2024-01-05` | Text (a category). There is no time axis yet |
 | Duplicate / empty headers | Not dropped — renamed to `name (2)` / `column 3` |
 | A `"` mid-field | A literal character. Only a `"` as the **first** character of a field opens a quoted field (RFC4180) |
+| Columns starting with `_` (`_id`) | **Renamed on load** (`id`, or `id_2` if taken). `_` is the tool's own namespace (`_source`, `_excluded`, `_muted`); left alone the column vanishes from the UI, and a column literally named `_excluded` would drop those rows from every chart |
+| A column with the same name as a computed column | **The file wins** — the computed column is renamed to `name (calc)`, and every axis, filter, dependent definition, hidden-column entry and annotation anchor follows. A computed column can always be rebuilt from its definition; the file's values cannot |
 
 Recommended shape (long-form / tidy — one measurement per row):
 
@@ -232,6 +234,15 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.53 — columns that vanished, failures that said nothing
+
+- **A column named `_id` disappeared from the whole UI.** `_` is the tool's internal namespace, so a column literally named `_excluded` **dropped those rows from every chart**. Such columns are now **renamed on load** (`id`, or `id_2`) and reported. The rule is deterministic, so reloading the same file keeps your excluded/dimmed marks.
+- **A file containing a column named like one of your computed columns destroyed the file's values.** Now **the file wins** — the computed column is renamed to `name (calc)` and everything that referenced it follows: **axes, error column, filters, dependent definitions, hidden columns, table sort, and the axis stamp on markers and baselines** (saved presets are left alone — they belong to other data too).
+- **Autoload used to fail silently.** Unreadable files are collected and reported as `Could not read N file(s) — Details`, with the reason. A folder past the 500-file cap now says so.
+- **Files that are not UTF-8** are refused with a clear message instead of rendering as `���`.
+- A numeric column with one stray string **used to disappear from the axis pickers with no explanation** — the settings panel now says which column and how many values are not numeric.
+- Also: the list of chart fields that hold a column name existed in **three copies, one of them missing `y2`, `size` and the error column**. Now there is one.
 
 ### v0.52 — what used to hang, and what used to be quietly wrong (all measured)
 

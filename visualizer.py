@@ -44,7 +44,7 @@ def _inside(base: Path, target: Path) -> bool:
         return False
 
 
-def _data_files(base: Path) -> "list":
+def _data_files(base: Path) -> "tuple":   # (파일 목록, 잘렸는가)
     """Data files under base, as relative paths.
 
     Hidden folders and symlinks that leave the folder are skipped: .git/.venv/.ipynb_checkpoints
@@ -53,6 +53,7 @@ def _data_files(base: Path) -> "list":
     only advertise a file the browser cannot open.
     """
     out = []
+    truncated = False
     for root, dirs, names in os.walk(base, followlinks=False):
         dirs[:] = sorted(d for d in dirs if not d.startswith("."))
         for name in sorted(names):
@@ -63,8 +64,9 @@ def _data_files(base: Path) -> "list":
                 continue
             out.append(str(p.relative_to(base)).replace("\\", "/"))
             if len(out) >= MAX_LIST:
-                return sorted(out)
-    return sorted(out)
+                # 조용히 자르면 브라우저는 목록이 전부인 줄 안다 — 잘렸다는 사실을 함께 돌려준다
+                return sorted(out), True
+    return sorted(out), truncated
 
 
 def build_offline() -> None:
@@ -112,15 +114,16 @@ class Handler(BaseHTTPRequestHandler):
             # 아는 경로만 준다 — 정적 파일 서버로 만들면 레포 전체가 읽힌다
             self._send(200, ANNOTATE.read_bytes(), "text/html; charset=utf-8")
         elif path == "/api/files":
-            files = _data_files(self.data_dir.resolve()) if self.data_dir else []
-            self._send(200, json.dumps(files).encode(), "application/json")
+            files, truncated = _data_files(self.data_dir.resolve()) if self.data_dir else ([], False)
+            body = {"files": files, "truncated": truncated}
+            self._send(200, json.dumps(body).encode(), "application/json")
         elif path == "/api/stat":
             # 폴더 감시용 지문 — {상대경로: "mtime-size"}. 목록(/api/files)과 **같은 규칙**으로 훑어야
             # 감시가 목록에 없는 파일을 물고 늘어지지 않는다.
             out = {}
             if self.data_dir:
                 base = self.data_dir.resolve()
-                for name in _data_files(base):
+                for name in _data_files(base)[0]:
                     try:
                         st = (base / name).stat()
                     except OSError:
@@ -137,7 +140,14 @@ class Handler(BaseHTTPRequestHandler):
                     ctype = "text/csv; charset=utf-8" if sfx == ".csv" else \
                             "application/json; charset=utf-8" if sfx == ".json" else \
                             "text/plain; charset=utf-8"
-                    self._send(200, target.read_bytes(), ctype)
+                    raw = target.read_bytes()
+                    # UTF-8이 아니면 브라우저가 `\ufffd`로 조용히 바꿔 읽는다 — 모지바케 대신 사실을 알린다
+                    try:
+                        raw.decode("utf-8")
+                    except UnicodeDecodeError:
+                        self._send(400, "not UTF-8 encoded".encode(), "text/plain; charset=utf-8")
+                        return
+                    self._send(200, raw, ctype)
                     return
             self._send(404, b"not found", "text/plain")
         else:
