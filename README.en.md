@@ -233,6 +233,15 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
 
+### v0.52 — what used to hang, and what used to be quietly wrong (all measured)
+
+- **One 200k-character cell froze the tab for 97 seconds.** The number-detection regex I added in v0.51 left a backtracking hole and ran O(n²) — **97,064ms → 36ms**. A length cap now short-circuits it (nothing that long is a number).
+- **The heatmap re-scanned every row for every cell.** It already built a one-pass aggregate and then **never used it** — 50k rows across two continuous axes went **74,275ms → 45ms**. Min and max fold into the same pass.
+- **A normalized computed column would not draw at 130k rows** (a stack overflow that only reached the console). Seven places that took the min/max of a row-sized array now loop instead — **error → 45ms**.
+- **Excluding the largest point from the table left the bubble scale keyed to it** — exclusions do not change the data, so the cache never noticed.
+- Removing a dataset, or reloading the same name through another path (melt, JSON), left `ⓘ` showing **the previous file's** reading. Fixed.
+- Saving a preset with a full storage quota threw instead of reporting — it now follows the same rule as session autosave.
+
 ### v0.51 — the values it used to read wrong
 
 - **European decimals were off by 1000×.** `1.234,5` became `1.2345` and was plotted as such. The format is now decided from the whole column — and **if European and US formats are mixed the column stays text** (picking one would make half the values wrong).
