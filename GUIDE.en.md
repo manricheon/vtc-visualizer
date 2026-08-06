@@ -97,7 +97,7 @@ If the question is **how the composition shifts along a sweep or over time**, st
 type=`Line`, Settings → Style → Area fill=`Stack (cumulative area)`. The top edge is the total; each band's thickness is that series' share.
 (Stacking draws with SVG instead of WebGL — WebGL has no stacking and would silently overlay.)
 
-![Cumulative area chart showing per-method cost stacking across the budget](assets/guide/r12-stack-area.png)
+![Cumulative area chart showing per-method cost stacking across the budget](assets/guide/r4-stack-area.png)
 
 - **A line chart can fill under one series only** — the fill picker on that series row (`Fill area`). Filling just the protagonist keeps the others readable; stacking stays a chart-wide setting, because stacking only some series makes the "total" unreadable.
 
@@ -138,7 +138,18 @@ When the secondary group has many unique values (e.g. 6 frames values → 24 com
 
 ![A presentation-ready chart — the title states the conclusion and a text marker points at the saturation point](assets/guide/r7-presentation.png)
 
-### ⑧ Build "vs reference" values in the tool — computed columns
+### ⑧ Choosing colors — where is the figure going?
+
+The palette picker sits in the top bar. All four pass colorblind-safety validation, so **any of them is safe**; pick by destination.
+
+- **Papers and conferences** → `Okabe-Ito`: familiar to reviewers and still readable in greyscale print.
+- **Internal decks and dashboards** → `Carbon`: saturated enough to read on a screen.
+- **Figures inside a text document** → `Ink`: quiet, doesn't fight the prose.
+- **Otherwise** → `Default`.
+
+A team on one palette gets consistent method colors across every document. Exporting a session carries the palette choice, but a recipient who already picked one keeps theirs.
+
+### ⑨ Build "vs reference" values in the tool — computed columns
 
 Want to see how each setting does **against a reference** (e.g. accuracy difference vs baseline/dense) but the data has no such column? You don't need to regenerate the data — make it on the spot with **computed columns** (the "Computed columns" panel below the data input):
 
@@ -154,32 +165,32 @@ A computed column can feed another one (use `↑`/`↓` in the list to fix the *
 Deleting one with `×` first tells you which charts use it, and clears their axis and filter settings along with it.
 The new column doesn't change your source file, is saved in the session, and is usable immediately as an axis/filter. Presets carry the definitions they need, so teammates get them too. If you don't need it, just collapse the panel — no effect on the view.
 
-### ⑨ A whole 2D sweep in one picture — heatmap
+### ⑩ A whole 2D sweep in one picture — heatmap
 
 > Type=`Heatmap`, X axis=`method`, Y axis=`tokens`, Color value (column)=`accuracy`, Data → Aggregate=`Mean`, check `Show cell value`
 
-![Heatmap of the method × token-budget grid, encoded as colour](assets/guide/r8-heatmap.png)
+![Heatmap of the method × token-budget grid, encoded as colour](assets/guide/r10-heatmap.png)
 
 This puts **every combination** of two discrete axes on one canvas. It shines when four overlapping lines become unreadable, or when
 you want to expose which cells were never measured. **How to read it**: the point where the colour stops deepening is the point where
 more budget stops buying anything. Colour only conveys magnitude, so it is **poor for fine comparisons** — use bars when the exact ranking matters.
 
-### ⑩ The gap between two conditions — dumbbell (paired)
+### ⑪ The gap between two conditions — dumbbell (paired)
 
 > Type=`Dumbbell (paired)`, Category (X)=`method`, Value (Y)=`accuracy`, Pair group=`tokens`
 > Filters → check only `500` and `16000` under `tokens` (dumbbells read best with exactly two conditions)
 
-![Dumbbell chart showing each method's accuracy moving from 500 to 16000 tokens](assets/guide/r9-dumbbell.png)
+![Dumbbell chart showing each method's accuracy moving from 500 to 16000 tokens](assets/guide/r11-dumbbell.png)
 
 Instead of two bars side by side, this draws **two dots and a connecting line**, so "how much was gained" is read directly as line length.
 **How to read it**: longer line = bigger effect of that condition change. Unlike bars, you see both the starting level and the size of the move.
 
-### ⑪ When you do not know where to start — the `Analyze` button
+### ⑫ When you do not know where to start — the `Analyze` button
 
 Just received a dataset and unsure what to plot first? Press `Analyze` in the header. The tool scans the data and reports
 **data problems → interpretation cautions → findings**, and each row's `＋ Chart` builds the chart that backs it up.
 
-![The automatic analysis panel — findings tagged Data/Caution/Finding, plus the column profile table](assets/guide/r10-analysis.png)
+![The automatic analysis panel — findings tagged Data/Caution/Finding, plus the column profile table](assets/guide/r12-analysis.png)
 
 - **Data** (grey) — constant or empty columns, non-numeric values mixed into numbers (a single `OOM` drops the whole column out of the
   axis candidates), duplicate rows, missing values concentrated in one group, combinations that were never measured. **Fix these first**;
@@ -210,22 +221,22 @@ Each tier carries a one-line note on how to check it. The order of how objective
 The analysis runs on **the rows still in the table** (rows excluded from charts are left out) and is discarded whenever the data changes. It is never stored in the session.
 If nothing at all is reported, read the **scan scope** line at the top of the panel: it lists which columns were treated as groups and conditions and what was excluded and why, which tells you whether the relationships were weak or there were simply no conditions to compare.
 
-### ⑫ Exporting a report — figures with their sentences
+### ⑬ Exporting a report — figures with their sentences
 
 Once the charts are polished, write one or two sentences into Settings → Style → **Caption** for each ("what this figure says") and pick `Export ▾` → `Report MD`.
 You get one markdown file plus the chart PNGs; every chart section carries its **caption, setup and the filters in effect**, and if the analysis has been run, its findings summary and caveat are appended.
 
 **Why the filter conditions must travel with the figure**: a conclusion that only holds for tokens ≤ 4000, screenshotted with the filter on and pasted without stating it, will be read as a conclusion about the whole dataset. The report writes that condition down for you.
-When moving findings into prose, do not convert them into causal claims (see "How to read the findings" in ⑪) and keep only what you need.
+When moving findings into prose, do not convert them into causal claims (see "How to read the findings" in ⑫) and keep only what you need.
 
 **When you need the numbers next to the picture** — the card's `Table` button shows the chart's own columns, with the chart's filters applied.
 It is where you check "what exactly is that point", and for anyone who cannot see the graph it is the only way to read it.
 The table redraws whenever the plot does, so the two can never disagree.
 
-### ⑬ Living with a weekly log
+### ⑭ Living with a weekly log
 
-Re-adding a file under the same name replaces the data and keeps your chart settings. Since v0.14 it also keeps **the work you did by hand**:
-rows you excluded, rows you faded, point labels you dragged into place — and, since v0.15, **text markers** — all carry over.
+Re-adding a file under the same name replaces the data and keeps your chart settings. it also keeps **the work you did by hand**:
+rows you excluded, rows you faded, point labels you dragged into place — and, **text markers** — all carry over.
 Rows are recognised by their **condition columns** (method, tokens — the ones with few distinct values), so refreshed measurements still map to the same row.
 If the conditions themselves change (a new method appears), those count as new rows.
 When the point a marker referred to is gone, it is **hidden rather than left in the wrong place**, and you're told — check Settings → Point labels for the ⚠ and its reason, then `Re-anchor` it to another point or delete it.
@@ -247,7 +258,7 @@ via the table's `Columns n/m` button. A switched-off column leaves the table, ax
 so the dropdowns get short again. The data is untouched, `Show all` brings everything back, and charts already drawn on a
 hidden column keep drawing. It also works as an analysis control: switch off a column you don't want scanned.
 
-### ⑱ The spread of repeated runs — what a box hides
+### ⑮ The spread of repeated runs — what a box hides
 
 Results from repeated seeds lose half their story when reduced to "the mean".
 The three figures below are **the same data** (4 methods × 30 seeds) drawn three ways —
@@ -255,7 +266,7 @@ it is `seeds.csv`, which arrives with `More examples`, so you can follow along e
 
 > type=`Box plot`, Y=`accuracy`, group (colour)=`method`, data=`seeds.csv`
 
-![Box plots of accuracy for four methods — quartiles only](assets/guide/r14-box.png)
+![Box plots of accuracy for four methods — quartiles only](assets/guide/r15-box.png)
 
 A box reports quartiles and whiskers. `adaptive` has a wide box and so does `distill` — **whether they are wide for the same reason is not visible.**
 
@@ -269,7 +280,7 @@ and no mean, median or quartile can show that. `distill` really is evenly spread
 
 > switch the type to `Cumulative (ECDF)`
 
-![ECDFs for four methods — read a threshold vertically](assets/guide/r16-ecdf.png)
+![ECDFs for four methods — read a threshold vertically](assets/guide/r15-ecdf.png)
 
 **Read "what fraction is at or below this value" vertically.** With a fixed threshold ("must clear 0.72 to ship") this is the most direct picture.
 The **flat stretch** in the middle of `adaptive` is bimodality wearing another face — no value was ever observed in that range.
@@ -278,7 +289,7 @@ It is drawn as steps for the same reason: straight lines would **assign probabil
 **Which to use** — below about ten values per method the violin's curve looks smoother than the evidence warrants, so a box or the raw points is more honest.
 Reach for ECDF when a threshold is the question, violin when the shape is, box when many conditions must sit side by side.
 
-### ⑲ When values split into two groups — a broken axis
+### ⑯ When values split into two groups — a broken axis
 
 Sometimes one metric spans orders of magnitude (CPU vs GPU latency, a small model vs a large one).
 On a single axis the smaller group is pinned to the floor and its members **cannot even be told apart**.
@@ -286,13 +297,13 @@ On a single axis the smaller group is pinned to the floor and its members **cann
 
 > Type=`Scatter + line`, X=`batch`, Y=`latency_ms`, Group (colour)=`backend`, Data=`scales.csv`
 
-![On one axis the two gpu lines collapse onto the floor](assets/guide/r17-break-before.png)
+![On one axis the two gpu lines collapse onto the floor](assets/guide/r16-break-before.png)
 
 Only `cpu` reads; `gpu` and `gpu-int8` look like a single overlapping line — even though they differ by 30%.
 
 > Change the type to `Broken axis` and leave the range empty
 
-![With the axis broken, each group reads in its own range](assets/guide/r17-break.png)
+![With the axis broken, each group reads in its own range](assets/guide/r16-break.png)
 
 **The axis splits in two and the space between is folded away, marked `⁄⁄`.** Each group gets its own range,
 so the gap between `gpu` and `gpu-int8` reads alongside the growth of `cpu`.
@@ -310,7 +321,7 @@ A broken axis is for two groups that each need to read linearly.
 And never on **bars** (which is why the bar type has no break) — a bar's length *is* the quantity, so breaking
 the axis makes the picture lie. If the two are different metrics, a **secondary Y axis** is the right tool.
 
-### ⑮ When the CSV came in wide — melting
+### ⑰ When the CSV came in wide — melting
 
 A file whose columns run sideways (`baseline, ours, ablation`) does not match this tool's premise of one row per measurement.
 Axes, groups and filters all assume one column means one thing, so as-is there is no way to colour by method.
@@ -323,20 +334,21 @@ The original is untouched and a `…-long.csv` appears. The new `variable` colum
 **The default guess is wrong often** — sweep knobs are numeric too, so move the condition columns across by hand.
 The preview says how many rows you will get before you commit.
 
-### ⑯ When measurements and metadata live in different files — joining
+### ⑱ When measurements and metadata live in different files — joining
 
-Measurements in `runs.csv`, model parameters and prices in `models.csv` is a common split.
-Opening both only stacked the rows, so "accuracy against parameter count" used to be unplottable.
+Measurements live in the run log, while model parameters or unit prices sit in a separate table. That split is common,
+and opening both files only stacks rows — so a chart like "accuracy vs parameter count" was out of reach.
 
-To try it, press `More examples` and follow the steps with `example.csv` + `methods.csv` (the key is `method`).
+`More examples` brings in `methods.csv` (`params_b` and `price_per_1k` per `method`). Pair it with `example.csv` and follow along.
 
-> Computed columns → kind=`Look up from another file` → from=`models.csv`, column=`params_b`, match key=`model`
+> Computed columns → kind=`Look up from another file` → from=`methods.csv`, column=`params_b`, match key=`method`
+> New chart: X axis=`params_b`, Y axis=`accuracy`, group=`method`
 
 Only columns present in **both** files are offered as keys, and choosing one immediately reports **how many rows will find a match** —
 zero means the key is wrong, and you know before committing. Several matches fold via first/mean/sum/min/max/count.
 **Rows are never added** (only a column). Four metadata fields means four definitions.
 
-### ⑰ A figure that meets the submission spec — size, error, ranges
+### ⑲ A figure that meets the submission spec — size, error, ranges
 
 What reads well on screen and what reads well in a paper are different things.
 
@@ -344,7 +356,7 @@ What reads well on screen and what reads well in a paper are different things.
 > Settings → Data → Error=`accuracy_std` (column) — when the ± value already exists as a column. The example is `repeat.csv`
 > Settings → Baselines → `＋ Span` to shade the range you want to call out
 
-![A figure sized for a 170mm column, with error bars and a shaded recommended range](assets/guide/r11-spec-error-span.png)
+![A figure sized for a 170mm column, with error bars and a shaded recommended range](assets/guide/r19-spec-error-span.png)
 
 - **If the text is small, raise the font size, not the dpi.** The hint shows the resulting pt — dpi does not change the physical text size.
 - The single `Error` row picks **column or statistic** — a precomputed `_std` column draws as-is, and `Std dev`/`Std error` appear only when the aggregate is `Mean` (the column is ignored while aggregating).
@@ -360,23 +372,12 @@ The (a)–(d) panel figure that papers want is usually assembled by hand somewhe
 > Draw every chart you want first (use Style → `Copy this look to…` to match fonts and sizes if needed)
 > Top bar `Export ▾` → `Several figures on one sheet…` → Columns=`2`, Panel labels=`(a) (b) (c)`, unit=`mm`, width=`170`, dpi=`300`
 
-![Four charts laid out in two columns, each panel labelled (a)–(d)](assets/guide/r18-sheet.png)
+![Four charts laid out in two columns, each panel labelled (a)–(d)](assets/guide/r20-sheet.png)
 
 - **The width is the width of the whole sheet**, not of one panel. 170mm for a two-column paper, 85mm for a single column.
 - **Each panel keeps the aspect ratio it has on screen.** Stretching panels to equal heights would give each a different tick spacing, which makes the comparison lie — if you want them to match, set each chart's `Chart size` first.
 - Pick the charts to include with the checkboxes. Collapsed cards count too, as long as they have been drawn.
 - To add captions or arrows on top, open the saved PNG with `Export ▾` → `Annotate an image…`.
-
-### ⑭ Choosing colors — where is the figure going?
-
-The palette picker sits in the top bar. All four pass colorblind-safety validation, so **any of them is safe**; pick by destination.
-
-- **Papers and conferences** → `Okabe-Ito`: familiar to reviewers and still readable in greyscale print.
-- **Internal decks and dashboards** → `Carbon`: saturated enough to read on a screen.
-- **Figures inside a text document** → `Ink`: quiet, doesn't fight the prose.
-- **Otherwise** → `Default`.
-
-A team on one palette gets consistent method colors across every document. Exporting a session carries the palette choice, but a recipient who already picked one keeps theirs.
 
 ## 3. Principles for effective charts (summary)
 
@@ -394,10 +395,6 @@ A team on one palette gets consistent method colors across every document. Expor
 - **Converting data**: whatever your format, paste the [agent prompt](README.en.md#converting-your-data-to-this-format-agent-prompt) from the README into any LLM together with your file.
 - **Offline distribution**: copying the single `index-offline.html` file is enough — it works identically with no internet.
 
----
-
-© mrc
-
 ## Marking up a capture for a report
 
 Sometimes the picture does not finish the sentence — "it bends here", "this range ran out of memory", "please cover this value".
@@ -412,3 +409,7 @@ Annotations tied to the data (text markers, span shading) belong in the main app
 
 > If the mark needs to **follow the data**, use a text marker in the main app instead.
 > Marks on a capture are burned into the picture, so changing data means capturing again.
+
+---
+
+© mrc
