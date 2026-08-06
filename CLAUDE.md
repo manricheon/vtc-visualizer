@@ -262,7 +262,12 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   `columns`/`numericColumns`/`uniqueVals`의 전 행 스캔(`dataVer` 캐시 — **데이터·계산 컬럼을 바꾸는 코드는 반드시 `invalidateDataCaches()` 호출**),
   5천 점 초과 시 `scattergl` 자동 전환(`useGl()`, `cfg.renderMode` = auto|svg|gl).
   scattergl은 SVG 내보내기가 래스터가 되므로 `exportImg`가 `_forceSvg`로 잠시 SVG로 되돌린 뒤 저장하고 복구한다.
-  대량 배열에 `Math.min(...arr)` 스프레드 금지(스택 초과) — 루프로 쓸 것.
+  대량 배열에 `Math.min(...arr)` 스프레드 금지(스택 초과, 약 12만 원소부터) — **`minMax(values)` 헬퍼를 쓸 것**(v0.52에서 rows-scale 7곳을 옮겼다).
+  v0.52 실측: 20만 자 셀 파싱 97,064 → 36ms(정규식 백트래킹 제거 + 길이 상한 `NUM_MAX_LEN`),
+  5만 행 히트맵 `buildTraces` 74,275 → 45ms(칸마다 `rows.filter`를 돌던 것을 **한 패스 집계 Map**으로 — 그 Map은 이미 있었는데 쓰지 않았다),
+  13만 행 정규화 계산 컬럼 RangeError → 45ms.
+  **정규식에 되돌아갈 자리를 만들지 말 것**: `\d+\.?\d*`처럼 두 수량자가 같은 자리를 다투면 긴 값에서 O(n²)가 된다.
+  **제외·흐리게는 `dataVer`를 올리지 않는다** — 그리는 값이 그 표시에 따라 달라지면 `curationVer`(`bumpCuration()`)를 캐시 키에 넣을 것(버블 크기가 실제로 어긋났다).
 - **행 정체성**(v0.14): `rowKeyCols(src)`가 "조건 컬럼"(문자열 + 고유값이 행 수/3 이하인 숫자)을 골라 `rowKey(r)`를 만든다.
   **판정은 파일마다 따로 한다**(v0.35) — 합집합으로 고르면 파일이 하나 더 들어올 때 그 파일에만 있는 컬럼이
   나머지 행에서 빈 값이라 "값이 몇 개뿐"으로 보여 **측정값이 키에 섞이고**, 저장해 둔 `rk` 문자열이 통째로 어긋난다
