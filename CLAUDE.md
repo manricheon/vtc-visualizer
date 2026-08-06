@@ -106,8 +106,20 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   테마별로 `LIGHT_/DARK_` 변형이 있고 `applyTheme()`가 `PALETTE`/`SEQ_SCALE` 스왑 + `CHROME` Object.assign(참조 유지) 후 전 차트 재렌더.
   다크 팔레트는 같은 hue 유지, 다크 서피스 대비가 낮은 진초록·진보라만 밝은 스텝으로. `cfg.fontColor` 빈 값 = 테마 잉크 자동(`inkOf(cfg)`).
 - **테마**: 라이트/다크 — 키 `vtc-visualizer:theme`(auto|light|dark), CSS 토큰은 `:root` + `@media(prefers-color-scheme)` + `[data-theme]`, JS는 `applyTheme()`/`toggleTheme()`(#btnTheme). 첫 실행 OS 따름.
-- **파싱**: `parseCSV` / `parseAny` / `coerce`(숫자 자동 변환). `parseAny`는 세션 스키마(JSON에 datasets+charts 배열)를
-  감지해 전용 에러를 던짐 — 자동 로드는 이를 skip, 수동 입력은 "세션 가져오기" 안내. 함수 내 지역변수를 `t`로 짓지 말 것(i18n `t()` 가림).
+- **파싱**(v0.51 전면 개편): `sniffDelimiter` → `splitRows` → `fixHeader` → `columnRule` → `applyRule`, 입구는 `parseCSV`/`parseAny`.
+  **추측은 셀이 아니라 컬럼 단위로 한다** — 셀마다 추측하면 같은 컬럼에서 `1,5`는 1.5로 `1,234`는 1234로 읽힌다.
+  **유럽식·미국식이 섞이면 문자열로 둔다**(어느 쪽을 골라도 절반이 틀린다). 결측 토큰(`N/A`·`-`·`inf` …)은
+  **그 컬럼의 나머지가 숫자일 때만** 결측이다 — 문자열 컬럼의 `-`는 진짜 값일 수 있다.
+  `007`·16자리 이상 정수는 문자열로 지킨다(숫자로 바꾸면 되돌릴 수 없다).
+  구분자는 후보(`,` `\t` `;` `|`)로 실제 파싱해 **헤더 열 수와 본문이 맞는 비율**로 고른다 —
+  **헤더를 기준으로 삼지 않으면** 한 컬럼짜리 파일의 값에 든 쉼표를 구분자로 착각한다(실제로 그랬다). 아무 후보도 안 맞으면 쪼개지 않는다.
+  따옴표는 RFC4180 — **필드 첫 글자일 때만** 감싸기로 본다(예전엔 중간의 `"`가 모드를 열어 따옴표가 조용히 사라졌다).
+  중복·빈 헤더는 버리지 않고 개명한다(`이름 (2)`·`column 3`).
+  읽은 방식은 `lastParseReport` → `addDataset`이 `parseReports`(데이터셋 이름 키)로 옮기고 칩의 `ⓘ`(`showParseReport`)가 보여 준다.
+  **세션에는 담지 않는다**(이미 파싱된 값이 세션에 있다). 토스트는 **값이 바뀐 경우에만**(`parseNotable`) — 잔소리는 안내가 아니다.
+  `coerce`는 이제 **사용자가 직접 친 한 값**(필터 값·축 범위) 전용이다 — 파일 파싱과 섞지 말 것.
+  `parseAny`는 세션 스키마(JSON에 datasets+charts 배열)를 감지해 전용 에러를 던짐 — 자동 로드는 이를 skip, 수동 입력은 "세션 가져오기" 안내.
+  JSON은 타입이 이미 있으므로 **문자열을 숫자로 추측하지 않는다**. 함수 내 지역변수를 `t`로 짓지 말 것(i18n `t()` 가림).
 - **데이터 모델**: `addDataset`, `allRows`(병합), `columns`, `numericColumns`, `uniqueVals`, `matchFilter`(단일 필터), `applyFilters`(제외 모드만 행 제거), `isDimmed`/`isMutedRow`
   (필터 op: `in` = 다중 선택 체크박스 — 카테고리는 기본, 숫자도 선택 가능·빈 배열은 통과; 그 외 카테고리 `=`,`≠`,`포함`, 숫자 비교 연산. 값 미입력 필터는 무시.
   필터 `mode` 4종(v0.20): `exclude`(기본, 조건 밖 제거) | `excludeIn`(맞는 것 제거) | `dim`(조건 밖 흐리게) | `dimIn`(맞는 것 흐리게).
