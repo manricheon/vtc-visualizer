@@ -457,7 +457,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.50';
+const APP_VERSION = 'v0.51';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -983,6 +983,13 @@ const I18N = {
     'confirm.removeDataset': '{name} ({rows}행)을 지웁니다. 이 데이터를 쓰는 차트 {charts}개는 빈 상태가 됩니다. 계속할까요?',
     'toast.datasetRemoved': '{name}을(를) 지웠습니다.',
     'toast.marksKept': '갱신된 데이터에서 제외·흐리게 표시 {n}행을 그대로 이어받았습니다.',
+    'parse.howTitle': '이 파일을 어떻게 읽었는지 보기',
+    'parse.title': '{name} — 읽은 방식', 'parse.sepLabel': '구분자', 'parse.sizeLabel': '크기', 'parse.size': '{rows}행 × {cols}열',
+    'parse.missingLabel': '결측으로 본 값', 'parse.raggedLabel': '길이가 다른 행', 'parse.renamedLabel': '이름을 바꾼 컬럼', 'parse.colsLabel': '컬럼별 읽기',
+    'parse.kindPlain': '숫자', 'parse.kindUs': '숫자 (1,234 천단위)', 'parse.kindEu': '숫자 (1.234,5 유럽식)', 'parse.kindText': '문자열',
+    'parse.note': '숫자 형식은 컬럼 전체를 보고 한 가지로 정합니다. 유럽식과 미국식이 섞이면 어느 쪽으로도 바꾸지 않고 문자열로 둡니다 — 고르면 반드시 절반이 틀리기 때문입니다.',
+    'parse.sep': '구분자 {sep}', 'parse.eu': '유럽식 소수로 읽음: {cols}', 'parse.renamed': '컬럼 이름 {n}개를 바꿈', 'parse.ragged': '길이가 다른 행 {n}개',
+    'toast.skippedFiles': '{n}개 파일을 건너뛰었습니다 — CSV · TSV · JSON만 읽습니다.',
     'toast.tmStale': '텍스트 마커 {n}개가 기준 점을 잃어 숨겼습니다 — 설정 › 포인트 레이블에서 다시 지정하세요.',
     'toast.tmPick': '마커를 붙일 점을 클릭하세요.',
     'toast.tmReanchored': '마커를 새 점에 다시 붙였습니다.',
@@ -1468,6 +1475,13 @@ const I18N = {
     'confirm.removeDataset': 'Delete {name} ({rows} rows)? The {charts} chart(s) built on it will come out empty. Continue?',
     'toast.datasetRemoved': 'Deleted {name}.',
     'toast.marksKept': 'Carried {n} excluded/faded row mark(s) over to the refreshed data.',
+    'parse.howTitle': 'See how this file was read',
+    'parse.title': '{name} — how it was read', 'parse.sepLabel': 'Delimiter', 'parse.sizeLabel': 'Size', 'parse.size': '{rows} rows × {cols} columns',
+    'parse.missingLabel': 'Read as missing', 'parse.raggedLabel': 'Rows of a different length', 'parse.renamedLabel': 'Renamed columns', 'parse.colsLabel': 'Per column',
+    'parse.kindPlain': 'number', 'parse.kindUs': 'number (1,234 thousands)', 'parse.kindEu': 'number (1.234,5 European)', 'parse.kindText': 'text',
+    'parse.note': 'The number format is decided per column, from the whole column. If European and US formats are mixed, the column is left as text — picking either one would make half the values wrong.',
+    'parse.sep': 'delimiter {sep}', 'parse.eu': 'read as European decimals: {cols}', 'parse.renamed': 'renamed {n} column(s)', 'parse.ragged': '{n} row(s) of a different length',
+    'toast.skippedFiles': 'Skipped {n} file(s) — only CSV, TSV and JSON are read.',
     'toast.tmStale': 'Hid {n} text marker(s) that lost their anchor point — re-anchor them in Settings › Point labels.',
     'toast.tmPick': 'Click a point to anchor the marker to.',
     'toast.tmReanchored': 'Marker re-anchored to the new point.',
@@ -1811,37 +1825,148 @@ function exportSize(cfg, div, format) {
 }
 
 /* ================= parsing ================= */
-function parseCSV(text) {
+/* ---- CSV 읽기 (v0.51) ----
+   원칙: **추측은 셀이 아니라 컬럼 단위로 하고, 어떻게 읽었는지 말한다.**
+   셀마다 따로 추측하면 같은 컬럼에서 `1,5`는 1.5로 `1,234`는 1234로 읽히는 일이 생긴다.
+   그리고 추측했다는 사실 자체가 보여야 "1000배 틀린 값"이 조용히 지나가지 않는다(`lastParseReport`). */
+const DELIMS = [',', '\t', ';', '|'];
+/* 결측으로 보는 토큰 — **컬럼의 나머지가 숫자일 때만** 적용한다.
+   문자열 컬럼의 `-`나 `None`은 진짜 값일 수 있다. */
+const MISSING_TOKENS = new Set(['nan', 'n/a', 'na', '-', '–', '—', 'null', 'none', 'nil',
+  'inf', '-inf', '+inf', 'infinity', '-infinity']);
+const RE_PLAIN = /^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/;      // 1234.5 · 1e3
+const RE_EU_DEC = /^-?\d{1,3}(\.\d{3})*,\d+$/;                    // 1.234,5 · 1,5  (소수점이 쉼표)
+/* `1.234`는 유럽식 천단위(1234)일 수도 평범한 소수(1.234)일 수도 있다 — **혼자서는 증거가 못 된다**.
+   그래서 분류에는 쓰지 않고, 같은 컬럼에 소수점 쉼표(`1,5`·`1.234,5`)가 **있을 때만** 천단위로 되돌린다.
+   (이 구분을 빼먹었더니 `0.599`가 599로 읽혔다 — 예시 데이터의 accuracy가 통째로 틀어졌다.) */
+const RE_EU_THOU = /^-?\d{1,3}(\.\d{3})+$/;
+const RE_US_THOU = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/;                // 1,234 · 1,234.5
+/* 식별자 보호 — 선행 0이나 16자리 이상 정수는 숫자로 바꾸면 되돌릴 수 없다(007 → 7) */
+const RE_IDLIKE = /^[-+]?0\d+$|^\d{16,}$/;
+let lastParseReport = null;   // addDataset이 집어 간다 (파일 하나를 읽는 동안만 산다)
+
+/* RFC4180: 따옴표 모드는 **필드 첫 글자일 때만** 연다.
+   예전에는 필드 중간의 `"`도 모드를 열어 `He said "hi"`의 따옴표가 조용히 사라졌다. */
+function splitRows(text, sep) {
   const rows = [];
-  let field = '', row = [], inQ = false;
-  const pushF = () => { row.push(field); field = ''; };
+  let field = '', row = [], inQ = false, atStart = true;
+  const pushF = () => { row.push(field); field = ''; atStart = true; };
   const pushR = () => { if (row.length > 1 || row[0] !== '') rows.push(row); row = []; };
-  const sep = text.split('\n', 1)[0].includes('\t') ? '\t' : ',';
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (inQ) {
       if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
       else field += c;
-    } else if (c === '"') inQ = true;
+    } else if (c === '"' && atStart) { inQ = true; atStart = false; }
     else if (c === sep) pushF();
     else if (c === '\n') { pushF(); pushR(); }
-    else if (c !== '\r') field += c;
+    else if (c !== '\r') { field += c; atStart = false; }
   }
   if (field !== '' || row.length) { pushF(); pushR(); }
-  if (rows.length < 2) throw new Error(t('err.csvHeaderRows'));
-  const header = rows[0].map(h => h.trim());
-  return rows.slice(1).map(r => {
-    const o = {};
-    header.forEach((h, i) => { o[h] = coerce(r[i]); });
-    return o;
-  });
+  return rows;
 }
+/* 구분자 추정 — 앞 20줄을 후보별로 **실제 파싱해**, 본문이 헤더와 같은 열 수로 떨어지는 비율로 고른다.
+   글자 세기로 고르면 값 안에 든 쉼표에 속고(따옴표 안은 세면 안 된다),
+   **헤더를 기준으로 삼지 않으면** 한 컬럼짜리 파일의 값에 든 쉼표를 구분자로 착각한다(실제로 그랬다). */
+function sniffDelimiter(text) {
+  const head = text.split('\n').slice(0, 20).join('\n');
+  let best = { sep: '\u0000', score: -1, cols: 1 };   // 아무 후보도 안 맞으면 한 컬럼(쪼개지 않는다)
+  for (const sep of DELIMS) {
+    const rows = splitRows(head, sep).filter(r => r.length);
+    if (rows.length < 2) continue;
+    const h = rows[0].length;
+    if (h < 2) continue;                                // 헤더가 한 칸이면 이 구분자로 된 표가 아니다
+    const body = rows.slice(1);
+    const fit = body.filter(r => r.length === h).length / body.length;
+    const score = fit * 100 + Math.min(h, 50) / 100;    // 헤더와 맞는 비율 우선, 동률이면 열이 많은 쪽
+    if (score > best.score) best = { sep, score, cols: h };
+  }
+  return best;
+}
+/* 컬럼 하나의 읽기 규칙 — 표본(최대 500개)을 보고 하나만 고른다.
+   **섞이면 문자열로 둔다**: 유럽식과 미국식이 함께 있으면 어느 쪽을 골라도 반은 틀린다. */
+function columnRule(values) {
+  let plain = 0, euOnly = 0, usOnly = 0, ambig = 0, other = 0, idlike = 0, missing = 0;
+  for (const raw of values) {
+    const s = String(raw).trim();
+    if (s === '') { missing++; continue; }
+    if (MISSING_TOKENS.has(s.toLowerCase())) { missing++; continue; }
+    if (RE_IDLIKE.test(s)) { idlike++; continue; }
+    const eu = RE_EU_DEC.test(s);            // 소수점 쉼표만이 유럽식의 확실한 증거다
+    const us = RE_US_THOU.test(s);
+    if (eu && us) ambig++;
+    else if (eu) euOnly++;
+    else if (us) usOnly++;
+    else if (RE_PLAIN.test(s)) plain++;
+    else other++;
+  }
+  if (other || idlike) return 'text';                       // 숫자가 아닌 값이 하나라도 있으면 그대로 둔다
+  if (!plain && !euOnly && !usOnly && !ambig) return 'text'; // 전부 결측이면 문자열 취급(값이 없다)
+  if (euOnly && usOnly) return 'text';                      // 섞임 — 고르면 반드시 반이 틀린다
+  if (euOnly) return 'eu';
+  if (usOnly || ambig) return 'us';                         // 모호한 `1,234`만 있으면 지금까지처럼 천단위
+  return 'plain';
+}
+function applyRule(raw, rule) {
+  if (raw === undefined || raw === null) return null;
+  const s = String(raw).trim();
+  if (s === '') return null;
+  if (rule === 'text') return s;
+  if (MISSING_TOKENS.has(s.toLowerCase())) return null;     // 숫자 컬럼에서만 결측으로 본다
+  let t2 = s;
+  if (rule === 'eu') t2 = s.replace(/\./g, '').replace(',', '.');
+  else if (rule === 'us') t2 = s.replace(/,/g, '');
+  const n = Number(t2);
+  return Number.isFinite(n) ? n : s;
+}
+/* 사용자가 **직접 친 한 값**(필터 값·축 범위)을 숫자로 — 파일 파싱과는 다른 일이다.
+   여기서는 컬럼 규칙을 알 수 없으므로 평범한 수와 천단위 쉼표까지만 받는다. */
 function coerce(v) {
   if (v === undefined || v === null) return null;
   const s = String(v).trim();
   if (s === '') return null;
   const n = Number(s.replace(/,/g, ''));
   return Number.isFinite(n) && /^[\s]*[-+]?[\d.,eE+-]+[\s]*$/.test(s) ? n : s;
+}
+/* 헤더 이름 — 중복·빈 칸을 **버리지 않고 개명한다**(예전에는 마지막 것만 남고 빈 이름은 고를 수 없는 유령이었다) */
+function fixHeader(raw) {
+  const out = [], renamed = [], seen = new Set();
+  raw.forEach((h0, i) => {
+    let h = String(h0 == null ? '' : h0).trim();
+    const empty = h === '';
+    if (empty) h = `column ${i + 1}`;
+    let name = h, n = 2;
+    while (seen.has(name)) name = `${h} (${n++})`;
+    if (name !== String(h0 == null ? '' : h0).trim()) renamed.push([empty ? '(빈 이름)' : String(h0).trim(), name]);
+    seen.add(name); out.push(name);
+  });
+  return { header: out, renamed };
+}
+function parseCSV(text) {
+  const sniff = sniffDelimiter(text);
+  const rows = splitRows(text, sniff.sep);
+  if (rows.length < 2) throw new Error(t('err.csvHeaderRows'));
+  const { header, renamed } = fixHeader(rows[0]);
+  const body = rows.slice(1);
+  /* 컬럼마다 규칙을 정한다 — 표본은 앞에서부터 500개(비어 있지 않은 값 기준이 아니라 행 기준: 값이 드문 컬럼도 있다) */
+  const sample = body.slice(0, 500);
+  const rules = header.map((h, i) => columnRule(sample.map(r => r[i]).filter(v => v !== undefined)));
+  let ragged = 0, missing = 0;
+  const out = body.map(r => {
+    if (r.length !== header.length) ragged++;
+    const o = {};
+    header.forEach((h, i) => {
+      const v = applyRule(r[i], rules[i]);
+      if (v === null && r[i] !== undefined && String(r[i]).trim() !== '') missing++;   // 토큰이 결측으로 바뀐 횟수
+      o[h] = v;
+    });
+    return o;
+  });
+  lastParseReport = {
+    kind: 'csv', sep: sniff.sep, rows: out.length, cols: header.length,
+    rules: header.map((h, i) => [h, rules[i]]), renamed, ragged, missing,
+  };
+  return out;
 }
 function parseAny(text, filename) {
   const s = text.trim();   // 주의: 이름을 t로 지으면 i18n t()를 가림 (실제 있었던 버그)
@@ -1859,7 +1984,7 @@ function parseAny(text, filename) {
       const r = {};
       for (const k of Object.keys(o)) {
         const v = o[k];
-        r[k] = (v !== null && typeof v === 'object') ? JSON.stringify(v) : (typeof v === 'string' ? coerce(v) : v);
+        r[k] = (v !== null && typeof v === 'object') ? JSON.stringify(v) : v;   // JSON은 타입이 이미 있다 — 문자열을 숫자로 추측하지 않는다
       }
       return r;
     });
@@ -1915,8 +2040,12 @@ function rowKeyCols(src) {
 }
 /* 컬럼 목록을 넘기지 않으면 **그 행이 온 파일**의 것을 쓴다 */
 function rowKey(r, cols) { return (cols || rowKeyCols(r._source)).map(c => String(r[c])).join('\u0001'); }
+/* 파일마다 "어떻게 읽었는지"를 남긴다(v0.51) — 칩의 `ⓘ`가 이걸 보여 준다.
+   세션에는 담지 않는다: 이미 파싱된 값이 세션에 있고, 리포트는 **이번에 읽은 방식**의 기록이다. */
+const parseReports = new Map();
 function addDataset(name, rows) {
   if (!rows.length) { alert(tf('err.noRowsInDataset', { name })); return; }
+  if (lastParseReport) { parseReports.set(name, lastParseReport); lastParseReport = null; }
   if (!sourceWarned && rows.some(r => r._source !== undefined)) {   // _source는 예약어 — 덮어쓰되 침묵하지는 않는다
     sourceWarned = true;
     showToast(t('toast.sourceOverwritten'));
@@ -5682,14 +5811,50 @@ function renderChips() {
   const box = document.getElementById('datasetChips');
   box.innerHTML = '';
   for (const d of state.datasets) {
+    const rep = parseReports.get(d.name);
     box.append(el('span', { class: 'chip' },
       d.name, el('span', { class: 'n' }, tf('chips.rows', { n: d.rows.length })),
+      ...(rep ? [el('button', { title: t('parse.howTitle'), onclick: e => showParseReport(d.name, e) }, 'ⓘ')] : []),
       el('button', { title: t('melt.title'), onclick: e => showMeltPopover(d, e) }, '⇲'),
       el('button', { title: t('btn.delete'), onclick: () => askRemoveDataset(d.id) }, '×'),
     ));
   }
   renderStarterChips();
   applyDataFold();   // 파일이 늘고 줄 때마다 요약 줄도 따라간다
+}
+/* 읽은 방식 — 추측했다는 사실이 보여야 "1000배 틀린 값"이 조용히 지나가지 않는다.
+   성공적으로 평범하게 읽은 파일에는 아무 말도 하지 않는다(잔소리는 안내가 아니다). */
+const SEP_NAME = { ',': ',', '\t': 'Tab', ';': ';', '|': '|' };
+function parseNotable(rep) {
+  if (!rep) return [];
+  const out = [];
+  if (rep.sep !== ',') out.push(tf('parse.sep', { sep: SEP_NAME[rep.sep] || rep.sep }));
+  const eu = rep.rules.filter(([, r]) => r === 'eu').map(([h]) => h);
+  if (eu.length) out.push(tf('parse.eu', { cols: eu.join(', ') }));
+  if (rep.renamed.length) out.push(tf('parse.renamed', { n: rep.renamed.length }));
+  if (rep.ragged) out.push(tf('parse.ragged', { n: rep.ragged }));
+  return out;
+}
+function showParseReport(name, ev) {
+  const rep = parseReports.get(name);
+  if (!rep) return;
+  popover.innerHTML = '';
+  const line = (k, v) => el('div', { class: 'pp-row' }, el('span', { class: 'lbl' }, k), el('span', {}, v));
+  const kinds = { plain: t('parse.kindPlain'), us: t('parse.kindUs'), eu: t('parse.kindEu'), text: t('parse.kindText') };
+  popover.append(
+    el('div', { class: 'pp-title' }, tf('parse.title', { name })),
+    line(t('parse.sepLabel'), SEP_NAME[rep.sep] || rep.sep),
+    line(t('parse.sizeLabel'), tf('parse.size', { rows: rep.rows, cols: rep.cols })),
+    ...(rep.missing ? [line(t('parse.missingLabel'), String(rep.missing))] : []),
+    ...(rep.ragged ? [line(t('parse.raggedLabel'), String(rep.ragged))] : []),
+    ...(rep.renamed.length ? [el('div', { class: 'pp-sub' }, t('parse.renamedLabel')),
+      ...rep.renamed.map(([a, b]) => el('div', { class: 'pp-note' }, `${a} → ${b}`))] : []),
+    el('div', { class: 'pp-sub' }, t('parse.colsLabel')),
+    el('div', { class: 'pp-list' }, ...rep.rules.map(([h, r]) =>
+      el('div', { class: 'pp-check' }, el('span', { class: 'cname' }, h), el('span', { class: 'lbl' }, kinds[r] || r)))),
+    el('div', { class: 'pp-note' }, t('parse.note')),
+  );
+  placePopover(ev, tf('parse.title', { name }));
 }
 /* 레시피 칩 — `starterList()`는 v0.17부터 "지금 데이터에서 역할이 채워지는 레시피"만 내놓는데,
    입구가 **카드 안 `프리셋` 팝오버 하나**였다. 차트를 이미 만든 사람만 볼 수 있는 자리다.
@@ -6664,13 +6829,21 @@ function onDataChanged(autoChart = true) {
   save();
 }
 async function loadFiles(files) {
+  let skipped = 0;
+  const notable = [];
   for (const f of files) {
-    if (!/\.(csv|tsv|json)$/i.test(f.name)) continue;
+    if (!/\.(csv|tsv|json)$/i.test(f.name)) { skipped++; continue; }   // 예전에는 아무 말 없이 넘겼다
     try {
       const text = await f.text();
-      addDataset(f.name.replace(/^.*\//, ''), parseAny(text, f.name));
+      const name = f.name.replace(/^.*\//, '');
+      addDataset(name, parseAny(text, f.name));
+      /* **값이 바뀐 경우에만** 한 줄 — 평범하게 읽힌 파일에는 아무 말도 하지 않는다 */
+      const n = parseNotable(parseReports.get(name));
+      if (n.length) notable.push(`${name}: ${n.join(' · ')}`);
     } catch (e) { alert(tf('err.parseFailed', { name: f.name, msg: e.message })); }
   }
+  if (notable.length) setTimeout(() => showToast(notable.join(' / ')), 120);
+  if (skipped) setTimeout(() => showToast(tf('toast.skippedFiles', { n: skipped })), 240);
 }
 
 const dz = document.getElementById('dropzone');

@@ -56,11 +56,22 @@ Files keep merging as you add them. Re-adding the same filename replaces it.
 
 ## Data format (input contract)
 
-- **CSV**: first line is the header, then one row = one measurement point. (TSV also works)
+- **CSV**: first line is the header, then one row = one measurement point. The delimiter is detected among **comma, tab, semicolon and pipe** (whichever makes the body match the header's column count).
 - **JSON**: an array of objects `[{"method": "ours", "tokens": 4000, "score": 0.744}, …]`
 - **No required columns.** Numeric columns automatically become axis candidates; string columns become group (color) / filter candidates.
 - Column names are free-form, and files may have different columns (merged as a union; missing cells show as `–`).
 - With two or more files loaded, the source filename appears as a `_source` column usable for grouping/filtering (hidden with a single file).
+
+**How numbers are read** — the guess is made **per column**, never per cell. The `ⓘ` on a dataset chip shows how that file was read.
+
+| Input | How it is read |
+|---|---|
+| `1,234.5` / `1.234,5` | If the whole column is one format, that format (US / European). **If they are mixed the column stays text** — picking either one would make half the values wrong |
+| `N/A` · `NaN` · `-` · `null` · `inf` | Treated as missing **only when the rest of the column is numeric** (a `-` in a text column may be a real value) |
+| `007` · integers of 16+ digits | Kept as text — converting them loses the leading zero or the last digits, irreversibly |
+| `2024-01-05` | Text (a category). There is no time axis yet |
+| Duplicate / empty headers | Not dropped — renamed to `name (2)` / `column 3` |
+| A `"` mid-field | A literal character. Only a `"` as the **first** character of a field opens a quoted field (RFC4180) |
 
 Recommended shape (long-form / tidy — one measurement per row):
 
@@ -221,6 +232,17 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 ## Changelog
 
 The version shows next to the title (top-right) and in the footer, matching the git tag (`v0.x`).
+
+### v0.51 — the values it used to read wrong
+
+- **European decimals were off by 1000×.** `1.234,5` became `1.2345` and was plotted as such. The format is now decided from the whole column — and **if European and US formats are mixed the column stays text** (picking one would make half the values wrong).
+- **Semicolon and pipe CSVs** are read (what European Excel exports by default). The delimiter is chosen by which one makes the body match the header, so a comma inside a value in a single-column file is no longer mistaken for a delimiter.
+- `N/A`, `NaN`, `-`, `null` and `inf` count as missing **only when the rest of the column is numeric**. One such value used to turn the whole column into text, which **removed it from every axis picker**. In a text column, `-` stays a value.
+- `007` and integers of 16+ digits are **kept as text** (converting them is irreversible).
+- Fixed a `"` in the middle of a field **silently deleting the quotes** (`He said "hi"`).
+- Duplicate and empty headers are renamed (`name (2)`, `column 3`) instead of dropped. Rows of a different length are counted.
+- The **`ⓘ`** on a dataset chip records how the file was read (delimiter, per-column format, missing count, renames, odd rows). **A file that read plainly says nothing** — you only get a line when a value was reinterpreted.
+- Dropping a file that is not CSV/TSV/JSON now **says it was skipped** (it used to do nothing at all).
 
 ### v0.50 — narrow screens, and the annotation tool's dialog
 
