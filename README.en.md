@@ -59,7 +59,7 @@ For what to do next, the [visualization guide](GUIDE.en.md) has recipes organise
 
 - **Drag & drop** CSV/JSON files (multiple at once)
 - **Open files… / Open folder…** buttons
-- **Paste data…** button → paste CSV/JSON text
+- **Paste** — ⌘/Ctrl+V anywhere on the page, or the **Paste data…** button. Before adding, it shows how many rows and columns it read and which delimiter it used
 - When launched via `visualizer.py`, files in the given folder load automatically
 
 Files keep merging as you add them. Re-adding the same filename replaces it.
@@ -102,6 +102,7 @@ ours,4000,4.1,0.744,MMLU
 | Feature | How |
 |---|---|
 | **Collapsible data card** | The `▾` in the data-input header folds the card to a single line once your files are loaded (245 → 52px). Dropping files still works while collapsed, and a one-line summary keeps showing what is loaded |
+| **Paste preview** | ⌘/Ctrl+V anywhere opens the paste box (it is not intercepted inside an input). Before you press `Add` it shows `24 rows × 5 columns — method, tokens, …` plus anything notable about the reading (semicolons, European decimals), and says when the name matches an existing dataset. A file it cannot read is reported in place, with your text left untouched |
 | **Recipe chips** | Loading data adds a `Try one of these:` row to the data card — only recipes that actually draw with the current columns, and clicking one applies it to the first chart (no new cards) |
 | **Example data** | `Load example data` brings the 24-row basic set; `More examples` adds five companions (metadata, a wide CSV, standard deviations, repeated seeds, two backends orders of magnitude apart) so guide recipes ⑮⑯⑰⑱⑲ can be followed as written |
 | **Melt (wide → long)** | The `⇲` button on a dataset chip: turns a file whose columns are spread sideways (`baseline, ours, ablation`) into one row per measurement as a new dataset. The original is untouched, and the new name column works as a group/facet/filter straight away |
@@ -181,7 +182,7 @@ ours,4000,4.1,0.744,MMLU
 | **Export size** | Settings → Export size: presets for paper 1-column (85mm), 2-column (170mm) and slides, or mm/inch directly, plus dpi. The hint shows the pixels it will save and the pt size of body text (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
 | **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
 | **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting into a single file. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
-| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing |
+| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing. If the data is too large to store, a `Not saving` button stays in the top bar (click it to export the session to a file) and the next time you open the app it tells you the restored session predates those changes |
 | **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They assume no column names — roles (category, sweep knob, score, cost) are matched against your current data by value distribution, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
 | **Copy the look to other charts** | Settings → Style → `Copy this look to…`: font, text size/color, legend, size, grid, plot face, tick format and export spec in one go (with undo). Settings that point at data (axes, group, filters) are never copied |
 | **Chart presets** | `Presets` button on each card: save the current chart's settings only (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
@@ -243,11 +244,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.55** — The paste box previews what it read before you add it, and `⌘/Ctrl+V` works anywhere on the page. Loading several files refreshes once instead of once per file (10 files: 1,520 → 245ms). When storage fills up and autosave stops, the top bar keeps saying so.
 - **v0.54** — The documentation was rewritten. Both READMEs now open with a five-minute walkthrough and the full history moved to [CHANGELOG.md](CHANGELOG.md). Guide recipes are renumbered ①–⑳ in reading order, and the join recipe that could not be followed now uses a companion file that exists.
 - **v0.53** — Columns whose names start with an underscore (`_id`) used to vanish from the UI; they are renamed on load instead. A file that carries a column named like one of your computed columns keeps its own values. Autoload failures are reported rather than swallowed.
 - **v0.52** — Three places that stalled on large data. Parsing a 200k-character cell went from 97 seconds to 36 ms, and a 50k-row heatmap from 74 seconds to 45 ms.
 - **v0.51** — Numbers that were read wrong: European decimals like `1.234,5`, semicolon-separated CSVs, numeric columns containing `N/A`. The `ⓘ` on a dataset chip shows how a file was read.
-- **v0.50** — Popovers stay on screen at narrow widths, and the annotation tool's dialog follows the same keyboard rules as the main app.
 
 ---
 

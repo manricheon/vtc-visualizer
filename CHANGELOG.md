@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.55 — the way data comes in
+> v0.55 — 데이터가 들어오는 길
+
+- **Paste is the entrance people actually use**, and it was the one with no preview. `⌘/Ctrl+V` now works anywhere on the page (it is not intercepted while you are typing in a field), and before you press `Add` the box tells you `24 rows × 5 columns — method, tokens, …`, how the delimiter and decimals were read, and whether the name matches an existing dataset (which means *update*, keeping your excluded and dimmed marks).
+- **A file that could not be read used to open a browser dialog per file.** Dropping 20 files with 3 broken ones meant closing three boxes. They are now collected into the one-line report autoload already used, and parse errors in the paste box are shown in place with your text left intact.
+- **Loading several files redrew the table and every chart once per file** — 10 files × 500 rows took **1,520ms; now 245ms**. The refresh happens once, at the end. Cache invalidation still happens per file (row identity must not read a stale column list).
+- **When storage filled up, autosave switched off with a toast that vanished after five seconds.** Everything after that looked normal while nothing was being saved — and a refresh silently restored the older session. A `Not saving` button now stays in the top bar (click to export), and the next launch says the restored session predates those changes.
+
 ### v0.54 — the docs, rewritten to be read
 > v0.54 — 읽으라고 쓴 문서
 

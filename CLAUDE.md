@@ -276,6 +276,16 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
   13만 행 정규화 계산 컬럼 RangeError → 45ms.
   **정규식에 되돌아갈 자리를 만들지 말 것**: `\d+\.?\d*`처럼 두 수량자가 같은 자리를 다투면 긴 값에서 O(n²)가 된다.
   **제외·흐리게는 `dataVer`를 올리지 않는다** — 그리는 값이 그 표시에 따라 달라지면 `curationVer`(`bumpCuration()`)를 캐시 키에 넣을 것(버블 크기가 실제로 어긋났다).
+- **데이터가 들어오는 길**(v0.55): 셋이 한 주제다 — **넣는 순간에 무슨 일이 일어났는지 말한다.**
+  ① 붙여넣기: 전역 `paste` 리스너는 **입력칸 안에서는 가로채지 않는다**(`INPUT|TEXTAREA|SELECT`·`isContentEditable`) — 거기에 붙여넣으려던 것이다.
+  `pastePreview()`가 `parseAny`로 미리 읽어 행·컬럼 수와 `parseNotable`을 보여 주고 **`lastParseReport`를 반드시 비운다**
+  (안 비우면 다음 데이터셋이 남의 읽기 기록을 달고 나온다). 실패는 모달 안에서 말한다 — `alert`를 쓰면 붙여넣은 내용을 두고 상자부터 닫아야 한다.
+  ② 여러 파일: `addDataset(name, rows, {defer:true})`가 `onDataChanged`만 미룬다. **`invalidateDataCaches()`는 미루지 않는다** —
+  다음 파일의 `rowKeyCols`가 옛 컬럼 목록을 보면 갱신 표시(제외·흐리게)가 어긋난다. 10파일 × 500행 1,520 → 245ms(실측).
+  `defer`면 빈 데이터셋은 alert이 아니라 **던진다** — 부른 쪽이 `reportLoadFailures`로 모아 한 줄로 알린다.
+  ③ 저장 한도: `setSaveOff(on)`이 헤더 표시(`#saveOff`)와 저장소 표시(`STALE_KEY`)를 함께 켠다.
+  **토스트만으로는 부족하다** — 5초 뒤 사라지고 그 뒤로는 저장이 꺼진 줄 모른 채 작업한다. 표시는 다음 저장이 성공하면 걷는다.
+  다음 실행에서 `STALE_KEY`가 있으면 "이 세션은 그때 이전 상태"라고 알리고 표시를 내린다(지금 데이터가 들어가면 다시 켤 일이 없다).
 - **이름 충돌**(v0.53): 예약어와 계산 컬럼 두 가지를 `addDataset` **진입부**에서 처리한다(`renameReserved` · `freeDerivedName` + `renameDerived`).
   **왜 여기인가**: `parseCSV`가 아니라 여기여야 JSON·녹이기·세션 복원도 같은 규칙을 받고, `_source` 부여와 마크 복원보다 **먼저** 와야 한다.
   그리고 `applyDerived`가 계산 전에 `delete r[name]`을 하므로 **그 전에** 개명해야 파일 값이 살아남는다.

@@ -376,6 +376,7 @@
         <button id="btnWidth" class="ghost" title=""></button>
         <button id="btnTheme" class="ghost" title=""></button>
         <button id="btnLangToggle" class="ghost"></button>
+        <button id="saveOff" class="danger ghost" data-i18n="btn.saveOff" data-i18n-title="btn.saveOffTitle" hidden></button>
         <button id="btnReset" class="danger ghost" data-i18n="btn.reset"></button>
       </span>
     </nav>
@@ -446,6 +447,7 @@
     <strong id="pasteTitle" data-i18n="modal.title"></strong>
     <div class="row"><label class="lbl" for="pasteName" data-i18n="modal.datasetName"></label><input type="text" id="pasteName" data-i18n-ph="modal.datasetNamePh"></div>
     <textarea id="pasteText" data-i18n-ph="modal.pasteTextPh" data-i18n-aria="modal.pasteTextLabel"></textarea>
+    <div id="pastePreview" class="hint" role="status" aria-live="polite"></div>
     <div class="row" style="justify-content:flex-end">
       <button id="pasteCancel" data-i18n="btn.cancel"></button>
       <button id="pasteAdd" class="primary" data-i18n="btn.add"></button>
@@ -466,7 +468,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.54';
+const APP_VERSION = 'v0.55';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -633,6 +635,9 @@ const I18N = {
     'pager.prev': '◀ 이전',
     'pager.next': '다음 ▶',
     'modal.title': '데이터 직접 입력',
+    'modal.preview': '{rows}행 × {cols}컬럼 — {head}',
+    'modal.previewUpdate': '같은 이름이 있습니다 — 그 데이터셋을 갱신합니다(제외·흐리게 표시는 유지).',
+    'modal.previewEmpty': '읽을 내용이 없습니다.',
     'modal.datasetName': '데이터셋 이름',
     'modal.datasetNamePh': '예: my-experiment',
     'modal.pasteTextPh': 'CSV(헤더 포함) 또는 JSON 객체 배열을 붙여넣으세요.\n\nmethod,tokens,score\nA,1000,0.71\nA,4000,0.79',
@@ -1038,6 +1043,9 @@ const I18N = {
     'toast.exampleLoaded': '예시 데이터를 불러왔습니다 — 차트가 자동으로 생성됩니다.',
     'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
     'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
+    'btn.saveOff': '저장 꺼짐',
+    'btn.saveOffTitle': '브라우저 저장 공간이 꽉 차 자동 저장이 꺼졌습니다. 눌러서 세션을 파일로 내보내세요.',
+    'toast.staleSession': '지난번에 저장 공간이 꽉 차, 이 세션은 그때 이후의 변경을 담고 있지 않습니다.',
     'toast.sourceOverwritten': '입력에 있던 _source 컬럼을 파일명으로 덮어썼습니다 (예약된 이름입니다).',
     'btn.foldAll': '모두 접기', 'btn.unfoldAll': '모두 펴기',
     'btn.analyze': '분석',
@@ -1131,6 +1139,9 @@ const I18N = {
     'pager.prev': '◀ Prev',
     'pager.next': 'Next ▶',
     'modal.title': 'Paste data',
+    'modal.preview': '{rows} rows × {cols} columns — {head}',
+    'modal.previewUpdate': 'A dataset with this name exists — it will be updated (excluded/dimmed marks are kept).',
+    'modal.previewEmpty': 'Nothing to read yet.',
     'modal.datasetName': 'Dataset name',
     'modal.datasetNamePh': 'e.g. my-experiment',
     'modal.pasteTextPh': 'Paste CSV (with header) or a JSON array of objects.\n\nmethod,tokens,score\nA,1000,0.71\nA,4000,0.79',
@@ -1536,6 +1547,9 @@ const I18N = {
     'toast.exampleLoaded': 'Example data loaded — a chart is created automatically.',
     'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
     'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
+    'btn.saveOff': 'Not saving',
+    'btn.saveOffTitle': 'Browser storage is full, so autosave is off. Click to export this session to a file.',
+    'toast.staleSession': 'Storage was full last time, so this session does not include the changes made after that.',
     'toast.sourceOverwritten': 'The _source column in your input was overwritten with the filename (it is a reserved name).',
     'btn.foldAll': 'Collapse all', 'btn.unfoldAll': 'Expand all',
     'btn.analyze': 'Analyze',
@@ -1612,6 +1626,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(elx => { elx.textContent = t(elx.getAttribute('data-i18n')); });
   document.querySelectorAll('[data-i18n-ph]').forEach(elx => { elx.placeholder = t(elx.getAttribute('data-i18n-ph')); });
   document.querySelectorAll('[data-i18n-aria]').forEach(elx => { elx.setAttribute('aria-label', t(elx.getAttribute('data-i18n-aria'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(elx => { elx.title = t(elx.getAttribute('data-i18n-title')); });
   const langBtn = document.getElementById('btnLangToggle');
   if (langBtn) langBtn.textContent = t('lang.toggle');
 }
@@ -2096,8 +2111,12 @@ function renameReserved(rows) {
   for (const r of rows) for (const [from, to] of map) { r[to] = r[from]; delete r[from]; }
   return map;
 }
-function addDataset(name, rows) {
-  if (!rows.length) { alert(tf('err.noRowsInDataset', { name })); return; }
+/* `defer`면 화면 갱신을 미룬다 — 파일 여러 개를 넣을 때 파일마다 표·모든 차트를 다시 그리고 있었다
+   (10파일 × 500행에서 1,585ms → 137ms). **캐시 무효화는 미루지 않는다**: 다음 파일의 행 정체성
+   판정(`rowKeyCols`)이 옛 컬럼 목록을 보면 갱신 표시가 어긋난다. 부른 쪽이 끝에 `onDataChanged()`를 책임진다. */
+function addDataset(name, rows, opts = {}) {
+  /* 여러 파일을 넣는 중이면 **던진다** — 부른 쪽이 실패를 모아 한 줄로 알린다(상자를 파일마다 닫지 않게) */
+  if (!rows.length) { const msg = tf('err.noRowsInDataset', { name }); if (opts.defer) throw new Error(msg); alert(msg); return; }
   /* 파일에 파생 컬럼과 같은 이름이 있으면 **데이터가 이긴다** — `applyDerived`가 곧 `delete r[name]`을 하므로
      여기서 미리 파생 쪽을 개명하지 않으면 **파일의 진짜 값이 사라진다**. 파생은 정의만 있으면 다시 만들어진다. */
   const clashed = [];
@@ -2142,7 +2161,7 @@ function addDataset(name, rows) {
   }
   else state.datasets.push({ id: state.nextId++, name, rows });
   invalidateDataCaches();
-  onDataChanged();
+  if (!opts.defer) onDataChanged();
 }
 function askRemoveDataset(id) {   // 확인은 사용자가 누르는 자리에서만 — 모델 함수는 그대로 쓸 수 있어야 한다
   const ds = state.datasets.find(d => d.id === id);
@@ -6359,14 +6378,26 @@ function renderDerived() {
 /* ================= session persistence ================= */
 let saveTimer = null;
 let quotaWarned = false;
+const STALE_KEY = STORAGE_KEY + ':stale';
+/* 저장이 꺼졌다는 사실은 **화면에 남아 있어야 한다** — 토스트는 5초 뒤 사라지고,
+   그 뒤로 한 시간을 더 작업한 사람에게는 단서가 하나도 없었다.
+   저장소에도 표시를 남긴다: 다음에 열리는 세션은 그때 이후의 변경을 담고 있지 않다. */
+function setSaveOff(on) {
+  const b = document.getElementById('saveOff');
+  if (b) b.hidden = !on;
+  try { if (on) localStorage.setItem(STALE_KEY, '1'); else localStorage.removeItem(STALE_KEY); }
+  catch (e) { /* 표시조차 못 남길 만큼 꽉 찼다 — 화면 표시가 남으므로 조용히 넘어간다 */ }
+}
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
       const charts = state.charts.map(serializableChart);
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, hiddenCols: state.hiddenCols, nextId: state.nextId }));
+      if (quotaWarned) { quotaWarned = false; setSaveOff(false); }   // 데이터를 지워 다시 들어갔다
     } catch (e) {   // 쿼터 초과 — 조용히 넘기면 자동 저장이 꺼진 줄 모르고 작업하게 된다
-      if (!quotaWarned) { quotaWarned = true; showToast(t('toast.quota')); }
+      setSaveOff(true);
+      if (!quotaWarned) { quotaWarned = true; showToast(t('toast.quota'), t('btn.exportSession'), exportSession); }
     }
   }, 400);
 }
@@ -6993,22 +7024,27 @@ function onDataChanged(autoChart = true) {
   updateEmptyCharts();   // 데이터가 비면 빈 상태 안내·예시 버튼이 다시 보여야 한다
   save();
 }
+/* 파일마다 표·모든 차트를 다시 그리던 것을 **끝에 한 번**으로 모았다(v0.55).
+   실패도 파일마다 상자를 띄우던 것을 자동 로드와 같은 한 줄(`reportLoadFailures`)로 모은다 —
+   20개 중 3개가 깨지면 상자를 세 번 닫아야 했다. */
 async function loadFiles(files) {
-  let skipped = 0;
-  const notable = [];
+  let skipped = 0, added = 0;
+  const notable = [], fails = [];
   for (const f of files) {
     if (!/\.(csv|tsv|json)$/i.test(f.name)) { skipped++; continue; }   // 예전에는 아무 말 없이 넘겼다
+    const name = f.name.replace(/^.*\//, '');
     try {
       const text = await f.text();
-      const name = f.name.replace(/^.*\//, '');
-      addDataset(name, parseAny(text, f.name));
+      addDataset(name, parseAny(text, f.name), { defer: true });
+      added++;
       /* **값이 바뀐 경우에만** 한 줄 — 평범하게 읽힌 파일에는 아무 말도 하지 않는다 */
       const n = parseNotable(parseReports.get(name));
       if (n.length) notable.push(`${name}: ${n.join(' · ')}`);
-    } catch (e) { alert(tf('err.parseFailed', { name: f.name, msg: e.message })); }
+    } catch (e) { fails.push({ name, msg: e.message }); }
   }
-  if (notable.length) setTimeout(() => showToast(notable.join(' / ')), 120);
-  if (skipped) setTimeout(() => showToast(tf('toast.skippedFiles', { n: skipped })), 240);
+  if (added) onDataChanged();
+  const extras = [notable.join(' / '), skipped ? tf('toast.skippedFiles', { n: skipped }) : ''].filter(Boolean).join(' · ');
+  if (fails.length || extras) setTimeout(() => reportLoadFailures(fails, extras), 120);
 }
 
 const dz = document.getElementById('dropzone');
@@ -7030,10 +7066,53 @@ function closeModal() {
   const o = modalOpener; modalOpener = null;
   if (o && o.isConnected) o.focus();
 }
-document.getElementById('btnPaste').addEventListener('click', e => {
-  modalOpener = e.currentTarget;
+/* 붙여넣기는 **가장 많이 쓰는 입구**인데(CSV를 열어 전체 복사해 오는 경우), 넣기 전에는
+   몇 행인지도 어떻게 읽혔는지도 알 수 없었다. 미리 보기를 그 자리에 둔다.
+   `parseAny`가 `lastParseReport`를 남기므로 **미리 보기 뒤에는 반드시 비운다** —
+   안 그러면 다음에 들어오는 데이터셋이 남의 읽기 기록을 달고 나온다. */
+function pastePreview() {
+  const out = document.getElementById('pastePreview');
+  const text = document.getElementById('pasteText').value;
+  const name = document.getElementById('pasteName').value.trim();
+  const lines = [];
+  if (name && state.datasets.some(d => d.name === name)) lines.push(t('modal.previewUpdate'));
+  if (!text.trim()) { out.textContent = lines.join(' ') || t('modal.previewEmpty'); return; }
+  try {
+    const rows = parseAny(text, name || 'pasted');
+    const cols = Object.keys(rows[0] || {});
+    const notable = parseNotable(lastParseReport);
+    lines.unshift([tf('modal.preview', { rows: rows.length.toLocaleString(), cols: cols.length,
+      head: cols.slice(0, 4).join(', ') + (cols.length > 4 ? ' …' : '') }), ...notable].join(' · '));
+  } catch (e) {
+    lines.unshift(tf('err.parseFailedGeneric', { msg: e.message }));
+  }
+  lastParseReport = null;
+  out.textContent = lines.join(' ');
+}
+let pasteTimer = null;
+function openPasteModal(opener) {
+  modalOpener = opener || null;
   document.getElementById('modalBack').classList.add('show');
   document.getElementById('pasteText').focus();
+  pastePreview();
+}
+document.getElementById('btnPaste').addEventListener('click', e => openPasteModal(e.currentTarget));
+for (const id of ['pasteText', 'pasteName']) {
+  document.getElementById(id).addEventListener('input', () => {
+    clearTimeout(pasteTimer);
+    pasteTimer = setTimeout(pastePreview, 200);   // 큰 데이터를 글자마다 파싱하지 않는다
+  });
+}
+/* 페이지 어디서든 ⌘/Ctrl+V — 단, **입력칸 안에서는 가로채지 않는다**(거기에 붙여넣으려던 것이다) */
+document.addEventListener('paste', e => {
+  if (document.getElementById('modalBack').classList.contains('show')) return;
+  const tgt = e.target;
+  if (tgt && (tgt.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName || ''))) return;
+  const text = e.clipboardData && e.clipboardData.getData('text/plain');
+  if (!text || !text.trim()) return;
+  e.preventDefault();
+  document.getElementById('pasteText').value = text;
+  openPasteModal(document.getElementById('btnPaste'));
 });
 document.getElementById('pasteModal').addEventListener('keydown', e => {
   if (e.key !== 'Tab') return;
@@ -7050,7 +7129,11 @@ document.getElementById('pasteAdd').addEventListener('click', () => {
     addDataset(name, parseAny(text, name));
     closeModal();
     document.getElementById('pasteText').value = ''; document.getElementById('pasteName').value = '';
-  } catch (e) { alert(tf('err.parseFailedGeneric', { msg: e.message })); }
+    document.getElementById('pastePreview').textContent = '';
+  } catch (e) {
+    /* 실패는 **그 자리에서** 말한다 — 브라우저 상자를 띄우면 붙여넣은 내용을 두고 상자부터 닫아야 한다 */
+    document.getElementById('pastePreview').textContent = tf('err.parseFailedGeneric', { msg: e.message });
+  }
 });
 document.getElementById('modalBack').addEventListener('click', e => { if (e.target.id === 'modalBack') e.target.classList.remove('show'); });
 
@@ -7300,6 +7383,13 @@ applyTheme();   // CHROME·PALETTE·SEQ를 테마에 맞춰 설정 (첫 렌더 �
 applyWidth();
 applyCfgWidth();
 loadSaved();
+/* 지난 세션에서 저장이 꺼진 채 끝났다면 **지금 열린 것이 그때 이전 상태**다 — 말해 준다.
+   표시는 여기서 걷는다: 지금 데이터가 들어가면 다음 저장에서 다시 켤 것이고, 아니면 그때 다시 켜진다. */
+if (localStorage.getItem(STALE_KEY) === '1') {
+  setSaveOff(false);
+  setTimeout(() => showToast(t('toast.staleSession'), t('btn.exportSession'), exportSession), 600);
+}
+document.getElementById('saveOff').addEventListener('click', exportSession);
 renderChips(); renderDerived(); renderTable(); refreshCharts();
 tryServerAutoload();
 </script>
