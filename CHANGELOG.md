@@ -3,6 +3,17 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.56 — what survives a refresh
+> v0.56 — 새로고침에서 살아남는 것
+
+- **Data and settings shared one storage key**, so data being too large meant losing *the charts too*. 200k rows serialise to 15.1MB against a ~5MB limit — a single refresh threw away half an hour of chart work. The two are now stored separately: settings (a couple of KB) are written first and survive whatever happens to the data.
+- **Data loaded from a served folder is no longer stored at all** — the next launch reloads it from the folder anyway. Big folders now save successfully *and* come back complete.
+- **Restoring settings without data used to erase the settings.** The cleanup that clears axes pointing at a dataset that no longer exists ran on a session that simply had not received its data yet. It is now skipped while nothing is loaded, and the files the session used are shown as dashed "not here yet" chips — add them again and the charts come straight back.
+- **A failed data write no longer leaves the previous data behind.** Stale rows would have been restored silently; missing data at least announces itself.
+- Automatic folder loading, folder watching and `More examples` still refreshed once **per file** (100 files = 100 redraws of the table and every chart). They now refresh once, like dropped files since v0.55.
+- Undoing a session import restores both keys, and re-fetches served data the same way a refresh would.
+- CSV export escaped values but not the header — a computed column named with a comma shifted every column by one.
+
 ### v0.55 — the way data comes in
 > v0.55 — 데이터가 들어오는 길
 

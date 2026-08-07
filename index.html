@@ -133,6 +133,8 @@
     padding: 2px 6px 2px 10px; font-size: 12px;
   }
   .chip .n { color: var(--ink-muted); }
+  /* 아직 돌아오지 않은 데이터 — 설정은 살아 있고 파일만 다시 넣으면 된다 */
+  .chip.ghost { background: none; border-style: dashed; color: var(--ink-muted); }
   .chip button { border: none; background: none; padding: 0 4px; color: var(--ink-muted); font-size: 13px; }
   .chip button:hover { color: var(--danger); }
 
@@ -459,7 +461,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.55';
+const APP_VERSION = 'v0.56';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -1034,6 +1036,10 @@ const I18N = {
     'toast.exampleLoaded': '예시 데이터를 불러왔습니다 — 차트가 자동으로 생성됩니다.',
     'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
     'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
+    'toast.quotaData': '데이터가 커서 데이터는 저장하지 못했습니다 — 차트 설정은 남습니다. 데이터를 보관하려면 세션 내보내기를 쓰세요.',
+    'chips.ghostTitle': '이전 세션이 쓰던 파일입니다 — 아직 들어오지 않았습니다',
+    'chips.reload': '이 파일 다시 넣기',
+    'chips.ghostHint': '이전 세션의 데이터는 저장하기엔 커서 담기지 않았습니다 — 같은 파일을 다시 넣으면 차트가 그대로 살아납니다.',
     'btn.saveOff': '저장 꺼짐',
     'btn.saveOffTitle': '브라우저 저장 공간이 꽉 차 자동 저장이 꺼졌습니다. 눌러서 세션을 파일로 내보내세요.',
     'toast.staleSession': '지난번에 저장 공간이 꽉 차, 이 세션은 그때 이후의 변경을 담고 있지 않습니다.',
@@ -1538,6 +1544,10 @@ const I18N = {
     'toast.exampleLoaded': 'Example data loaded — a chart is created automatically.',
     'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
     'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
+    'toast.quotaData': 'The data was too large to store — your chart settings are kept. Use Export session to keep the data too.',
+    'chips.ghostTitle': 'A file the previous session used — it has not arrived yet',
+    'chips.reload': 'Add this file again',
+    'chips.ghostHint': 'The previous session\'s data was too large to store — add the same files again and the charts come straight back.',
     'btn.saveOff': 'Not saving',
     'btn.saveOffTitle': 'Browser storage is full, so autosave is off. Click to export this session to a file.',
     'toast.staleSession': 'Storage was full last time, so this session does not include the changes made after that.',
@@ -2151,6 +2161,9 @@ function addDataset(name, rows, opts = {}) {
     }
   }
   else state.datasets.push({ id: state.nextId++, name, rows });
+  /* 서버가 다시 읽어 줄 데이터인지 — 저장에서 뺄지를 정한다. 사용자가 같은 파일을 직접 넣으면 내려간다. */
+  const ds = state.datasets.find(d => d.name === name);
+  if (ds) ds.server = !!opts.server;
   invalidateDataCaches();
   if (!opts.defer) onDataChanged();
 }
@@ -2166,6 +2179,7 @@ function removeDataset(id) {
   const ds = state.datasets[i];
   state.datasets.splice(i, 1);
   parseReports.delete(ds.name);   // 그 파일에 대한 기록이므로 함께 지운다
+  datasetsMeta = datasetsMeta.filter(m => m.name !== ds.name);   // 내가 지운 것을 "다시 넣으라"고 조르지 않는다
   invalidateDataCaches();
   onDataChanged();
   showToast(tf('toast.datasetRemoved', { name: ds.name }), t('toast.undo'), () => {
@@ -5944,6 +5958,16 @@ function applyDataFold() {
 function renderChips() {
   const box = document.getElementById('datasetChips');
   box.innerHTML = '';
+  /* 저장하기엔 커서 담기지 못한(또는 서버에서 아직 안 온) 파일 — **설정은 그대로 살아 있다**.
+     같은 파일을 다시 넣으면 차트가 그대로 그려지므로, 무엇을 넣어야 하는지 이름으로 보여 준다. */
+  const have = new Set(state.datasets.map(d => d.name));
+  const ghosts = datasetsMeta.filter(m => m && m.name && !have.has(m.name));
+  for (const m of ghosts) {
+    box.append(el('span', { class: 'chip ghost', title: t('chips.ghostTitle') },
+      m.name, el('span', { class: 'n' }, tf('chips.rows', { n: m.rows || 0 })),
+      el('button', { title: t('chips.reload'), onclick: () => document.getElementById('fileInput').click() }, '⤒')));
+  }
+  if (ghosts.length) box.append(el('div', { class: 'hint' }, t('chips.ghostHint')));
   for (const d of state.datasets) {
     const rep = parseReports.get(d.name);
     box.append(el('span', { class: 'chip' },
@@ -6370,6 +6394,9 @@ function renderDerived() {
 let saveTimer = null;
 let quotaWarned = false;
 const STALE_KEY = STORAGE_KEY + ':stale';
+const DATA_KEY = STORAGE_KEY + ':data';
+/* 마지막으로 저장된 세션이 쓰던 파일 목록 — 데이터가 없이 복원됐을 때 무엇을 다시 넣어야 하는지 알려 준다 */
+let datasetsMeta = [];
 /* 저장이 꺼졌다는 사실은 **화면에 남아 있어야 한다** — 토스트는 5초 뒤 사라지고,
    그 뒤로 한 시간을 더 작업한 사람에게는 단서가 하나도 없었다.
    저장소에도 표시를 남긴다: 다음에 열리는 세션은 그때 이후의 변경을 담고 있지 않다. */
@@ -6379,16 +6406,42 @@ function setSaveOff(on) {
   try { if (on) localStorage.setItem(STALE_KEY, '1'); else localStorage.removeItem(STALE_KEY); }
   catch (e) { /* 표시조차 못 남길 만큼 꽉 찼다 — 화면 표시가 남으므로 조용히 넘어간다 */ }
 }
+/* **설정과 데이터를 따로 담는다**(v0.56). 한 키에 같이 두면 데이터가 크다는 이유로
+   차트 설정·계산 컬럼·숨긴 컬럼까지 함께 못 남는다 — 20만 행이면 15.1MB이고 한도는 5MB다.
+   설정은 수 KB이므로 **먼저, 따로** 쓴다. 데이터만 실패하면 설정은 이미 들어가 있다.
+   서버로 읽은 데이터셋은 애초에 담지 않는다 — 다음 실행의 자동 로드가 다시 읽어 온다. */
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    let dataOk = true, settingsOk = true;
     try {
       const charts = state.charts.map(serializableChart);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ datasets: state.datasets, charts, derived: state.derived, hiddenCols: state.hiddenCols, nextId: state.nextId }));
+      /* 지금 있는 것으로 다시 만든다 — 유령 칩은 이 목록에서 나오므로 낡으면 없는 파일을 넣으라고 조른다 */
+      datasetsMeta = state.datasets.map(d => ({ name: d.name, rows: d.rows.length,
+        cols: Object.keys(d.rows[0] || {}).filter(k => k !== '_source').length, server: !!d.server }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ charts, derived: state.derived,
+        hiddenCols: state.hiddenCols, nextId: state.nextId, datasetsMeta }));
+    } catch (e) { settingsOk = false; }
+    try {
+      const keep = state.datasets.filter(d => !d.server);
+      if (keep.length) localStorage.setItem(DATA_KEY, JSON.stringify({ datasets: keep }));
+      else localStorage.removeItem(DATA_KEY);
+    } catch (e) {
+      dataOk = false;
+      /* **낡은 데이터를 남겨 두지 않는다** — 남기면 다음에 열 때 지금과 다른 행으로 조용히 복원된다.
+         데이터가 없는 것은 유령 칩이 말해 주지만, 옛 데이터는 아무 말도 하지 않는다. */
+      try { localStorage.removeItem(DATA_KEY); } catch (e2) { /* 지우지도 못하면 그대로 둔다 */ }
+    }
+    if (settingsOk && dataOk) {
       if (quotaWarned) { quotaWarned = false; setSaveOff(false); }   // 데이터를 지워 다시 들어갔다
-    } catch (e) {   // 쿼터 초과 — 조용히 넘기면 자동 저장이 꺼진 줄 모르고 작업하게 된다
-      setSaveOff(true);
-      if (!quotaWarned) { quotaWarned = true; showToast(t('toast.quota'), t('btn.exportSession'), exportSession); }
+      return;
+    }
+    /* 조용히 넘기면 자동 저장이 꺼진 줄 모르고 작업하게 된다.
+       무엇까지 남았는지 구분해 말한다 — "전부 못 담았다"와 "설정은 남는다"는 다른 이야기다. */
+    setSaveOff(true);
+    if (!quotaWarned) {
+      quotaWarned = true;
+      showToast(t(settingsOk ? 'toast.quotaData' : 'toast.quota'), t('btn.exportSession'), exportSession);
     }
   }, 400);
 }
@@ -6400,11 +6453,15 @@ function loadSaved() {
   }
   try {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY));
-    if (s && s.datasets) {
-      restoreSession(s);
-      if (!localStorage.getItem(STORAGE_KEY)) { save(); localStorage.removeItem(LEGACY_STORAGE_KEY); }
-      return true;
+    if (!s || (!s.datasets && !s.charts)) return false;
+    /* 옛 저장본은 데이터가 세션 안에 있다 — 그대로 열고 다음 저장에서 갈라진다 */
+    if (!s.datasets) {
+      try { const d = JSON.parse(localStorage.getItem(DATA_KEY) || 'null'); if (d && d.datasets) s.datasets = d.datasets; }
+      catch (e) { /* 데이터만 못 읽으면 설정으로 연다 — 유령 칩이 무엇을 다시 넣어야 하는지 말한다 */ }
     }
+    restoreSession(s);
+    if (!localStorage.getItem(STORAGE_KEY)) { save(); localStorage.removeItem(LEGACY_STORAGE_KEY); }
+    return true;
   } catch (e) {}
   return false;
 }
@@ -6421,6 +6478,8 @@ function restoreSession(s) {
     if (s.ui.palette && !localStorage.getItem(PALETTE_KEY)) setPaletteTheme(s.ui.palette);
   }
   state.datasets = s.datasets || [];
+  /* 담기지 못한(또는 아직 안 온) 데이터가 무엇이었는지 — 유령 칩이 이걸로 "다시 넣기"를 안내한다 */
+  datasetsMeta = Array.isArray(s.datasetsMeta) ? s.datasetsMeta : state.datasets.map(d => ({ name: d.name, rows: d.rows.length }));
   invalidateDataCaches();
   state.derived = s.derived || [];
   state.hiddenCols = Array.isArray(s.hiddenCols) ? s.hiddenCols : [];   // 예전 세션엔 없다
@@ -6479,7 +6538,8 @@ function toCSV(rows, cols) {
     const s = String(v);
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
-  return [cols.join(','), ...rows.map(r => cols.map(c => cell(r[c])).join(','))].join('\n');
+  /* 헤더도 같은 규칙을 거친다 — 컬럼 이름은 사용자가 짓는다(계산 컬럼). 쉼표가 들면 한 칸씩 밀렸다. */
+  return [cols.map(cell).join(','), ...rows.map(r => cols.map(c => cell(r[c])).join(','))].join('\n');
 }
 function exportTableCsv() {
   const cols = visibleColumns();
@@ -6992,7 +7052,10 @@ function showPresetMenu(cfg, mouseEv) {
 /* ================= wiring ================= */
 function onDataChanged(autoChart = true) {
   applyDerived();   // 계산 컬럼 재적용 (데이터·정의 변경 반영)
-  if (state.datasets.length <= 1) {   // _source가 UI에서 사라지면 그걸 참조하던 설정도 유령이 된다
+  /* **데이터가 하나도 없으면 아무것도 정리하지 않는다**(v0.56) — 데이터가 사라진 것이 아니라 아직 안 온 것이다.
+     설정만 복원된 직후에 아래 정리가 돌면 살리려던 축·필터를 우리 손으로 지운다. */
+  const pending = state.datasets.length === 0;
+  if (!pending && state.datasets.length <= 1) {   // _source가 UI에서 사라지면 그걸 참조하던 설정도 유령이 된다
     for (const c of state.charts) {
       for (const k of COL_REF_FIELDS) {   // 손으로 적었던 탓에 y2·size·errCol이 빠져 있었다
         if (c[k] === '_source') c[k] = '';
@@ -7003,7 +7066,7 @@ function onDataChanged(autoChart = true) {
   /* 지정한 데이터셋이 사라졌으면 전체로 되돌린다 — 되돌리기만 하면 그 파일에만 있던 컬럼을 가리키는
      축이 남아 여전히 빈 차트다. 전환할 때와 같은 정리(없는 컬럼 비우기 + 축 다시 고르기)를 태운다. */
   const names = state.datasets.map(d => d.name);
-  for (const c of state.charts) if (c.dataset && !names.includes(c.dataset)) switchDataset(c, '');
+  if (!pending) for (const c of state.charts) if (c.dataset && !names.includes(c.dataset)) switchDataset(c, '');
   analysis = null;  // 분석 결과는 데이터에 종속 — 낡은 인사이트를 남기지 않는다
   renderAnalysis();
   renderChips();
@@ -7138,7 +7201,8 @@ document.getElementById('btnExample').addEventListener('click', () => {
 /* 결합은 파일이 둘 이상이어야 하고, 녹이기는 가로로 펼쳐진 파일이 있어야 한다 —
    가이드 레시피를 읽고 따라 하려면 그 데이터가 손에 있어야 하므로 함께 넣어 준다. */
 document.getElementById('btnExampleMore').addEventListener('click', () => {
-  for (const [name, csv] of EXTRA_CSVS) addDataset(name, parseAny(csv, name));
+  for (const [name, csv] of EXTRA_CSVS) addDataset(name, parseAny(csv, name), { defer: true });
+  onDataChanged();
   showToast(t('toast.exampleMoreLoaded'));
 });
 document.getElementById('btnDataFold').addEventListener('click', () => setDataFolded(!DATA_FOLDED));
@@ -7182,12 +7246,19 @@ function importSession() {
   const inp = el('input', { type: 'file', accept: '.json' });
   inp.addEventListener('change', async () => {
     /* 가져오기는 지금 작업을 통째로 갈아치운다 — 되돌릴 길이 없으면 실수 한 번에 다 잃는다.
-       데이터셋을 복사하지 않고 **직전 저장 문자열**만 들고 있다가 되살린다(가장 싼 스냅샷). */
-    const prev = localStorage.getItem(STORAGE_KEY);
+       데이터셋을 복사하지 않고 **직전 저장 문자열**만 들고 있다가 되살린다(가장 싼 스냅샷).
+       v0.56부터 저장이 두 키이므로 **둘 다** 들고 있어야 한다 — 설정만 되돌리면 데이터가 사라진다. */
+    const prev = localStorage.getItem(STORAGE_KEY), prevData = localStorage.getItem(DATA_KEY);
     try {
       restoreSession(JSON.parse(await inp.files[0].text())); save();
       showToast(t('toast.sessionImported'), t('toast.undo'), () => {
-        if (prev) { restoreSession(JSON.parse(prev)); save(); }
+        if (prev) {
+          const back = JSON.parse(prev);
+          if (!back.datasets && prevData) { try { back.datasets = JSON.parse(prevData).datasets; } catch (e) { /* 데이터만 못 읽으면 설정으로 되돌린다 */ } }
+          restoreSession(back); save();
+          /* 서버로 읽던 데이터는 저장돼 있지 않다(v0.56) — 새로고침 때와 같은 길로 다시 불러온다 */
+          if (datasetsMeta.some(m => m.server && !state.datasets.some(d => d.name === m.name))) tryServerAutoload();
+        }
         else { state.datasets = []; state.charts = []; state.derived = []; state.hiddenCols = []; invalidateDataCaches(); onDataChanged(false); refreshCharts(); }
       });
     } catch (e) { alert(tf('err.sessionReadFailed', { msg: e.message })); }
@@ -7293,16 +7364,17 @@ async function tryServerAutoload() {
     const j = await res.json();
     const files = Array.isArray(j) ? j : (j.files || []);
     const truncated = !Array.isArray(j) && j.truncated;
-    let reloaded = 0;
+    let reloaded = 0, loaded = 0;
     const fails = [];
     for (const name of files) {
       /* 같은 이름이면 건너뛰던 예전 동작은 갱신된 로그를 영영 보여주지 않았다 — 항상 최신 내용으로 교체한다 */
       const had = state.datasets.some(d => d.name === name);
       const r = await fetch('api/file?name=' + encodeURIComponent(name));
       if (!r.ok) { fails.push({ name, msg: r.status === 400 ? (await r.text()).slice(0, 80) : `HTTP ${r.status}` }); continue; }
-      try { addDataset(name, parseAny(await r.text(), name)); if (had) reloaded++; }
+      try { addDataset(name, parseAny(await r.text(), name), { defer: true, server: true }); loaded++; if (had) reloaded++; }
       catch (e) { fails.push({ name, msg: e.message.slice(0, 80) }); }
     }
+    if (loaded) onDataChanged();   // 파일마다 표·모든 차트를 다시 그리고 있었다 (폴더 100개면 100번)
     const notes = [];
     if (reloaded) notes.push(tf('toast.reloaded', { n: reloaded }));
     if (truncated) notes.push(tf('toast.listTruncated', { n: files.length }));
@@ -7344,10 +7416,11 @@ async function watchTick() {
     try {
       const r = await fetch('api/file?name=' + encodeURIComponent(name));
       if (!r.ok) { fails.push({ name, msg: r.status === 400 ? (await r.text()).slice(0, 80) : `HTTP ${r.status}` }); continue; }
-      addDataset(name, parseAny(await r.text(), name));
+      addDataset(name, parseAny(await r.text(), name), { defer: true, server: true });
       n++;
     } catch (e) { fails.push({ name, msg: e.message.slice(0, 80) }); }
   }
+  if (n) onDataChanged();   // 성공이 하나도 없으면 화면을 흔들지 않는다
   reportLoadFailures(fails, n ? tf('toast.watchUpdated', { n }) : '');
 }
 function setWatching(on) {
