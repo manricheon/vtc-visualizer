@@ -241,6 +241,9 @@ Rows are recognised by their **condition columns** (method, tokens — the ones 
 If the conditions themselves change (a new method appears), those count as new rows.
 When the point a marker referred to is gone, it is **hidden rather than left in the wrong place**, and you're told — check Settings → Point labels for the ⚠ and its reason, then `Re-anchor` it to another point or delete it.
 
+You can also drop a whole log folder at once — loading many files redraws the table and charts **once, at the end**, and
+files that could not be read are collected into one line (`Could not read N file(s) — Details`) instead of one dialog each.
+
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
