@@ -244,6 +244,10 @@ When the point a marker referred to is gone, it is **hidden rather than left in 
 You can also drop a whole log folder at once — loading many files redraws the table and charts **once, at the end**, and
 files that could not be read are collected into one line (`Could not read N file(s) — Details`) instead of one dialog each.
 
+**Serving the folder makes refreshing safe** — that data is not kept in the browser at all; it is re-read from the folder each time you open the page.
+If you add files by hand instead, large data (around 200k rows) exceeds what the browser will store, so the data is not kept.
+**The chart settings are stored separately and come back anyway**, with dashed chips naming the files to add again.
+
 With a folder served, overwriting the file and reloading is enough to pick up the new values
 (`python visualizer.py logs/`, plus `--offline` if you want the CDN-free build).
 
