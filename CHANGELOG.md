@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.57 — the data survives too
+> v0.57 — 데이터도 살아남는다
+
+- v0.56 kept your settings across a refresh but not the data itself: localStorage holds about 5MB, so anything past ~50k rows came back as dashed "add this file again" chips. **Rows now go to IndexedDB**, which is not bound by that limit — 200k rows write in 67ms, read back in 116ms, and a real page reload restores all 200,000.
+- **If IndexedDB is missing or refuses to open** (private windows, blocked storage), saving falls back to exactly the v0.56 path. Nothing announces itself unless both places fail.
+- **Data is never kept in two places.** Once rows move to IndexedDB the localStorage copy is removed, so there is no question about which one is real. Sessions saved by v0.56 are read from localStorage and migrated on the next save.
+- Data from a served folder is still not stored anywhere — it is re-read from the folder, which stays the freshest copy.
+
 ### v0.56 — what survives a refresh
 > v0.56 — 새로고침에서 살아남는 것
 
