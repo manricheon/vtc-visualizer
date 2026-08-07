@@ -461,7 +461,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.57';
+const APP_VERSION = 'v0.58';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -650,7 +650,6 @@ const I18N = {
     'err.sessionAsData': '세션 파일입니다 — 데이터가 아니라 "세션 가져오기" 버튼으로 여세요.',
     'err.noRowsInDataset': '{name}: 데이터 행이 없습니다.',
     'err.drawChartFirst': '먼저 차트를 그려주세요.',
-    'err.parseFailed': '{name} 파싱 실패: {msg}',
     'err.parseFailedGeneric': '파싱 실패: {msg}',
     'err.sessionReadFailed': '세션 파일을 읽을 수 없습니다: {msg}',
     'confirm.resetAll': '모든 데이터와 차트를 지우고 초기화할까요?',
@@ -902,7 +901,6 @@ const I18N = {
     'cfg.addSpan': '＋ 구간', 'cfg.spanAxis': '구간 축', 'cfg.spanFrom': '시작', 'cfg.spanTo': '끝', 'cfg.spanLabel': '구간 이름(선택)',
     'cfg.spanNeed': '시작과 끝을 서로 다른 값으로 넣어 주세요.',
     'cfg.errCol': '오차 컬럼',
-    'cfg.errColTitle': '행마다의 ± 값이 이미 컬럼으로 있을 때 (예: score_std) — 그대로 오차막대로 그립니다',
     'cfg.errColIgnored': '집계 중에는 이 컬럼을 쓰지 않습니다 — 점 하나가 여러 행을 대표하므로 행마다의 오차는 그 점의 오차가 아닙니다. 집계 오차막대를 쓰세요.',
     'cfg.export': '내보내기 규격',
     'cfg.expPreset': '규격', 'cfg.expUnit': '단위', 'cfg.expSize': '폭 × 높이',
@@ -1158,7 +1156,6 @@ const I18N = {
     'err.sessionAsData': 'This is a session file — open it with "Import session", not as data.',
     'err.noRowsInDataset': '{name}: no data rows.',
     'err.drawChartFirst': 'Please draw a chart first.',
-    'err.parseFailed': 'Failed to parse {name}: {msg}',
     'err.parseFailedGeneric': 'Parse failed: {msg}',
     'err.sessionReadFailed': 'Could not read session file: {msg}',
     'confirm.resetAll': 'Clear all data and charts and reset?',
@@ -1410,7 +1407,6 @@ const I18N = {
     'cfg.addSpan': '＋ Span', 'cfg.spanAxis': 'Span axis', 'cfg.spanFrom': 'From', 'cfg.spanTo': 'To', 'cfg.spanLabel': 'Span label (optional)',
     'cfg.spanNeed': 'Enter a start and an end that differ.',
     'cfg.errCol': 'Error column',
-    'cfg.errColTitle': 'When the ± value per row already exists as a column (e.g. score_std) — drawn as error bars directly',
     'cfg.errColIgnored': 'Ignored while aggregating — one point stands for several rows, so a per-row error is not that point\'s error. Use the aggregate error bars instead.',
     'cfg.export': 'Export size',
     'cfg.expPreset': 'Preset', 'cfg.expUnit': 'Unit', 'cfg.expSize': 'Width × height',
@@ -1878,9 +1874,8 @@ const RE_PLAIN = /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/;   // 1234.5 
 const NUM_MAX_LEN = 40;   // 이보다 긴 값은 숫자일 리 없다 — 정규식에 넣기 전에 걸러낸다
 const RE_EU_DEC = /^-?\d{1,3}(\.\d{3})*,\d+$/;                    // 1.234,5 · 1,5  (소수점이 쉼표)
 /* `1.234`는 유럽식 천단위(1234)일 수도 평범한 소수(1.234)일 수도 있다 — **혼자서는 증거가 못 된다**.
-   그래서 분류에는 쓰지 않고, 같은 컬럼에 소수점 쉼표(`1,5`·`1.234,5`)가 **있을 때만** 천단위로 되돌린다.
-   (이 구분을 빼먹었더니 `0.599`가 599로 읽혔다 — 예시 데이터의 accuracy가 통째로 틀어졌다.) */
-const RE_EU_THOU = /^-?\d{1,3}(\.\d{3})+$/;
+   그래서 그 모양을 따로 알아보지 않는다. 컬럼이 `eu`로 판정됐을 때만(= 소수점 쉼표를 본 컬럼)
+   `applyRule`이 점을 천단위로 떼어 낸다. (이 구분을 빼먹었더니 `0.599`가 599로 읽혔다 — 예시 데이터의 accuracy가 통째로 틀어졌다.) */
 const RE_US_THOU = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/;                // 1,234 · 1,234.5
 /* 식별자 보호 — 선행 0이나 16자리 이상 정수는 숫자로 바꾸면 되돌릴 수 없다(007 → 7) */
 const RE_IDLIKE = /^[-+]?0\d+$|^\d{16,}$/;
@@ -6424,7 +6419,12 @@ function idbTx(mode, fn) {
   }));
 }
 function idbSave(datasets) { return idbTx('readwrite', st => st.put({ datasets }, 'datasets')); }
-function idbLoad() { return idbTx('readonly', st => st.get('datasets')).catch(() => null); }
+/* **없으면 `null`이다** — `idbTx`는 결과가 `undefined`면 `true`를 주므로(쓰기 성공 신호),
+   그대로 흘리면 "담긴 것이 있다"로 읽혀 `stored.datasets`에서 넘어진다(점검에서 실제로 넘어졌다). */
+function idbLoad() {
+  return idbTx('readonly', st => st.get('datasets'))
+    .then(r => (r && r.datasets ? r : null)).catch(() => null);
+}
 function idbClear() { return idbTx('readwrite', st => st.delete('datasets')).catch(() => null); }
 /* 마지막으로 저장된 세션이 쓰던 파일 목록 — 데이터가 없이 복원됐을 때 무엇을 다시 넣어야 하는지 알려 준다 */
 let datasetsMeta = [];
@@ -6527,7 +6527,11 @@ async function hydrateData() {
     try { stored = JSON.parse(localStorage.getItem(DATA_KEY) || 'null'); } catch (e) { stored = null; }
   }
   const rows = (stored && stored.datasets) || [];
-  const use = rows.filter(d => missing.has(d.name));
+  /* **여기서 다시 판정한다**(v0.58) — `missing`은 `await` 앞에서 고른 것이라, 읽어 오는 사이에
+     사용자가 같은 파일을 넣었으면 같은 이름이 두 벌이 된다(행 정체성·필터·`_source`가 전부 어긋난다).
+     그때는 **방금 넣은 쪽이 이긴다**: 복원본은 지난번 내용이다. */
+  const have = new Set(state.datasets.map(d => d.name));
+  const use = rows.filter(d => missing.has(d.name) && !have.has(d.name));
   if (!use.length) return false;
   for (const d of use) state.datasets.push({ id: state.nextId++, name: d.name, rows: d.rows });
   invalidateDataCaches();
@@ -7357,6 +7361,10 @@ document.getElementById('btnReset').addEventListener('click', () => {
   /* `derived`를 빼먹으면 `onDataChanged` → `save()`가 방금 지운 localStorage에 계산 컬럼을 **되써넣는다** —
      초기화했는데 정의가 살아 있고 새로고침해도 남았다(v0.48에서 고침). 뷰 계층 상태는 전부 여기서 비운다. */
   state.datasets = []; state.charts = []; state.nextId = 1; state.hiddenCols = []; state.derived = [];
+  /* **유령 칩의 근거도 함께 비운다**(v0.58) — 안 비우면 초기화 직후 화면이 방금 지운 파일을 "다시 넣으라"고 조른다.
+     저장이 꺼졌다는 표시도 걷는다: 담을 데이터가 없으니 꺼질 이유도 없다. */
+  datasetsMeta = [];
+  quotaWarned = false; setSaveOff(false);
   invalidateDataCaches();
   onDataChanged(false); refreshCharts();
 });

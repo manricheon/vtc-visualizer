@@ -3,6 +3,15 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.58 — checking what I just built
+> v0.58 — 방금 만든 것부터 점검
+
+- **Resetting everything left ghosts behind.** After `Reset all`, the data card still listed the files you had just discarded as "add this again", and the "not saving" flag survived into the next launch. Both are cleared with the rest.
+- **Adding a file while the session was still restoring produced two copies of the same dataset** (`["race.csv", "race.csv"]`), which quietly breaks row identity, filters and `_source`. The restore now re-checks what is loaded after it reads, and **the file you just added wins** — the restored copy is the older one.
+- Reading an empty IndexedDB record reported "there is data" instead of nothing; anything that trusted it crashed on the next line. Found while writing the audit tests.
+- Dead code removed: a regex left over from the v0.51 parser rewrite, and two dictionary entries no longer shown anywhere.
+- New audit suite pins the combinations that grew out of v0.56–v0.57: three storage places × four restore paths, plus a generated round-trip over **every** field of a chart's settings (67 of them) so a new field cannot silently fail to persist. Offline builds are checked to store data too.
+
 ### v0.57 — the data survives too
 > v0.57 — 데이터도 살아남는다
 
