@@ -182,7 +182,7 @@ ours,4000,4.1,0.744,MMLU
 | **Export size** | Settings → Export size: presets for paper 1-column (85mm), 2-column (170mm) and slides, or mm/inch directly, plus dpi. The hint shows the pixels it will save and the pt size of body text (raising dpi does not change the physical text size — raise the font size for that). Report figures follow the same spec |
 | **Chart as table** | The card's `Table` button: shows the chart's own columns and filtered rows as a table. The only way to read the chart without seeing it, and handy for checking exact values |
 | **Share as one HTML file** | `Export ▾` → `Share as one HTML file`: writes the current data and every chart setting into a single file. The recipient just double-clicks it — no tool, no session file. Build it from `index-offline.html` and it opens without internet too |
-| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing. **Settings and data are stored separately, so charts, computed columns and hidden columns come back even when the data was too large to store** — dashed chips then show which files to add again. Data from a served folder is not stored at all and is reloaded on the next launch. While storing fails, a `Not saving` button stays in the top bar (click it to export the session) |
+| Sessions | Autosave (localStorage) + `Export/Import session` (JSON file, in the `Export ▾` menu) for sharing. **Rows go to IndexedDB and settings are stored separately, so even large data survives a refresh** (verified at 200k rows). When there is nowhere to put the data, charts, computed columns and hidden columns still come back — dashed chips then show which files to add again. Data from a served folder is not stored at all and is reloaded on the next launch. While storing fails, a `Not saving` button stays in the top bar (click it to export the session) |
 | **Built-in presets** | Top of the card's `Preset` button: average per item (bar), sweep trend (line), trade-off (Pareto), two-condition grid (heatmap), value distribution (box). They assume no column names — roles (category, sweep knob, score, cost) are matched against your current data by value distribution, so domain abbreviations work and identifier/seed columns are never used as axes, and a recipe whose roles cannot be filled is simply not listed |
 | **Copy the look to other charts** | Settings → Style → `Copy this look to…`: font, text size/color, legend, size, grid, plot face, tick format and export spec in one go (with undo). Settings that point at data (axes, group, filters) are never copied |
 | **Chart presets** | `Presets` button on each card: save the current chart's settings only (no data) under a name → re-apply with one click to any data using the same column names. Share via JSON `Export/Import` |
@@ -234,7 +234,7 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 - **Many open charts can hit the browser's WebGL context limit** — that is a browser cap. Pin Settings → Style → Rendering to `High quality (SVG)` to avoid it.
 - **Built-in presets offer one set per dataset** — even with several continuous columns, one score and one cost are chosen. Offering every candidate makes the list unusable fast. Apply one and change the axes.
 - **Folder watching polls every 4 seconds** — enough for a local folder.
-- **There is a ceiling on what the browser keeps** — localStorage holds about 5MB, so around 200k rows (~15MB) the data is not stored. Chart settings are stored separately and come back regardless; add the same files again, or keep the folder served. Use `Export session` to keep the data itself.
+- **The browser still has a ceiling** — rows go to IndexedDB, so 200k rows come back fine, but if IndexedDB is unavailable (private windows, blocked storage) saving falls back to localStorage (~5MB). Chart settings come back either way; add the same files again, or keep the folder served. Use `Export session` to keep the data for certain.
 - **A join definition produces one column** — attaching four metadata fields means four definitions. Letting one definition emit several would break the "one definition, one name" assumption behind deletion, name-collision checks and usage lookup.
 
 ## Requirements
@@ -245,11 +245,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.57** — The data survives a refresh too. Rows are stored in IndexedDB, so even a 200k-row file comes back (67ms to write, 116ms to read). Browsers without IndexedDB behave exactly as before.
 - **v0.56** — Chart settings now survive even when the data is too large to store (settings and data are kept under separate keys). Data from a served folder is not stored at all — it is reloaded on the next launch. Automatic loading, folder watching and `More examples` refresh once instead of once per file.
 - **v0.55** — The paste box previews what it read before you add it, and `⌘/Ctrl+V` works anywhere on the page. Loading several files refreshes once instead of once per file (10 files: 1,520 → 245ms). When storage fills up and autosave stops, the top bar keeps saying so.
 - **v0.54** — The documentation was rewritten. Both READMEs now open with a five-minute walkthrough and the full history moved to [CHANGELOG.md](CHANGELOG.md). Guide recipes are renumbered ①–⑳ in reading order, and the join recipe that could not be followed now uses a companion file that exists.
 - **v0.53** — Columns whose names start with an underscore (`_id`) used to vanish from the UI; they are renamed on load instead. A file that carries a column named like one of your computed columns keeps its own values. Autoload failures are reported rather than swallowed.
-- **v0.52** — Three places that stalled on large data. Parsing a 200k-character cell went from 97 seconds to 36 ms, and a 50k-row heatmap from 74 seconds to 45 ms.
 
 ---
 
