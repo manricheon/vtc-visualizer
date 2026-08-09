@@ -386,6 +386,23 @@ The (a)–(d) panel figure that papers want is usually assembled by hand somewhe
 - Pick the charts to include with the checkboxes. Collapsed cards count too, as long as they have been drawn.
 - To add captions or arrows on top, open the saved PNG with `Export ▾` → `Annotate an image…`.
 
+### ㉑ Where to look first when there are many metrics — scatter matrix
+
+Seeing how accuracy, latency, cost and size relate meant one chart per pair — five metrics is ten pairs.
+Scan them in one figure, then dig into the pair that caught your eye with a normal scatter plot.
+
+> Type=`Scatter matrix` → add `accuracy` · `latency_ms` · `cost_usd` · `tokens` to Columns, in that order
+> Group (color)=`method` · Show=`Both halves`
+
+![A scatter matrix of four metrics, split by method color](assets/guide/r21-matrix.png)
+
+- **The order you pick is the grid order.** Put the two you care about next to each other and their cell lands beside the diagonal.
+- If seeing each pair twice bothers you, set `Show` to `Lower half`.
+- **Up to 8 columns** are drawn. Beyond that the cells are too small to read, so the extras are left out and the panel says how many.
+- With many rows the cells clog up. Past the `Point cap` (5,000 by default) an **evenly spaced sample** is drawn and said so — the same points every time. Set the cap to `0` to draw them all.
+- This type is drawn with WebGL, so **an SVG export embeds the points as raster** (axes and text stay vector). For print, use a PNG at a higher dpi.
+- Move whatever stood out into a scatter plot to add baselines, a Pareto front or trend lines. The matrix picks **where to look**; it is not the figure that makes the argument.
+
 ## 3. Principles for effective charts (summary)
 
 1. **One chart, one message** — want to say two things? Duplicate into two charts.
