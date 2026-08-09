@@ -3,6 +3,11 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.61.1 — page width is a dropdown too
+> v0.61.1 — 페이지 폭도 드롭다운
+
+- The page-width control in the top bar cycled through Normal → Wide → Full on each click, so the other two choices stayed invisible until you clicked. It is a dropdown now, like the palette beside it.
+
 ### v0.61 — more room for width and legend
 > v0.61 — 폭과 범례 자리를 넓힘
 
