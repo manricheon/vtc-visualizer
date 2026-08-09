@@ -182,14 +182,21 @@
   /* ===== chart cards ===== */
   #charts { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
   .chart-card { padding: 0; overflow: hidden; margin-bottom: 0; flex: 1 1 100%; }
-  .chart-card.half { flex-basis: calc(50% - 8px); }
+  /* 폭은 `#charts`의 flex 줄을 나눈다 — gap 16px을 빼야 세 장이 한 줄에 선다(안 빼면 마지막 장이 밀린다).
+     **`flex-grow: 0`이 핵심**: 늘어나게 두면 줄에 혼자 남은 카드가 100%로 부풀어, 고른 폭이 이웃 수에 따라 달라진다. */
+  .chart-card.half, .chart-card.w-half { flex: 0 1 calc(50% - 8px); }
+  .chart-card.w-third { flex: 0 1 calc(33.333% - 11px); }
+  .chart-card.w-twothird { flex: 0 1 calc(66.666% - 6px); }
   /* 접기는 **탭을 접는 것**이다 — 그림만 감추면 설정 패널이 열려 있는 카드는 그대로 길어서
      "접었는데 아무 일도 안 일어난다"가 된다(실제 보고). 헤더 한 줄만 남긴다. */
   .chart-card.folded > .body,
   .chart-card.folded > .chart-table,
   .chart-card.folded > .plot-caption,
   .chart-card.folded > .plot-hint { display: none; }
-  @media (max-width: 860px) { .chart-card.half { flex-basis: 100%; } }
+  /* 좁은 화면에서는 나눠 봐야 읽히지 않는다 — 전부 한 줄씩 */
+  @media (max-width: 860px) {
+    .chart-card.half, .chart-card.w-half, .chart-card.w-third, .chart-card.w-twothird { flex-basis: 100%; }
+  }
   .chart-card .head {
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
     border-bottom: 1px solid var(--border); background: var(--surface-1);
@@ -499,7 +506,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.60';
+const APP_VERSION = 'v0.61';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -838,6 +845,11 @@ const I18N = {
     'cfg.fontSize': '글자 크기',
     'cfg.fontColorTitle': '글자 색',
     'cfg.legend': '범례',
+    'opt.legendOutside': '그림 밖', 'opt.legendInside': '그림 안', 'opt.legendOff': '끄기',
+    'opt.legRightTop': '오른쪽 · 위', 'opt.legRightMid': '오른쪽 · 가운데', 'opt.legRightBottom': '오른쪽 · 아래',
+    'opt.legTopLeft': '위 · 왼쪽', 'opt.legTopCenter': '위 · 가운데', 'opt.legTopRight': '위 · 오른쪽',
+    'opt.legBottomLeft': '아래 · 왼쪽', 'opt.legBottomCenter': '아래 · 가운데', 'opt.legBottomRight': '아래 · 오른쪽',
+    'opt.widthTwoThird': '3분의 2 폭', 'opt.widthThird': '3분의 1 폭',
     'cfg.chartSize': '차트 크기', 'cfg.chartHeightTitle': '차트 높이(px)',
     'opt.widthFull': '전체 폭', 'opt.widthHalf': '절반 폭(나란히)',
     'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
@@ -1356,6 +1368,11 @@ const I18N = {
     'cfg.fontSize': 'Font size',
     'cfg.fontColorTitle': 'Font color',
     'cfg.legend': 'Legend',
+    'opt.legendOutside': 'Outside', 'opt.legendInside': 'Inside', 'opt.legendOff': 'Off',
+    'opt.legRightTop': 'Right · top', 'opt.legRightMid': 'Right · middle', 'opt.legRightBottom': 'Right · bottom',
+    'opt.legTopLeft': 'Top · left', 'opt.legTopCenter': 'Top · center', 'opt.legTopRight': 'Top · right',
+    'opt.legBottomLeft': 'Bottom · left', 'opt.legBottomCenter': 'Bottom · center', 'opt.legBottomRight': 'Bottom · right',
+    'opt.widthTwoThird': 'Two-thirds width', 'opt.widthThird': 'One-third width',
     'cfg.chartSize': 'Chart size', 'cfg.chartHeightTitle': 'Chart height (px)',
     'opt.widthFull': 'Full width', 'opt.widthHalf': 'Half width (side by side)',
     'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
@@ -1962,7 +1979,7 @@ function defaultChart() {
     barSort: 'auto',            // auto | label | asc | desc — 카테고리 축 정렬
     barCatX: false,             // 숫자 X도 카테고리로 취급 (등간격 막대 — linear 배치로 얇아지는 것 방지)
     plotHeight: 460,            // 플롯 높이(px)
-    cardWidth: 'full',          // full | half — 절반이면 두 차트 나란히
+    cardWidth: 'full',          // full | half | third | twothird — 한 줄을 몇으로 나눌지 (half는 옛 세션 이름)
     heatZ: '', heatAgg: 'mean', heatText: 'none',   // 히트맵: 색 값 컬럼·집계·셀 값 표시
     errCol: '',                 // 숫자 컬럼 → 행마다 ± 오차막대 (이미 계산된 std 컬럼이 있을 때). 집계 중에는 무시
     spans: [],                  // [{axis:'x'|'y', from, to, label, color}] — 구간 음영(권장 범위·OOM 구간 등, color 빈 값=자동)
@@ -3582,18 +3599,45 @@ function chartShapes(cfg, gd) {
   applyBreakRefs(lay, br, brkAxisOf(cfg));
   return lay.shapes;
 }
+/* 범례 자리 — 바깥 아홉(오른쪽 위·가운데·아래 / 위·아래 × 왼쪽·가운데·오른쪽)과 안쪽 넷.
+   **옛 값(`right`·`top`·`inside`)은 이름만 옮긴다** — 세션에 그대로 저장돼 있다.
+   가로로 눕는 자리(위·아래)는 `orientation: 'h'`여야 항목이 옆으로 늘어선다 — 세로로 두면 그림을 세로로 먹는다. */
+const LEGEND_ALIAS = { right: 'right-top', top: 'top-left', inside: 'inside-tl' };
+const LEGEND_POS = (() => {
+  const out = {
+    'right-top': { orientation: 'v', x: 1.02, y: 1, xanchor: 'left', yanchor: 'top' },
+    'right-mid': { orientation: 'v', x: 1.02, y: 0.5, xanchor: 'left', yanchor: 'middle' },
+    'right-bottom': { orientation: 'v', x: 1.02, y: 0, xanchor: 'left', yanchor: 'bottom' },
+  };
+  for (const [k, x, xa] of [['left', 0, 'left'], ['center', 0.5, 'center'], ['right', 1, 'right']]) {
+    out['top-' + k] = { orientation: 'h', x, y: 1.02, xanchor: xa, yanchor: 'bottom' };   /* 제목은 여백 가운데에 그려진다 — 범례를 그림 쪽에 붙여야 겹치지 않는다 */
+    /* 아래 자리는 **그림 상자 바닥**(`yref:'container'`)에 붙인다 — 그림 높이에 비례해 내리면
+       높이가 작을 때 축 제목과 겹친다(실측: 320px 카드에서 `tokens`와 포개졌다). */
+    out['bottom-' + k] = { orientation: 'h', x, y: 0, yref: 'container', xanchor: xa, yanchor: 'bottom' };
+  }
+  return out;
+})();
+const LEGEND_INSIDE = {
+  'inside-tl': { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top' },
+  'inside-tr': { orientation: 'v', x: 0.98, y: 0.98, xanchor: 'right', yanchor: 'top' },
+  'inside-bl': { orientation: 'v', x: 0.02, y: 0.02, xanchor: 'left', yanchor: 'bottom' },
+  'inside-br': { orientation: 'v', x: 0.98, y: 0.02, xanchor: 'right', yanchor: 'bottom' },
+};
+const legendKey = v => LEGEND_ALIAS[v] || v;
+function LEGEND_AT(pos, insideBg) {
+  const k = legendKey(pos);
+  if (LEGEND_INSIDE[k]) return { ...LEGEND_INSIDE[k], bgcolor: insideBg };
+  return LEGEND_POS[k];
+}
+/* 바깥 오른쪽에 서는 자리와 안쪽 자리는 오른쪽 여백이 필요 없다.
+   **위·아래에 서면 그 방향 여백을 벌어야 한다** — 안 벌면 위에서는 제목과, 아래에서는 축 제목과 겹친다(실측).
+   항목이 여러 줄로 접힐 수 있으므로 넉넉히 준다. */
+const legendRightFree = cfg => /^right-|^inside/.test(legendKey(cfg.legendPos)) || cfg.legendPos === 'none';
+const legendBottomRoom = cfg => (/^bottom-/.test(legendKey(cfg.legendPos)) ? 56 : 0);
+const legendTopRoom = cfg => (/^top-/.test(legendKey(cfg.legendPos)) ? 34 : 0);
 function buildLayout(cfg, gd, traces) {
   const insideBg = CHROME.overlay;
-  const legend = {
-    right: { orientation: 'v', x: 1.02, y: 1, xanchor: 'left' },
-    top: { orientation: 'h', x: 0, y: 1.12, xanchor: 'left' },
-    // 차트 안 사분면
-    'inside-tl': { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: insideBg },
-    'inside-tr': { orientation: 'v', x: 0.98, y: 0.98, xanchor: 'right', yanchor: 'top', bgcolor: insideBg },
-    'inside-bl': { orientation: 'v', x: 0.02, y: 0.02, xanchor: 'left', yanchor: 'bottom', bgcolor: insideBg },
-    'inside-br': { orientation: 'v', x: 0.98, y: 0.02, xanchor: 'right', yanchor: 'bottom', bgcolor: insideBg },
-    inside: { orientation: 'v', x: 0.02, y: 0.98, xanchor: 'left', yanchor: 'top', bgcolor: insideBg },  // 구 세션 호환(좌상단)
-  }[cfg.legendPos];
+  const legend = LEGEND_AT(cfg.legendPos, insideBg);
   const TICK_FMT = { percent: '.0%', thousands: ',d', sci: '.1e', '0': 'd', '1': '.1f', '2': '.2f', '3': '.3f' };
   const axis = (label, scale, mn, mx, col, tick) => {
     // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
@@ -3634,7 +3678,7 @@ function buildLayout(cfg, gd, traces) {
     title: cfg.title ? { text: cfg.title, font: { family: cfg.fontFamily, size: cfg.fontSize + 4, color: inkOf(cfg) }, x: 0.5 } : undefined,
     font: { family: cfg.fontFamily, size: cfg.fontSize, color: inkOf(cfg) },
     paper_bgcolor: CHROME.surface, plot_bgcolor: faceColor(cfg),
-    margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: cfg.title ? 52 : 28, b: 56 },
+    margin: { l: 64, r: legendRightFree(cfg) ? 8 : 40, t: (cfg.title ? 52 : 28) + legendTopRoom(cfg), b: 56 + legendBottomRoom(cfg) },
     ...y2Layout(cfg),
     hovermode: 'closest',
   };
@@ -3713,8 +3757,8 @@ function buildLayout(cfg, gd, traces) {
       xaxis, yaxis,
       showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
-      margin: { l: isX ? 64 : 76, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40,
-        t: cfg.title ? 52 : 28, b: isX ? 68 : 56 },
+      margin: { l: isX ? 64 : 76, r: legendRightFree(cfg) ? 8 : 40,
+        t: (cfg.title ? 52 : 28) + legendTopRoom(cfg), b: isX ? 68 : 56 },
       hovermode: 'closest',
       annotations: anns,
       shapes: baselineShapes(cfg, gd),
@@ -3763,7 +3807,7 @@ function buildLayout(cfg, gd, traces) {
       grid: { rows: rowsN, columns: cols, pattern: 'independent', roworder: 'top to bottom' },
       showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
-      margin: { l: 64, r: (cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40, t: (cfg.title ? 52 : 30) + 6, b: 52 },
+      margin: { l: 64, r: legendRightFree(cfg) ? 8 : 40, t: (cfg.title ? 52 : 30) + 6 + legendTopRoom(cfg), b: 52 + legendBottomRoom(cfg) },
       barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
       uirevision: [cfg.id, cfg.type, cfg.facetBy, cfg.facetCols, cfg.x, cfg.y, cfg.xScale, cfg.yScale].join('|'),
     };
@@ -3789,7 +3833,7 @@ function buildLayout(cfg, gd, traces) {
     xaxis, yaxis, ...y2Layout(cfg),
     showlegend: cfg.legendPos !== 'none',   // 범례는 사용자가 숨길 때만 사라진다 (시리즈 수로 자동 판단하지 않음)
     legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
-    margin: { l: 64, r: hasY2(cfg) ? 64 : ((cfg.legendPos === 'right' || /^inside/.test(cfg.legendPos) || cfg.legendPos === 'none') ? 8 : 40), t: cfg.title ? 52 : 28, b: 56 },
+    margin: { l: 64, r: hasY2(cfg) ? 64 : (legendRightFree(cfg) ? 8 : 40), t: (cfg.title ? 52 : 28) + legendTopRoom(cfg), b: 56 + legendBottomRoom(cfg) },
     hovermode: 'closest',
     annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg), ...baselineAnnotations(cfg)],
     shapes: chartShapes(cfg, gd),
@@ -4239,8 +4283,15 @@ function applyCardSpec(cfg) {
   sp.hidden = false;
   sp.textContent = cardSpecText(cfg);
 }
+/* 폭 이름 → 클래스. `half`는 v0.7부터 세션에 저장된 이름이라 그대로 받는다(새 이름은 `w-half`). */
+function widthClass(cfg) {
+  const w = cfg.cardWidth || 'full';
+  if (w === 'half') return ' w-half';
+  if (w === 'third' || w === 'twothird') return ' w-' + w;
+  return '';
+}
 function renderChartCard(cfg) {
-  const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : '') + (cfg.collapsed ? ' folded' : ''), 'data-chart': cfg.id });
+  const card = el('section', { class: 'card chart-card' + widthClass(cfg) + (cfg.collapsed ? ' folded' : ''), 'data-chart': cfg.id });
 
   const chartNo = state.charts.indexOf(cfg) + 1;
   const nameSpan = el('span', { class: 'name' }, cfg.title || tf('card.chartNum', { n: chartNo }));
@@ -4336,7 +4387,9 @@ function toggleChartTable(cfg) {
 function applyChartSize(cfg) {
   const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
   if (card) {
-    card.classList.toggle('half', cfg.cardWidth === 'half');
+    for (const k of ['half', 'w-half', 'w-third', 'w-twothird']) card.classList.remove(k);
+    const wc = widthClass(cfg).trim();
+    if (wc) card.classList.add(wc);
     const plot = plotDivs[cfg.id];
     if (plot) { plot.style.minHeight = plot.style.height = (cfg.plotHeight || 460) + 'px'; }
   }
@@ -4808,10 +4861,21 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     A(row(t('cfg.font'), select(FONTS.map(f => [f, f.split(',')[0].replace(/"/g, '')]), cfg.fontFamily, v => { cfg.fontFamily = v; rp(); })), cfg.fontFamily !== defaultChart().fontFamily),
     A(row(t('cfg.fontSize'), el('input', { type: 'number', value: cfg.fontSize, min: 8, max: 32, oninput: e => { cfg.fontSize = Number(e.target.value) || 13; rp(); } }),
         el('input', { type: 'color', value: cfg.fontColor || CHROME.ink, title: t('cfg.fontColorTitle'), oninput: e => { cfg.fontColor = e.target.value; rp(); } })), cfg.fontSize !== defaultChart().fontSize || cfg.fontColor),
-    row(t('cfg.legend'), select([['right', t('opt.right')], ['top', t('opt.top')], ['inside-tl', t('opt.insideTL')], ['inside-tr', t('opt.insideTR')], ['inside-bl', t('opt.insideBL')], ['inside-br', t('opt.insideBR')], ['none', t('opt.hidden')]], cfg.legendPos === 'inside' ? 'inside-tl' : cfg.legendPos, v => { cfg.legendPos = v; rp(); })),
+    /* 자리가 열넷이라 한 줄로 늘어놓으면 못 고른다 — 바깥/안쪽으로 묶는다(유형 select와 같은 방식) */
+    row(t('cfg.legend'), select([
+      { label: t('opt.legendOutside'), options: [
+        ['right-top', t('opt.legRightTop')], ['right-mid', t('opt.legRightMid')], ['right-bottom', t('opt.legRightBottom')],
+        ['top-left', t('opt.legTopLeft')], ['top-center', t('opt.legTopCenter')], ['top-right', t('opt.legTopRight')],
+        ['bottom-left', t('opt.legBottomLeft')], ['bottom-center', t('opt.legBottomCenter')], ['bottom-right', t('opt.legBottomRight')]] },
+      { label: t('opt.legendInside'), options: [
+        ['inside-tl', t('opt.insideTL')], ['inside-tr', t('opt.insideTR')],
+        ['inside-bl', t('opt.insideBL')], ['inside-br', t('opt.insideBR')]] },
+      { label: t('opt.legendOff'), options: [['none', t('opt.hidden')]] },
+    ], legendKey(cfg.legendPos), v => { cfg.legendPos = v; rp(); })),
     row(t('cfg.chartSize'),
       el('input', { type: 'range', min: 280, max: 820, step: 20, value: cfg.plotHeight || 460, title: t('cfg.chartHeightTitle'), oninput: e => { cfg.plotHeight = Number(e.target.value) || 460; applyChartSize(cfg); } }),
-      select([['full', t('opt.widthFull')], ['half', t('opt.widthHalf')]], cfg.cardWidth || 'full', v => { cfg.cardWidth = v; applyChartSize(cfg); })),
+      select([['full', t('opt.widthFull')], ['twothird', t('opt.widthTwoThird')], ['half', t('opt.widthHalf')], ['third', t('opt.widthThird')]],
+        cfg.cardWidth || 'full', v => { cfg.cardWidth = v; applyChartSize(cfg); })),
     ...(isBar ? [] : [
       A(row(t('cfg.markerSize'), el('input', { type: 'number', value: cfg.markerSize, min: 3, max: 40, oninput: e => { cfg.markerSize = Number(e.target.value) || 9; rp(); renderSeries(); } }),
           el('span', { class: 'lbl', style: 'width:auto' }, t('cfg.lineWidth')),
