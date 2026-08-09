@@ -395,7 +395,7 @@
       </span>
       <span class="grp view">
         <select id="selPalette" class="ghost" title=""></select>
-        <button id="btnWidth" class="ghost" title=""></button>
+        <select id="selWidth" class="ghost" title="" data-i18n-aria="width.aria"></select>
         <button id="btnTheme" class="ghost" title=""></button>
         <button id="btnLangToggle" class="ghost"></button>
         <button id="saveOff" class="danger ghost" data-i18n="btn.saveOff" data-i18n-title="btn.saveOffTitle" hidden></button>
@@ -497,7 +497,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.61';
+const APP_VERSION = 'v0.61.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -698,15 +698,28 @@ let WIDTH = WIDTHS.includes(localStorage.getItem(WIDTH_KEY)) ? localStorage.getI
 function applyWidth() {
   if (WIDTH === 'normal') document.documentElement.removeAttribute('data-width');
   else document.documentElement.setAttribute('data-width', WIDTH);
-  const b = document.getElementById('btnWidth');
-  if (b) b.textContent = tf('width.label', { mode: t('width.' + WIDTH) });
+  /* 세 가지를 눌러 돌리던 것을 드롭다운으로(v0.61.1) — 지금 무엇인지와 무엇이 더 있는지가 한 번에 보인다.
+     선택지 이름은 언어를 따라가야 하므로 `applyLang` 다음에도 다시 채운다. */
+  const sel = document.getElementById('selWidth');
+  if (sel) {
+    sel.innerHTML = '';
+    for (const w of WIDTHS) {
+      const o = el('option', { value: w }, tf('width.label', { mode: t('width.' + w) }));
+      if (w === WIDTH) o.selected = true;
+      sel.append(o);
+    }
+    sel.title = t('width.title');
+  }
   requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); } });
 }
-function cycleWidth() {
-  WIDTH = WIDTHS[(WIDTHS.indexOf(WIDTH) + 1) % WIDTHS.length];
-  localStorage.setItem(WIDTH_KEY, WIDTH);
+function setWidth(v) {
+  if (!WIDTHS.includes(v)) return;
+  WIDTH = v;
+  try { localStorage.setItem(WIDTH_KEY, WIDTH); } catch (e) { /* 저장 못 해도 이번 세션은 동작 */ }
   applyWidth();
 }
+/* 옛 이름 — 검사·단축 경로가 이걸로 불렀다. 다음 값으로 넘긴다. */
+function cycleWidth() { setWidth(WIDTHS[(WIDTHS.indexOf(WIDTH) + 1) % WIDTHS.length]); }
 const I18N = {
   ko: {
     'header.sub': 'CSV/JSON 벤치마크·성능 비교 인터랙티브 시각화',
@@ -747,6 +760,7 @@ const I18N = {
     'palette.default': '기본', 'palette.carbon': 'Carbon', 'palette.okabe': 'Okabe-Ito', 'palette.ink': '잉크 톤',
     'theme.toggle': '라이트/다크 전환',
     'width.label': '폭: {mode}', 'width.normal': '기본', 'width.wide': '넓게', 'width.full': '최대',
+    'width.title': '페이지 폭 — 차트가 쓰는 가로 공간', 'width.aria': '페이지 폭',
     all: '전체',
     'dash.solid': '실선', 'dash.dash': '파선', 'dash.dot': '점선', 'dash.dashdot': '파선+점',
     'op.select': '선택', 'op.contains': '포함',
@@ -1270,6 +1284,7 @@ const I18N = {
     'palette.default': 'Default', 'palette.carbon': 'Carbon', 'palette.okabe': 'Okabe-Ito', 'palette.ink': 'Ink',
     'theme.toggle': 'Toggle light/dark',
     'width.label': 'Width: {mode}', 'width.normal': 'Normal', 'width.wide': 'Wide', 'width.full': 'Full',
+    'width.title': 'Page width — how much room the charts get', 'width.aria': 'Page width',
     all: 'All',
     'dash.solid': 'Solid', 'dash.dash': 'Dash', 'dash.dot': 'Dot', 'dash.dashdot': 'Dash-dot',
     'op.select': 'Select', 'op.contains': 'Contains',
@@ -7737,7 +7752,7 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   relabelCards(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c);
   renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
-  applyWidth();   // 폭 버튼 라벨도 언어에 맞춰 갱신
+  applyWidth();   // 폭 드롭다운의 선택지 이름도 언어에 맞춰 다시 채운다
   const fold = document.getElementById('btnFoldAll');
   if (fold) fold.textContent = t(state.charts.some(c => !c.collapsed) ? 'btn.foldAll' : 'btn.unfoldAll');
   applyCfgWidth();
@@ -7758,7 +7773,7 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   paletteSelectRefresh = fill;
 })();
 document.getElementById('btnTheme').addEventListener('click', toggleTheme);
-document.getElementById('btnWidth').addEventListener('click', cycleWidth);
+document.getElementById('selWidth').addEventListener('change', e => setWidth(e.target.value));
 if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (THEME === 'auto') applyTheme(); });
 
 /* visualizer.py 서버가 있으면 폴더의 csv/json을 자동 로드 */

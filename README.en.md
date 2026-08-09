@@ -150,7 +150,7 @@ ours,4000,4.1,0.744,MMLU
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | Legend position | Settings → Style → Legend: **nine positions outside** (right × top/middle/bottom, top and bottom × left/center/right) · the four inside corners · hidden. Top and bottom legends reserve their own margin so they never sit on the title or the axis label |
 | **Settings dock** | A card's `⚙ Settings` opens that chart's settings in a **dock on the left of the page**, using the full window height. One chart is edited at a time, and which one is shown in two places — the dock title and an outline on the card. The same button closes it; another card's button switches targets. Whether you closed it and which chart you were on are remembered, and on narrow screens it overlays and closes on Escape or a click outside |
-| **Chart size & layout** | Settings → Style → Chart size: height slider + four widths (full · two-thirds · half · one-third — three charts fit in a row at one-third, and the width you pick holds regardless of how many neighbours there are). A top-bar width toggle (normal/wide/full) sets the whole page width The dock width (narrow/default/wide/widest) is picked above the panel. The dock height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + four widths (full · two-thirds · half · one-third — three charts fit in a row at one-third, and the width you pick holds regardless of how many neighbours there are). A top-bar width dropdown (normal/wide/full) sets the whole page width. The dock width (narrow/default/wide/widest) is picked above the panel. The dock height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
 | Reorder & collapse cards | `↑`/`↓` in the card header reorder, `▾` folds the card down to a single header line. The folded state is saved in the session, and `Collapse all` folds every card at once. Zoom and settings-panel state survive adding charts or switching language |
 | **Card summary** | With the settings collapsed, the header shows `type · X × Y · group · filter count · dataset` on one line |
 | **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). Anything you have set stays visible, and `Show N more advanced settings` at the bottom opens them all |
@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.61.1** — The page-width control in the top bar is a dropdown instead of a button you click through.
 - **v0.61** — Chart width is now a four-way choice (full, two-thirds, half, one-third), and the legend has nine outside positions (right × top/middle/bottom, top and bottom × left/center/right) alongside the four inside corners.
 - **v0.60** — Settings moved from a narrow column inside each card to a **dock on the left**: full window height, and every chart is full width. A card's `⚙ Settings` brings that chart into the dock, and the chart being edited is marked in two places.
 - **v0.59** — Added the scatter matrix: every pair of the metrics you pick in one grid, so the trade-offs show up in a single figure. Past 8 columns or 5,000 points per cell it trims, and says what it left out.
 - **v0.58** — An audit of the storage and restore paths the last three releases touched. Fixed leftovers after `Reset all` and a case where adding a file mid-restore produced two copies of the same dataset. All 67 chart settings fields are now checked to round-trip through a session unchanged.
-- **v0.57** — The data survives a refresh too. Rows are stored in IndexedDB, so even a 200k-row file comes back (67ms to write, 116ms to read). Browsers without IndexedDB behave exactly as before.
 
 ---
 
