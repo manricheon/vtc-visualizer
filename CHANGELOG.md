@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.61 — more room for width and legend
+> v0.61 — 폭과 범례 자리를 넓힘
+
+- Chart width was `Full` or `Half`. It is now a four-way choice — **full, two-thirds, half, one-third** — so three charts sit in a row. Fractional cards no longer stretch to fill a row on their own: the width you pick is the width you get.
+- The legend had five outside positions. It now has **nine outside** (right × top/middle/bottom, top and bottom × left/center/right) plus the four inside corners and off, grouped in the dropdown so fourteen entries stay pickable.
+- Sessions saved with the old values (`right`, `top`, `inside`, `half`) open exactly as before and show the equivalent new name in the dropdown.
+- Top and bottom legends now reserve their own margin: a top legend no longer sits on the title, and a bottom legend is pinned to the bottom of the figure rather than a fraction of its height, so it clears the axis title even on a short chart.
+
 ### v0.60 — settings move to a dock on the left
 > v0.60 — 설정을 왼쪽 도크로
 
