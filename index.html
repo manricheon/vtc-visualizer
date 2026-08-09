@@ -138,6 +138,38 @@
   .chip button { border: none; background: none; padding: 0 4px; color: var(--ink-muted); font-size: 13px; }
   .chip button:hover { color: var(--danger); }
 
+  /* ===== 설정 도크 (v0.60) =====
+     설정은 카드마다 붙은 세로 컬럼이었다 — 그룹을 펼치면 좁은 관 안에서 아래로만 길어졌다.
+     자리를 페이지 왼쪽으로 옮기면 **화면 높이 전체**를 쓰고 카드는 전부 전폭이 된다.
+     열려 있을 때만 자리를 차지한다(`#dock[hidden]`은 아예 없는 것과 같다). */
+  #dock {
+    position: sticky; top: 12px; align-self: flex-start;
+    width: var(--cfg-w, 300px); flex: none;
+    max-height: calc(100vh - 24px); overflow-y: auto;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-1); z-index: 40;
+  }
+  #dock[hidden] { display: none; }
+  #dock .dock-head {
+    display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 1;
+    padding: 8px 10px; border-bottom: 1px solid var(--border); background: var(--surface-1);
+    font-weight: 600; font-size: var(--fs-sm);
+  }
+  #dock .dock-head .dock-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #dock .cfg { padding: 10px 12px; font-size: 13px; }
+  /* 편집 중인 카드는 **테두리로도** 말한다 — 도크 제목 한 곳만으로는 엉뚱한 차트를 고치기 쉽다 */
+  .chart-card.editing { outline: 2px solid var(--accent, #3b6ea5); outline-offset: -1px; }
+  #dockBack { display: none; }
+  /* 좁은 화면: 밀면 그림이 남지 않으므로 겹쳐 띄운다 */
+  @media (max-width: 860px) {
+    #dock { position: fixed; top: 8px; left: 8px; bottom: 8px; max-height: none;
+      width: min(var(--cfg-w, 300px), calc(100vw - 32px)); z-index: 80; }
+    #dockBack { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.28); z-index: 70; }
+    #dockBack[hidden] { display: none; }
+  }
+  .page { display: flex; gap: 16px; align-items: flex-start; }
+  .page > main { flex: 1 1 auto; min-width: 0; }
+
   /* ===== chart cards ===== */
   #charts { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
   .chart-card { padding: 0; overflow: hidden; margin-bottom: 0; flex: 1 1 100%; }
@@ -166,15 +198,6 @@
   .chart-card .body { display: flex; align-items: stretch; }
   /* 설정 패널 폭은 사용자가 정한다(`--cfg-w`) — 한국어 라벨과 선택지가 292px에서 자주 두 줄로 접혔다.
      절반 폭 카드에서는 상한을 둔다: 카드가 좁은데 패널까지 넓히면 그림이 남지 않는다. */
-  .chart-card .cfg {
-    width: var(--cfg-w, 300px); flex: none; border-right: 1px solid var(--border);
-    padding: 10px 12px; overflow-y: auto; font-size: 13px;
-    /* 640px 고정이라 화면이 커도 안 늘어났다(1000px 창에서 360px을 버렸다).
-       max-height라 내용이 짧으면 그만큼만 차지한다 — 상한만 화면을 따라간다. */
-    max-height: min(calc(100vh - 150px), 900px); min-height: 240px;
-  }
-  .chart-card.half .cfg { width: min(var(--cfg-w, 300px), 320px); }
-  .chart-card .cfg.hidden { display: none; }
   /* 폭 선택과 `하나씩`이 자리를 먹으면서 검색 안내 문구가 잘렸다 — 줄이느니 **줄로 접는다** */
   .cfg-search { flex: 1 1 168px; min-width: 168px; font-size: 12.5px; }
   .cfg-search-box .top { display: flex; gap: 6px; align-items: center; margin: 0 0 8px; flex-wrap: wrap; }
@@ -345,7 +368,6 @@
   #emptyCharts { color: var(--ink-muted); text-align: center; padding: 30px 0; }
   @media (max-width: 860px) {
     .chart-card .body { flex-direction: column; }
-    .chart-card .cfg { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 320px; }
   }
 </style>
 </head>
@@ -375,6 +397,12 @@
     </nav>
   </header>
 
+  <div class="page">
+  <div id="dockBack" hidden></div>
+  <aside id="dock" hidden data-i18n-aria="dock.title">
+    <div class="dock-head"><span class="dock-name"></span><button id="dockClose" class="small" data-i18n-title="dock.close">×</button></div>
+    <div class="cfg"></div>
+  </aside>
   <main>
   <section class="card" id="dataCard">
     <!-- 파일을 다 넣고 나면 이 카드는 240px을 차지한 채 할 일이 없다 — 차트 카드처럼 접는다.
@@ -431,6 +459,7 @@
     </div>
   </section>
   </main>
+  </div>
 
   <footer>VTC Visualizer <span class="footer-ver"></span> — <span data-i18n="footer.text"></span> © mrc</footer>
 </div>
@@ -461,7 +490,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.59';
+const APP_VERSION = 'v0.60';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -574,13 +603,82 @@ function toggleTheme() {
 const CFGW_KEY = 'vtc-visualizer:cfgw';
 const CFG_WIDTHS = { s: [264, 76], m: [300, 84], l: [360, 104], xl: [440, 128] };
 let CFGW = CFG_WIDTHS[localStorage.getItem(CFGW_KEY)] ? localStorage.getItem(CFGW_KEY) : 'm';
+/* ===== 설정 도크 (v0.60) =====
+   편집 대상은 **하나**(`dockChartId`)다. 여럿을 동시에 편집하게 두면
+   "지금 어느 차트를 고치는 중인가"라는 질문이 그대로 돌아온다.
+   그 질문은 **두 곳에서** 답한다 — 도크 제목과 카드 테두리(`.editing`). 한 곳만 두면 엉뚱한 차트를 고친다. */
+let dockChartId = null, dockOpener = null;
+const DOCK_KEY = 'vtc-visualizer:dock';
+function dockEl() { return document.getElementById('dock'); }
+function markEditing() {
+  for (const card of document.querySelectorAll('.chart-card')) {
+    card.classList.toggle('editing', dockChartId !== null && card.dataset.chart === String(dockChartId));
+  }
+}
+/* 도크가 열리고 닫히면 그림의 폭이 바뀐다 — Plotly는 스스로 알지 못한다(접힌 차트는 reject한다) */
+function resizePlots() {
+  requestAnimationFrame(() => {
+    for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); }
+  });
+}
+function openDock(cfg, opener) {
+  const dock = dockEl();
+  if (!dock || !cfg) return;
+  dockChartId = cfg.id;
+  if (opener) dockOpener = opener;
+  dock.hidden = false;
+  const back = document.getElementById('dockBack');
+  if (back) back.hidden = false;
+  try { localStorage.setItem(DOCK_KEY, String(cfg.id)); } catch (e) { /* 저장 못 해도 이번 세션은 동작 */ }
+  refreshCfgPanels();
+  markEditing();
+  resizePlots();
+}
+/* `restore === true`(Escape·닫기 버튼)일 때만 포커스를 되돌린다 —
+   바깥을 눌러 닫았는데 끌어오면 방금 누른 것을 빼앗는다(`hidePopover`와 같은 판단). */
+/* **닫는 데는 두 가지가 있다.**
+   `closeDock()` — 사람이 닫았다. 그 사실을 기억한다(`'off'`), 안 그러면 다음에 또 열려 "닫았는데 왜 또"가 된다.
+   `dropDock()` — 편집하던 차트가 사라졌다. 사람의 뜻이 아니므로 **기억하지 않는다**
+   (차트가 없는 잠깐 사이에 `'off'`가 찍히면 처음 여는 사람에게도 설정이 안 열린다 — 실제로 그랬다). */
+function hideDock() {
+  const dock = dockEl();
+  dockChartId = null;
+  if (dock) dock.hidden = true;
+  const back = document.getElementById('dockBack');
+  if (back) back.hidden = true;
+  markEditing();
+  resizePlots();
+}
+function dropDock() { hideDock(); }
+function closeDock(restore) {
+  hideDock();
+  try { localStorage.setItem(DOCK_KEY, 'off'); } catch (e) { /* 무시 */ }
+  const o = dockOpener; dockOpener = null;
+  if (restore === true && o && o.isConnected) o.focus();
+}
+function toggleDock(cfg, opener) {
+  if (dockChartId === cfg.id) closeDock(true);
+  else openDock(cfg, opener);
+}
+/* 처음 여는 사람에게는 **설정이 보여야 한다**(v0.59까지 패널은 카드마다 펼쳐져 있었다).
+   그래서 기본은 첫 차트를 연 상태다. 닫아 두었으면 그 상태가 기억된다(`'off'`). */
+/* 좁은 화면에서는 도크가 화면을 덮으므로 **저절로 열지 않는다** — 열자마자 상단 버튼이 가려지면
+   처음 온 사람은 그걸 치우는 법부터 배워야 한다(실측: 800px에서 `분석` 버튼이 도크 아래로 들어갔다). */
+function dockAutoOK() { return window.matchMedia('(min-width: 861px)').matches; }
+function applyDock() {
+  const saved = localStorage.getItem(DOCK_KEY);
+  if (saved === 'off' || !dockAutoOK()) return;
+  const cfg = saved ? state.charts.find(c => String(c.id) === saved) : null;
+  if (cfg) openDock(cfg);
+  else if (state.charts.length) openDock(state.charts[0]);
+}
 function applyCfgWidth() {
   const [w, lbl] = CFG_WIDTHS[CFGW] || CFG_WIDTHS.m;
   document.documentElement.style.setProperty('--cfg-w', w + 'px');
   document.documentElement.style.setProperty('--cfg-lbl', lbl + 'px');
   for (const sel of document.querySelectorAll('.cfg-wsel')) sel.value = CFGW;
-  /* 패널이 넓어지면 그림이 좁아진다 — Plotly는 스스로 알지 못하므로 다시 재본다(접힌 차트는 reject한다) */
-  requestAnimationFrame(() => { for (const c of state.charts) { const gd = plotDivs[c.id]; if (gd && gd.data && !c.collapsed) Plotly.Plots.resize(gd); } });
+  /* 도크가 넓어지면 그림이 좁아진다 — Plotly는 스스로 알지 못하므로 다시 재본다(접힌 차트는 reject한다) */
+  resizePlots();
 }
 function setCfgWidth(v) {
   if (!CFG_WIDTHS[v]) return;
@@ -658,6 +756,7 @@ const I18N = {
     'card.resetViewTitle': '줌·축 범위를 초기화하고 전체 데이터를 보여줍니다',
     'card.resetView': '보기 초기화',
     'card.settings': '⚙ 설정',
+    'dock.title': '설정', 'dock.close': '설정 닫기',
     'card.specGroup': '그룹', 'card.specFacet': '분할', 'card.specFilter': '필터',
     'card.duplicate': '복제',
     'card.preset': '프리셋',
@@ -1175,6 +1274,7 @@ const I18N = {
     'card.resetViewTitle': 'Reset zoom/axis range and show all data',
     'card.resetView': 'Reset view',
     'card.settings': '⚙ Settings',
+    'dock.title': 'Settings', 'dock.close': 'Close settings',
     'card.specGroup': 'group', 'card.specFacet': 'split', 'card.specFilter': 'filters',
     'card.duplicate': 'Duplicate',
     'card.preset': 'Presets',
@@ -2199,6 +2299,7 @@ function removeDataset(id) {
   state.datasets.splice(i, 1);
   parseReports.delete(ds.name);   // 그 파일에 대한 기록이므로 함께 지운다
   datasetsMeta = datasetsMeta.filter(m => m.name !== ds.name);   // 내가 지운 것을 "다시 넣으라"고 조르지 않는다
+  pendingMeta = pendingMeta.filter(m => m.name !== ds.name);
   invalidateDataCaches();
   onDataChanged();
   showToast(tf('toast.datasetRemoved', { name: ds.name }), t('toast.undo'), () => {
@@ -4125,9 +4226,9 @@ function applyCardSpec(cfg) {
   const card = cardOf(cfg);
   const sp = card && card.querySelector('.head .spec');
   if (!sp) return;
-  /* 설정이 펼쳐져 있으면 같은 내용이 아래에 보이므로 숨긴다 — 단 **접혀 있으면 아래가 없다** */
-  sp.hidden = !(cfg._cfgHidden || cfg.collapsed);
-  if (!sp.hidden) sp.textContent = cardSpecText(cfg);
+  /* v0.60부터 설정은 카드 밖(도크)에 있다 — 아래에 겹칠 것이 없으므로 요약은 **항상** 보인다 */
+  sp.hidden = false;
+  sp.textContent = cardSpecText(cfg);
 }
 function renderChartCard(cfg) {
   const card = el('section', { class: 'card chart-card' + (cfg.cardWidth === 'half' ? ' half' : '') + (cfg.collapsed ? ' folded' : ''), 'data-chart': cfg.id });
@@ -4139,13 +4240,11 @@ function renderChartCard(cfg) {
      카드 자체에 붙여 두면 보조 기술이 언제든 읽어 주고, 마우스로도 툴팁으로 보인다. */
   card.setAttribute('aria-keyshortcuts', 'Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight');
   card.title = t('card.keysTitle');
-  const cfgPanel = el('div', { class: 'cfg' });
   const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
 
-  if (cfg._cfgHidden) cfgPanel.classList.add('hidden');   // 설정 패널 접힘은 카드가 다시 그려져도 유지
-  const specShown = cfg._cfgHidden || cfg.collapsed;
-  const specSpan = el('span', { class: 'spec', hidden: specShown ? undefined : '' }, specShown ? cardSpecText(cfg) : '');
+  /* 설정은 v0.60부터 왼쪽 도크에 있다 — 카드 안에 같은 UI를 두지 않으므로 요약은 **항상** 보인다 */
+  const specSpan = el('span', { class: 'spec' }, cardSpecText(cfg));
   const head = el('div', { class: 'head' },
     nameSpan, specSpan,
     el('button', { class: 'small', title: t('card.collapseTitle'), onclick: e => {
@@ -4157,13 +4256,9 @@ function renderChartCard(cfg) {
       cfg.xMin = cfg.xMax = cfg.yMin = cfg.yMax = '';
       renderPlot(cfg);
       if (plotDiv.data) Plotly.relayout(plotDiv, { 'xaxis.autorange': true, 'yaxis.autorange': true });
-      buildCfgPanel(cfg, cfgPanel, nameSpan); save();
+      refreshCfgPanels(); save();
     } }, t('card.resetView')),
-    el('button', { class: 'small', onclick: () => {
-      cfgPanel.classList.toggle('hidden');
-      cfg._cfgHidden = cfgPanel.classList.contains('hidden');
-      applyCardSpec(cfg);
-    } }, t('card.settings')),
+    el('button', { class: 'small', onclick: e => toggleDock(cfg, e.currentTarget) }, t('card.settings')),
     el('button', { class: 'small', onclick: e => showPresetMenu(cfg, e) }, t('card.preset')),
     el('button', { class: 'small', title: t('card.asTableTitle'), onclick: () => toggleChartTable(cfg) }, t('card.asTable')),
     el('button', { class: 'small', onclick: () => exportImg(cfg, 'png') }, 'PNG'),
@@ -4172,10 +4267,11 @@ function renderChartCard(cfg) {
     el('button', { class: 'small danger', onclick: () => removeChart(cfg.id) }, t('btn.delete')),
   );
 
-  buildCfgPanel(cfg, cfgPanel, nameSpan);
   const capDiv = el('div', { class: 'plot-caption' }, cfg.caption || '');
   capDiv.hidden = !cfg.caption;
-  card.append(head, el('div', { class: 'body' }, cfgPanel, plotDiv),
+  /* 이 카드를 다시 지으면(프리셋·유형 변경) 도크 내용도 낡는다 — 같은 차트를 보고 있으면 함께 다시 짓는다 */
+  if (dockChartId === cfg.id) { card.classList.add('editing'); queueMicrotask(() => refreshCfgPanels()); }
+  card.append(head, el('div', { class: 'body' }, plotDiv),
     el('div', { class: 'chart-table', hidden: '' }),
     capDiv,
     el('div', { class: 'plot-hint' }, t('card.plotHint')));
@@ -4320,7 +4416,7 @@ function setSimple(on) {
   SIMPLE = !!on;
   localStorage.setItem(SIMPLE_KEY, SIMPLE ? '1' : '0');
   for (const b of document.querySelectorAll('.cfg-smpsel')) b.checked = SIMPLE;
-  for (const p of document.querySelectorAll('.chart-card .cfg')) p.classList.toggle('simple', SIMPLE);
+  for (const p of document.querySelectorAll('#dock .cfg')) p.classList.toggle('simple', SIMPLE);   // v0.60: 패널은 도크에 하나
   for (const b of document.querySelectorAll('.cfg-more button')) {
     const p = b.closest('.cfg');
     b.textContent = SIMPLE ? tf('cfg.showAll', { n: p ? p.querySelectorAll('.row.adv').length : 0 }) : t('cfg.showSimple');
@@ -5066,6 +5162,9 @@ function addChart(cfgOverride) {
   guessAxes(cfg);
   state.charts.push(cfg);
   appendChartCard(cfg);
+  /* **첫 차트에서는 설정을 연다** — v0.59까지 패널은 카드 안에 펼쳐진 채로 나타났다.
+     둘째부터는 열지 않는다(분석의 근거 차트처럼 저절로 생기는 카드가 도크를 빼앗으면 안 된다). */
+  if (state.charts.length === 1 && dockChartId === null && localStorage.getItem(DOCK_KEY) !== 'off' && dockAutoOK()) openDock(cfg);
   save();
   return cfg;
 }
@@ -5088,6 +5187,7 @@ function removeChart(id) {
   const i = state.charts.findIndex(c => c.id === id);
   if (i < 0) return;
   const [gone] = state.charts.splice(i, 1);   // 축·색·베이스라인까지 통째로 사라지므로 되돌릴 수 있어야 한다
+  if (dockChartId === id) dropDock();   // 없는 차트의 설정이 도크에 남아 있으면 안 된다(사람이 닫은 것은 아니다)
   const card = document.querySelector(`.chart-card[data-chart="${id}"]`);
   purgePlot(id);
   if (card) card.remove();
@@ -5106,6 +5206,13 @@ function refreshCharts() {
   for (const cfg of state.charts) box.append(renderChartCard(cfg));
   updateEmptyCharts();
   for (const cfg of state.charts) renderPlot(cfg);
+  /* 편집 대상이 아직 있으면 표시와 패널을 되살린다.
+     사라졌으면 **첫 차트로 옮긴다** — 세션을 갈아 끼우거나 되돌린 뒤에도 설정이 열려 있어야 한다.
+     단 사용자가 직접 닫아 두었으면(`'off'`) 열지 않는다. */
+  if (state.charts.some(c => c.id === dockChartId)) { markEditing(); refreshCfgPanels(); }
+  else if (localStorage.getItem(DOCK_KEY) !== 'off' && dockAutoOK()) {
+    if (state.charts.length) openDock(state.charts[0]); else dropDock();
+  } else dropDock();
 }
 function updateEmptyCharts() {
   document.getElementById('emptyCharts').style.display = state.charts.length ? 'none' : '';
@@ -5194,13 +5301,15 @@ function moveChart(cfg, dir) {
   renumberCards(); save();
 }
 /* 카드를 재생성하지 않고 각 설정 패널만 다시 구성 — 컬럼 목록 변경(계산 컬럼 등) 반영, 열림/접힘 상태 보존 */
+/* 패널은 이제 **하나**다(도크) — 데이터가 바뀔 때 카드 수만큼 다시 짓던 것이 사라졌다 */
 function refreshCfgPanels() {
-  for (const cfg of state.charts) {
-    const card = document.querySelector(`.chart-card[data-chart="${cfg.id}"]`);
-    if (!card) continue;
-    const panel = card.querySelector('.cfg'), nameSpan = card.querySelector('.head .name');
-    if (panel && nameSpan) buildCfgPanel(cfg, panel, nameSpan);
-  }
+  const cfg = state.charts.find(c => c.id === dockChartId);
+  if (!cfg) { if (dockChartId !== null) dropDock(); return; }
+  const panel = document.querySelector('#dock .cfg');
+  const nameSpan = document.querySelector(`.chart-card[data-chart="${cfg.id}"] .head .name`);
+  if (panel) buildCfgPanel(cfg, panel, nameSpan || el('span', { class: 'name' }, ''));
+  const nameOut = document.querySelector('#dock .dock-name');
+  if (nameOut) nameOut.textContent = (nameSpan && nameSpan.textContent) || cfg.title || '';
 }
 
 /* ================= data table ================= */
@@ -6577,8 +6686,10 @@ function idbLoad() {
     .then(r => (r && r.datasets ? r : null)).catch(() => null);
 }
 function idbClear() { return idbTx('readwrite', st => st.delete('datasets')).catch(() => null); }
-/* 마지막으로 저장된 세션이 쓰던 파일 목록 — 데이터가 없이 복원됐을 때 무엇을 다시 넣어야 하는지 알려 준다 */
-let datasetsMeta = [];
+/* 마지막으로 저장된 세션이 쓰던 파일 목록 — 데이터가 없이 복원됐을 때 무엇을 다시 넣어야 하는지 알려 준다.
+   `pendingMeta`는 그중 **아직 안 온 것**이다: 저장이 목록을 다시 만들 때 이것만 남긴다.
+   (안 그러면 설정만 복원된 세션에서 첫 저장에 유령 칩이 사라져 무엇을 넣어야 하는지 알 길이 없다.) */
+let datasetsMeta = [], pendingMeta = [];
 /* 저장이 꺼졌다는 사실은 **화면에 남아 있어야 한다** — 토스트는 5초 뒤 사라지고,
    그 뒤로 한 시간을 더 작업한 사람에게는 단서가 하나도 없었다.
    저장소에도 표시를 남긴다: 다음에 열리는 세션은 그때 이후의 변경을 담고 있지 않다. */
@@ -6599,8 +6710,17 @@ function save() {
     try {
       const charts = state.charts.map(serializableChart);
       /* 지금 있는 것으로 다시 만든다 — 유령 칩은 이 목록에서 나오므로 낡으면 없는 파일을 넣으라고 조른다 */
-      datasetsMeta = state.datasets.map(d => ({ name: d.name, rows: d.rows.length,
+      const metaBefore = datasetsMeta.map(m => m.name).join('\u0001');
+      const loaded = state.datasets.map(d => ({ name: d.name, rows: d.rows.length,
         cols: Object.keys(d.rows[0] || {}).filter(k => k !== '_source').length, server: !!d.server }));
+      /* **아직 안 온 파일은 목록에 남긴다** — 세션이 설정만 복원됐을 때 "무엇을 다시 넣어야 하는지"가
+         첫 저장에 지워지면 유령 칩이 사라져 되찾을 단서가 없다. 지운 파일은 `removeDataset`이 따로 뺀다. */
+      const here = new Set(loaded.map(m => m.name));
+      pendingMeta = pendingMeta.filter(m => !here.has(m.name));
+      datasetsMeta = [...loaded, ...pendingMeta];
+      /* 유령 칩은 이 목록에서 나온다 — 목록이 바뀌었으면 화면도 지금 고쳐야 한다
+         (안 그러면 이미 지운 파일의 "다시 넣기"가 다음 렌더까지 남는다) */
+      if (metaBefore !== datasetsMeta.map(m => m.name).join('\u0001')) renderChips();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ charts, derived: state.derived,
         hiddenCols: state.hiddenCols, nextId: state.nextId, datasetsMeta }));
     } catch (e) { settingsOk = false; }
@@ -6704,6 +6824,8 @@ function restoreSession(s) {
   state.datasets = s.datasets || [];
   /* 담기지 못한(또는 아직 안 온) 데이터가 무엇이었는지 — 유령 칩이 이걸로 "다시 넣기"를 안내한다 */
   datasetsMeta = Array.isArray(s.datasetsMeta) ? s.datasetsMeta : state.datasets.map(d => ({ name: d.name, rows: d.rows.length }));
+  const arrived = new Set(state.datasets.map(d => d.name));
+  pendingMeta = datasetsMeta.filter(m => m && m.name && !arrived.has(m.name));   // 아직 안 온 것만 유령으로 남는다
   invalidateDataCaches();
   state.derived = s.derived || [];
   state.hiddenCols = Array.isArray(s.hiddenCols) ? s.hiddenCols : [];   // 예전 세션엔 없다
@@ -7445,7 +7567,8 @@ document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (e.key !== 'Escape') return;
   const modal = document.getElementById('modalBack');
   if (modal.classList.contains('show')) { closeModal(); return; }
-  if (popover.classList.contains('show')) hidePopover(true);
+  if (popover.classList.contains('show')) { hidePopover(true); return; }
+  if (dockChartId !== null) closeDock(true);   // 연 버튼으로 포커스를 되돌린다
 });
 /* 카드 조작을 키보드로 (v0.47) — 순서 바꾸기·접기가 헤더 버튼 클릭 말고는 길이 없었다.
    **Alt + 화살표만 쓴다**: 글자 키를 쓰면 입력칸에서 충돌하고, 화살표 단독은 스크롤·선택을 빼앗는다.
@@ -7520,7 +7643,7 @@ document.getElementById('btnReset').addEventListener('click', () => {
   state.datasets = []; state.charts = []; state.nextId = 1; state.hiddenCols = []; state.derived = [];
   /* **유령 칩의 근거도 함께 비운다**(v0.58) — 안 비우면 초기화 직후 화면이 방금 지운 파일을 "다시 넣으라"고 조른다.
      저장이 꺼졌다는 표시도 걷는다: 담을 데이터가 없으니 꺼질 이유도 없다. */
-  datasetsMeta = [];
+  datasetsMeta = []; pendingMeta = [];
   quotaWarned = false; setSaveOff(false);
   invalidateDataCaches();
   onDataChanged(false); refreshCharts();
@@ -7680,6 +7803,9 @@ applyDataFold();   // 접힘은 브라우저에 남아 있다 — 새로고침�
 applyTheme();   // CHROME·PALETTE·SEQ를 테마에 맞춰 설정 (첫 렌더 전)
 applyWidth();
 applyCfgWidth();
+document.getElementById('dockClose').addEventListener('click', () => closeDock(true));
+/* 좁은 화면의 겹친 배경 — 바깥을 눌러 닫을 때는 포커스를 되돌리지 않는다(방금 누른 것을 뺏지 않는다) */
+document.getElementById('dockBack').addEventListener('click', () => closeDock());
 loadSaved();
 /* 행은 비동기로 뒤따라 들어온다 — 그 다음에 자동 로드를 태워야 서버 파일이 마지막 말을 한다(최신 내용) */
 hydrateData().catch(() => false).then(() => tryServerAutoload());
@@ -7691,6 +7817,7 @@ if (localStorage.getItem(STALE_KEY) === '1') {
 }
 document.getElementById('saveOff').addEventListener('click', exportSession);
 renderChips(); renderDerived(); renderTable(); refreshCharts();
+applyDock();   // 지난번에 열어 둔 설정을 그 차트로 되돌린다 (카드가 다 그려진 뒤여야 한다)
 </script>
 </body>
 </html>

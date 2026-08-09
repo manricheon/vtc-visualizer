@@ -3,6 +3,16 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.60 — settings move to a dock on the left
+> v0.60 — 설정을 왼쪽 도크로
+
+- Settings used to be a 264–440px column **inside every card**, and opening a group could only grow downward inside that narrow tube. They now live in **one panel docked to the left of the page**: it uses the full window height, and every chart card is full width again.
+- **One chart is edited at a time.** A card's `⚙ Settings` brings that chart into the dock; the same button closes it, another card's button switches targets. Which chart you are editing is said in **two places** — the dock's title and an outline on the card — so you cannot quietly edit the wrong one.
+- The dock remembers whether you closed it and which chart you were on. Width still comes from the existing panel-width setting (s/m/l/xl), and the accordion, `Essentials`, option search and remembered groups all work exactly as before — only the location changed.
+- On narrow screens the dock overlays instead of squeezing the chart, closes on Escape or a click outside, and returns focus to the button that opened it.
+- On a narrow screen the dock is never opened for you — it would cover the top bar before you knew how to dismiss it.
+- Fixed along the way: applying a preset left the panel showing the pre-preset state, and a session restored without its data lost the "add this file again" chips on the first save.
+
 ### v0.59 — scatter matrix
 > v0.59 — 산점도 행렬
 

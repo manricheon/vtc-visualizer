@@ -149,7 +149,8 @@ ours,4000,4.1,0.744,MMLU
 | **Chart palette** | Top-bar picker: Default · Carbon · Okabe-Ito · Ink — all validated colorblind-safe, with separate light/dark steps |
 | **Dark mode** | 🌙/☀️ button (top-right) toggles light↔dark. Follows the OS setting first, then remembers your choice; charts adapt to the theme |
 | Legend position | Settings → Style → Legend: right · top · inside corner (top-left/top-right/bottom-left/bottom-right) · hidden |
-| **Chart size & layout** | Settings → Style → Chart size: height slider + full/half width (half places two charts side by side). A top-bar width toggle (normal/wide/full) sets the whole page width The settings panel width (narrow/default/wide/widest) is picked above the panel and applies to every chart. The panel height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
+| **Settings dock** | A card's `⚙ Settings` opens that chart's settings in a **dock on the left of the page**, using the full window height. One chart is edited at a time, and which one is shown in two places — the dock title and an outline on the card. The same button closes it; another card's button switches targets. Whether you closed it and which chart you were on are remembered, and on narrow screens it overlays and closes on Escape or a click outside |
+| **Chart size & layout** | Settings → Style → Chart size: height slider + full/half width (half places two charts side by side). A top-bar width toggle (normal/wide/full) sets the whole page width The dock width (narrow/default/wide/widest) is picked above the panel. The dock height follows the window, and `One at a time` keeps a single group open (the series list starts folded) |
 | Reorder & collapse cards | `↑`/`↓` in the card header reorder, `▾` folds the card down to a single header line. The folded state is saved in the session, and `Collapse all` folds every card at once. Zoom and settings-panel state survive adding charts or switching language |
 | **Card summary** | With the settings collapsed, the header shows `type · X × Y · group · filter count · dataset` on one line |
 | **Essentials ⇄ everything** | The `Essentials` checkbox above the panel (on by default): 16 frequently-used rows stay, the rest fold away (46 total). Anything you have set stays visible, and `Show N more advanced settings` at the bottom opens them all |
@@ -245,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.60** — Settings moved from a narrow column inside each card to a **dock on the left**: full window height, and every chart is full width. A card's `⚙ Settings` brings that chart into the dock, and the chart being edited is marked in two places.
 - **v0.59** — Added the scatter matrix: every pair of the metrics you pick in one grid, so the trade-offs show up in a single figure. Past 8 columns or 5,000 points per cell it trims, and says what it left out.
 - **v0.58** — An audit of the storage and restore paths the last three releases touched. Fixed leftovers after `Reset all` and a case where adding a file mid-restore produced two copies of the same dataset. All 67 chart settings fields are now checked to round-trip through a session unchanged.
 - **v0.57** — The data survives a refresh too. Rows are stored in IndexedDB, so even a 200k-row file comes back (67ms to write, 116ms to read). Browsers without IndexedDB behave exactly as before.
 - **v0.56** — Chart settings now survive even when the data is too large to store (settings and data are kept under separate keys). Data from a served folder is not stored at all — it is reloaded on the next launch. Automatic loading, folder watching and `More examples` refresh once instead of once per file.
-- **v0.55** — The paste box previews what it read before you add it, and `⌘/Ctrl+V` works anywhere on the page. Loading several files refreshes once instead of once per file (10 files: 1,520 → 245ms). When storage fills up and autosave stops, the top bar keeps saying so.
 
 ---
 

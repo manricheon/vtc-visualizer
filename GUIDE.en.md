@@ -43,12 +43,12 @@ One-line summary: **change → line, magnitude → bar, trade-off → scatter.**
 
 ## 2. Recipes by scenario
 
-Recipes use the UI labels verbatim. `Settings → …` refers to each chart card's `⚙ Settings` panel.
+Recipes use the UI labels verbatim. `Settings → …` refers to the **dock on the left**, opened with a card's `⚙ Settings` (since v0.60 settings open beside the page rather than inside the card — one chart at a time, with the card outlined).
 
 Two things make the recipes easier to follow.
 
 - **You do not have to build the first few charts by hand.** Loading data adds a `Try one of these:` row to the data card — only recipes that **actually draw** with your columns, applied to the first chart on click. If you don't like the result, the toast's `Undo` puts it back.
-- **The settings panel starts in `Essentials`** — the 16 rows you use most. If a recipe mentions something you cannot see, type its name in the search box (it finds hidden rows too) or hit `Show … more advanced settings` at the bottom. Anything you have already set stays visible, so nothing you turned on can disappear.
+- **The settings dock starts in `Essentials`** — the 16 rows you use most. If a recipe mentions something you cannot see, type its name in the search box (it finds hidden rows too) or hit `Show … more advanced settings` at the bottom. Anything you have already set stays visible, so nothing you turned on can disappear.
 
 ### ① Mean performance per method — "Which method is best?"
 
