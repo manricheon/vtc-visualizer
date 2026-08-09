@@ -470,7 +470,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.58';
+const APP_VERSION = 'v0.59';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -948,6 +948,17 @@ const I18N = {
     'cfg.derivedWithin': '기준 범위:', 'cfg.derivedWithinShort': '별', 'cfg.derivedBins': '구간',
     'cfg.derivedEdit': '이 정의 수정', 'cfg.derivedSave': '수정 저장',
     'cfg.derivedMoveUp': '위로 (계산 순서)', 'cfg.derivedMoveDown': '아래로 (계산 순서)',
+    'opt.matrix': '산점도 행렬',
+    'cfg.matrixCols': '그릴 컬럼', 'cfg.matrixAdd': '컬럼 추가…',
+    'cfg.matrixUp': '앞으로 (격자 순서)', 'cfg.matrixDown': '뒤로 (격자 순서)',
+    'cfg.matrixDiag': '대각선', 'opt.matrixDiagOff': '비움', 'opt.matrixDiagOn': '그리기(자기 자신 — 직선)',
+    'cfg.matrixHalf': '보여줄 절반', 'opt.matrixHalfBoth': '전체', 'opt.matrixHalfLower': '아래쪽만', 'opt.matrixHalfUpper': '위쪽만',
+    'cfg.matrixMax': '점 상한', 'cfg.matrixMaxTitle': '칸마다 그릴 점의 최대 개수 — 넘으면 고르게 건너뛰며 표본을 씁니다(0 = 제한 없음)',
+    'cfg.matrixCut': '컬럼 {n}개를 뺐습니다 — 한 번에 {max}개까지 그립니다(그 이상은 칸이 작아 읽히지 않습니다).',
+    'cfg.matrixSampled': '{all}행 중 {n}행을 표본으로 그렸습니다 — 볼 때마다 같은 점입니다. 전부 그리려면 점 상한을 0으로 두세요.',
+    'card.specMatrix': '{n}컬럼',
+    'cfg.matrixSvgHint': '이 유형은 WebGL로 그립니다 — SVG로 저장해도 점은 래스터로 들어갑니다(축·글자는 벡터). 인쇄용이면 내보내기 규격에서 dpi를 올려 PNG로 저장하세요.',
+    'toast.matrixSvg': 'SVG를 저장했습니다 — 행렬의 점은 래스터로 들어갑니다(축·글자는 벡터). 인쇄용이면 dpi를 올린 PNG를 쓰세요.',
     'toast.presetDerived': '프리셋에 딸린 계산 컬럼 {n}개를 함께 만들었습니다.',
     'toast.presetNoDataset': '프리셋이 가리키는 "{name}"이(가) 없어 전체 데이터로 열었습니다.',
     'toast.datasetDropped': '이 데이터에 없는 컬럼 {n}개의 설정을 비웠습니다 — {cols}',
@@ -1454,6 +1465,17 @@ const I18N = {
     'cfg.derivedWithin': 'within:', 'cfg.derivedWithinShort': ' per', 'cfg.derivedBins': ' bins',
     'cfg.derivedEdit': 'Edit this definition', 'cfg.derivedSave': 'Save changes',
     'cfg.derivedMoveUp': 'Move up (calculation order)', 'cfg.derivedMoveDown': 'Move down (calculation order)',
+    'opt.matrix': 'Scatter matrix',
+    'cfg.matrixCols': 'Columns', 'cfg.matrixAdd': 'Add a column…',
+    'cfg.matrixUp': 'Earlier (grid order)', 'cfg.matrixDown': 'Later (grid order)',
+    'cfg.matrixDiag': 'Diagonal', 'opt.matrixDiagOff': 'Leave empty', 'opt.matrixDiagOn': 'Draw (a metric against itself — a straight line)',
+    'cfg.matrixHalf': 'Show', 'opt.matrixHalfBoth': 'Both halves', 'opt.matrixHalfLower': 'Lower half', 'opt.matrixHalfUpper': 'Upper half',
+    'cfg.matrixMax': 'Point cap', 'cfg.matrixMaxTitle': 'Most points to draw per cell — beyond it an evenly spaced sample is used (0 = no cap)',
+    'cfg.matrixCut': 'Left out {n} column(s) — up to {max} are drawn (beyond that the cells are too small to read).',
+    'cfg.matrixSampled': 'Drawing {n} of {all} rows as an evenly spaced sample — the same points every time. Set the point cap to 0 to draw them all.',
+    'card.specMatrix': '{n} columns',
+    'cfg.matrixSvgHint': 'This type is drawn with WebGL — saving as SVG embeds the points as raster (axes and text stay vector). For print, raise the dpi in the export size and save a PNG.',
+    'toast.matrixSvg': 'SVG saved — the matrix points are embedded as raster (axes and text stay vector). For print, use a PNG at a higher dpi.',
     'toast.presetDerived': 'Also created {n} computed column(s) the preset needs.',
     'toast.presetNoDataset': 'The preset points at "{name}", which is not loaded — opened on all data instead.',
     'toast.datasetDropped': 'Cleared {n} setting(s) using columns this file does not have — {cols}',
@@ -1767,6 +1789,8 @@ function defaultChart() {
     id: state.nextId++,
     type: 'scatter',            // scatter | line | scatter+line | bar | heatmap | dumbbell | histogram | box
     histBins: 0, boxPoints: 'outliers',   // 히스토그램 구간 수(0=자동), 박스 점 표시(all|outliers|none)
+    /* 산점도 행렬(v0.59): 고른 순서가 곧 격자 순서다. 상한·표본은 **말하고 나서** 자른다 */
+    matrixCols: [], matrixDiag: 'none', matrixHalf: 'both', matrixMax: 5000,
     dataset: '',                // 이 차트가 쓸 데이터셋(_source). 빈 값 = 전체 (파일이 2개 이상일 때만 UI 노출)
     x: '', y: '', group: '', group2: '', size: '',   // group=색상, group2=마커 모양 (2차 그룹)
     filters: [],                // {col, op, value}
@@ -2550,7 +2574,67 @@ function buildBreak(cfg) {
   /* 뒤 패널용 한 벌. 범례는 앞 것만 낸다 — 같은 시리즈가 둘로 보이면 안 된다 */
   return [...base, ...base.map(tr => ({ ...tr, [key]: ax2, showlegend: false, _brkUp: true }))];
 }
+/* 산점도 행렬 — 고른 컬럼 N개의 모든 쌍을 한 장에. Plotly의 `splom`이 격자와 축을 스스로 만든다.
+   **한계는 자르되 말한다**: 컬럼은 `MATRIX_MAX_COLS`에서, 점은 `cfg.matrixMax`에서 자르고
+   `matrixNote(cfg)`가 몇 개를 뺐는지 설정 패널에 적는다. 조용히 줄이면 "이게 전부"로 읽힌다.
+   표본은 **결정적 stride**다 — 무작위면 다시 그릴 때마다 다른 그림이 나온다(자동 분석의 스캔과 같은 규칙). */
+function matrixCols(cfg) {
+  const ok = chartNumCols(cfg);
+  return (cfg.matrixCols || []).filter(c => ok.includes(c)).slice(0, MATRIX_MAX_COLS);
+}
+function matrixSample(rows, max) {
+  if (!max || rows.length <= max) return rows;
+  const step = rows.length / max;
+  const out = [];
+  for (let i = 0; i < max; i++) out.push(rows[Math.floor(i * step)]);
+  return out;
+}
+function matrixRows(cfg) {
+  const cols = matrixCols(cfg);
+  if (!cols.length) return [];
+  const kept = chartBaseRows(cfg).filter(r => cols.every(c => typeof r[c] === 'number'));
+  return matrixSample(kept, Number(cfg.matrixMax) || 0);
+}
+function buildMatrix(cfg) {
+  const cols = matrixCols(cfg);
+  if (!cols.length) return [];
+  const rows = matrixRows(cfg);
+  if (!rows.length) return [];
+  const defs = cfg.group ? seriesDefs(cfg)
+    : [{ name: 'all', solo: true, colorIdx: 0, symIdx: 0, g: null, g2: null, match: () => true }];   // 내부 식별자 — 번역 금지
+  const out = [];
+  for (const def of defs) {
+    const pts = rows.filter(def.match);
+    if (!pts.length) continue;
+    const st = seriesStyle(cfg, def);
+    const dname = (cfg.seriesLabels && cfg.seriesLabels[def.name]) || def.name;
+    out.push({
+      type: 'splom', name: dname, showlegend: !def.solo && cfg.legendPos !== 'none',
+      dimensions: cols.map(c => ({ label: c, values: pts.map(r => r[c]) })),
+      /* 대각선은 자기 자신 대 자기 자신이라 **직선 하나**다(splom에는 히스토그램 대각선이 없다) — 기본은 비운다 */
+      diagonal: { visible: cfg.matrixDiag === 'show' },
+      showupperhalf: cfg.matrixHalf !== 'lower',
+      showlowerhalf: cfg.matrixHalf !== 'upper',
+      /* 칸이 작아 점이 금세 뭉친다 — 많을수록 옅게. 겹침을 색으로 읽게 하는 쪽이 크기를 줄이는 것보다 낫다 */
+      marker: { color: st.color, size: Math.max(2, st.msize - 2), opacity: pts.length > 2000 ? 0.45 : 0.75,
+        line: { width: 0 } },
+      hovertemplate: `<b>${esc(dname)}</b><br>%{xaxis.title.text}=%{x}<br>%{yaxis.title.text}=%{y}<extra></extra>`,
+    });
+  }
+  return out;
+}
+/* 무엇을 뺐는지 한 줄로 — 설정 패널이 이걸 `.hint`로 보여 준다 */
+function matrixNote(cfg) {
+  const picked = (cfg.matrixCols || []).length, drawn = matrixCols(cfg).length;
+  const notes = [];
+  if (picked > drawn) notes.push(tf('cfg.matrixCut', { n: picked - drawn, max: MATRIX_MAX_COLS }));
+  const all = drawn ? chartBaseRows(cfg).filter(r => matrixCols(cfg).every(c => typeof r[c] === 'number')).length : 0;
+  const drawnRows = matrixRows(cfg).length;
+  if (all > drawnRows) notes.push(tf('cfg.matrixSampled', { n: drawnRows.toLocaleString(), all: all.toLocaleString() }));
+  return notes.join(' ');
+}
 function buildTraces(cfg) {
+  if (isMatrixType(cfg.type)) return buildMatrix(cfg);
   if (isDistType(cfg.type)) return buildDistribution(cfg, cfg.type);
   if (isBreakType(cfg.type)) return buildBreak(cfg);
   if (cfg.type === 'heatmap') return buildHeatmap(cfg);
@@ -2932,6 +3016,10 @@ function trendTraces(cfg, name, pts, color) {
 /* 분포 유형 넷 — 늘 때마다 문자열 비교를 여기저기 늘리지 않도록 한 곳에서 판정한다 */
 const DIST_TYPES = ['histogram', 'box', 'violin', 'ecdf'];
 const isDistType = t => DIST_TYPES.includes(t);
+/* 산점도 행렬 — x·y가 아니라 **컬럼 목록**으로 그리는 유형이라 판정을 한 곳에 둔다
+   (유형 이름을 여기저기 손으로 나열했다가 새 유형 둘이 빈 화면이 된 적이 있다 — v0.32). */
+const isMatrixType = t => t === 'matrix';
+const MATRIX_MAX_COLS = 8;   // 8×8 = 64칸. 그 이상은 칸이 작아 아무것도 안 읽힌다
 function buildDistribution(cfg, kind) {
   const col = cfg.y || cfg.x;
   if (!col) return [];
@@ -3292,7 +3380,7 @@ function baselineShapes(cfg, gd) {
 function bestAnnotations(cfg) {
   const how = cfg.markBest || 'none';
   if (how === 'none' || !cfg.x || !cfg.y) return [];
-  if (isDistType(cfg.type) || cfg.type === 'heatmap' || cfg.type === 'dumbbell' || cfg.facetBy) return [];
+  if (isDistType(cfg.type) || isMatrixType(cfg.type) || cfg.type === 'heatmap' || cfg.type === 'dumbbell' || cfg.facetBy) return [];
   const rows = chartRows(cfg).filter(r => !r._excluded && !isMutedRow(cfg, r)
     && typeof r[cfg.x] === 'number' && typeof r[cfg.y] === 'number');
   if (!rows.length) return [];
@@ -3473,6 +3561,24 @@ function buildLayout(cfg, gd, traces) {
     const catAx = axis('', 'linear', '', '', '', '');
     return { ...baseLayout, ...legendCfg, xaxis: { ...catAx, type: 'category', showgrid: false }, yaxis: valAxis };
   }
+  if (isMatrixType(cfg.type)) {
+    /* splom은 격자와 축(xaxis·xaxis2…)을 스스로 만든다 — **여기서 xaxis/yaxis를 주면 첫 칸만 덮어써** 격자가 어긋난다.
+       공통 축 모양은 `xaxis`가 아니라 무명(default) 축 설정으로 얹는다. */
+    const gridAx = { showgrid: cfg.grid, gridcolor: gridColorOf(cfg), zeroline: false,
+      linecolor: CHROME.axis, linewidth: 1, ticks: 'outside', tickcolor: CHROME.axis,
+      tickfont: { family: cfg.fontFamily, size: Math.max(8, cfg.fontSize - 3), color: CHROME.muted } };
+    const lay = { ...baseLayout, dragmode: 'select',
+      showlegend: !!cfg.group && cfg.legendPos !== 'none',
+      legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
+      uirevision: [cfg.id, cfg.type, matrixCols(cfg).join(','), cfg.group, cfg.matrixHalf, cfg.matrixDiag].join('|') };
+    const n = matrixCols(cfg).length;
+    for (let i = 0; i < n; i++) {
+      const sfx = i === 0 ? '' : String(i + 1);
+      lay['xaxis' + sfx] = { ...gridAx }; lay['yaxis' + sfx] = { ...gridAx };
+    }
+    delete lay.annotations; delete lay.shapes;   // 이 좌표계에서 뜻이 없다
+    return lay;
+  }
   if (cfg.type === 'heatmap') {   // X·Y 이산 축 + 컬러바(마진 여유), 범례 없음
     return { ...baseLayout, xaxis: catAxis(cfg.xLabel, cfg.x), yaxis: catAxis(cfg.yLabel, cfg.y), showlegend: false,
       margin: { ...baseLayout.margin, r: 80 }, uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.heatZ].join('|') };
@@ -3599,8 +3705,9 @@ function renderPlot(cfg) {
   /* 분포 차트는 값 컬럼(`cfg.y`) 하나로 그린다 — X를 요구하면 아무것도 안 그려진다.
      유형이 늘 때 여기를 같이 안 고쳐 v0.32의 바이올린·ECDF가 X 없이는 빈 화면이었다.
      그래서 목록을 손으로 적지 않고 `isDistType()` 하나를 본다. */
-  const needsX = !isDistType(cfg.type);
-  if ((needsX && !cfg.x) || !cfg.y || !allRows().length) {
+  const needsX = !isDistType(cfg.type) && !isMatrixType(cfg.type);
+  const lacks = isMatrixType(cfg.type) ? !matrixCols(cfg).length : ((needsX && !cfg.x) || !cfg.y);
+  if (lacks || !allRows().length) {
     Plotly.purge(div);
     div.innerHTML = `<div style="padding:40px;color:#898781;text-align:center">${esc(t('plot.placeholder'))}</div>`;
     div._vizBound = false;   // purge가 이벤트 에미터를 제거하므로 재바인딩 필요
@@ -4008,7 +4115,10 @@ function setCardName(nameSpan, text) {
 function cardSpecText(cfg) {
   const parts = [t(AN_TYPE_KEY[cfg.type] || cfg.type)];
   if (isDistType(cfg.type)) { if (cfg.y) parts.push(cfg.y); }
-  else if (cfg.type === 'heatmap') {
+  else if (isMatrixType(cfg.type)) {
+    const cols = matrixCols(cfg);
+    if (cols.length) parts.push(cols.length <= 3 ? cols.join(' × ') : tf('card.specMatrix', { n: cols.length }));
+  } else if (cfg.type === 'heatmap') {
     if (cfg.x && cfg.y) parts.push(`${cfg.x} × ${cfg.y}`);
     if (cfg.heatZ) parts.push(cfg.heatZ);
   } else if (cfg.x && cfg.y) parts.push(`${cfg.x} × ${cfg.y}`);
@@ -4091,6 +4201,8 @@ function chartTableCols(cfg) {
     const c = cfg[k];
     if (c && !seen.includes(c)) seen.push(c);
   }
+  /* 행렬은 축이 아니라 컬럼 목록으로 그린다 — 표는 **그 차트가 실제로 쓰는 컬럼**을 보여준다는 계약이다 */
+  if (isMatrixType(cfg.type)) for (const c of matrixCols(cfg)) if (!seen.includes(c)) seen.push(c);
   return seen;
 }
 function renderChartTable(cfg, card) {
@@ -4260,10 +4372,44 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const numCols = numericColumns();
   const isBar = cfg.type === 'bar';
   const isHeat = cfg.type === 'heatmap', isDumbbell = cfg.type === 'dumbbell';
-  const isDist = isDistType(cfg.type);
+  const isDist = isDistType(cfg.type), isMatrix = isMatrixType(cfg.type);
   const isBrk = isBreakType(cfg.type), brkAx = brkAxisOf(cfg);
   const rp = () => { renderPlot(cfg); save(); };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
+  /* 산점도 행렬의 입력 — 축 두 줄이 있던 자리에 **컬럼 목록**이 온다.
+     고른 순서가 곧 격자 순서이므로 목록에 ↑/↓를 둔다(계산 컬럼 목록과 같은 모양).
+     상한을 넘겼거나 표본을 썼으면 `matrixNote(cfg)`가 그 사실을 바로 아래 줄에 적는다. */
+  const matrixRows_ = () => {
+    const cols = chartNumCols(cfg);
+    const picked = (cfg.matrixCols || []).filter(c => cols.includes(c));
+    const move = (i, d) => {
+      const list = cfg.matrixCols.slice();
+      const j = i + d;
+      if (j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]];
+      cfg.matrixCols = list; rebuildPanel();
+    };
+    const note = matrixNote(cfg);
+    return [
+      row(t('cfg.matrixCols'), select([['', t('cfg.matrixAdd')], ...cols.filter(c => !picked.includes(c)).map(c => [c, c])], '',
+        v => { if (!v) return; cfg.matrixCols = [...picked, v]; rebuildPanel(); })),
+      ...picked.map((c, i) => el('div', { class: 'row series-row' },
+        el('span', { class: 'sname', title: c }, `${i + 1}. ${c}`),
+        el('button', { class: 'small', title: t('cfg.matrixUp'), onclick: () => move(i, -1) }, '↑'),
+        el('button', { class: 'small', title: t('cfg.matrixDown'), onclick: () => move(i, 1) }, '↓'),
+        el('button', { class: 'small', title: t('btn.delete'),
+          onclick: () => { cfg.matrixCols = picked.filter(x => x !== c); rebuildPanel(); } }, '×'))),
+      ...(note ? [el('div', { class: 'hint' }, note)] : []),
+      el('div', { class: 'hint' }, t('cfg.matrixSvgHint')),
+      A(row(t('cfg.matrixDiag'), select([['none', t('opt.matrixDiagOff')], ['show', t('opt.matrixDiagOn')]],
+        cfg.matrixDiag || 'none', v => { cfg.matrixDiag = v; rp(); })), (cfg.matrixDiag || 'none') !== 'none'),
+      A(row(t('cfg.matrixHalf'), select([['both', t('opt.matrixHalfBoth')], ['lower', t('opt.matrixHalfLower')], ['upper', t('opt.matrixHalfUpper')]],
+        cfg.matrixHalf || 'both', v => { cfg.matrixHalf = v; rp(); })), (cfg.matrixHalf || 'both') !== 'both'),
+      A(row(t('cfg.matrixMax'), el('input', { type: 'number', min: '0', step: '500', value: cfg.matrixMax,
+        title: t('cfg.matrixMaxTitle'), oninput: e => { cfg.matrixMax = Number(e.target.value) || 0; rp(); } })),
+        Number(cfg.matrixMax) !== 5000),
+    ];
+  };
   /* 라벨은 컨트롤이 **정확히 하나일 때만** `for`로 잇는다.
      둘 이상인 행(축 범위 min/max, 추세 모양+굵기 …)에서 하나에만 이으면 나머지를 조용히 잘못 이름 짓는다 —
      이름이 없는 것보다 나쁘다. 그때는 각 컨트롤이 자기 title/placeholder/앞 라벨을 붙인 aria-label을 받는다.
@@ -4305,11 +4451,13 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     row(t('cfg.type'), select([
       { label: t('opt.grpBasic'), options: [['scatter', t('opt.scatter')], ['line', t('opt.line')], ['scatter+line', t('opt.scatterLine')], ['bar', t('opt.bar')]] },
       { label: t('opt.grpDist'), options: [['histogram', t('opt.histogram')], ['box', t('opt.box')], ['violin', t('opt.violin')], ['ecdf', t('opt.ecdf')]] },
-      { label: t('opt.grpSpecial'), options: [['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['break', t('opt.break')]] },
+      { label: t('opt.grpSpecial'), options: [['heatmap', t('opt.heatmap')], ['dumbbell', t('opt.dumbbell')], ['break', t('opt.break')], ['matrix', t('opt.matrix')]] },
     ], cfg.type,
       v => { cfg.type = v; if (v === 'break') cfg[brkAxisOf(cfg) + 'Scale'] = 'linear'; rebuildPanel(); })),
-    row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
-    row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
+    ...(isMatrix ? matrixRows_() : [
+      row(isDumbbell ? t('cfg.dumbbellCat') : t('cfg.xAxis'), colSelect(cfg, 'x', { allowEmpty: true, emptyLabel: t('opt.select') })),
+      row(isDumbbell ? t('cfg.dumbbellVal') : t('cfg.yAxis'), colSelect(cfg, 'y', { allowEmpty: true, emptyLabel: t('opt.select') })),
+    ]),
     ...(!isBar && !isHeat && !isDumbbell && !isDist && !isBrk ? [
       A(row(t('cfg.y2'), select([['', t('opt.noneParen')], ...chartNumCols(cfg).filter(c => c !== cfg.y).map(c => [c, c])], cfg.y2 || '', v => { cfg.y2 = v; rebuildPanel(); }, { title: t('cfg.y2Title') })), cfg.y2),
       ...(cfg.y2 ? [el('div', { class: 'hint' }, t('cfg.y2Warn'))] : []),
@@ -4882,6 +5030,9 @@ async function exportImg(cfg, format) {
   /* WebGL로 그려진 차트를 그대로 SVG로 내보내면 그림이 래스터로 박힌다 — 잠시 SVG로 다시 그린 뒤 되돌린다 */
   const wasGl = format === 'svg' && div.data.some(tr => tr.type === 'scattergl');
   if (wasGl) { cfg._forceSvg = true; renderPlot(cfg); await new Promise(r => setTimeout(r, 250)); }
+  /* 행렬(splom)은 **SVG 경로가 없다** — 점 수와 무관하게 언제나 WebGL로 그려지므로 SVG 안에 래스터로 박힌다(실측).
+     막지는 않는다(축·글자·격자는 벡터로 나간다). 다만 인쇄 품질을 기대하고 저장하는 것이므로 **말은 해 준다.** */
+  if (format === 'svg' && isMatrixType(cfg.type)) showToast(t('toast.matrixSvg'));
   await Plotly.downloadImage(div, { format, ...exportSize(cfg, div, format), filename: (cfg.title || `chart-${cfg.id}`).replace(/\s+/g, '_') });
   if (wasGl) { delete cfg._forceSvg; renderPlot(cfg); }
 }
@@ -5787,7 +5938,7 @@ function anChartTitle(ins) {
   return tf('an.ct.rel', { a: p.a, b: p.b });
 }
 const AN_TYPE_KEY = { scatter: 'opt.scatter', line: 'opt.line', 'scatter+line': 'opt.scatterLine',
-  bar: 'opt.bar', heatmap: 'opt.heatmap', dumbbell: 'opt.dumbbell', break: 'opt.break' };
+  bar: 'opt.bar', heatmap: 'opt.heatmap', dumbbell: 'opt.dumbbell', break: 'opt.break', matrix: 'opt.matrix' };
 /* 인사이트가 어떤 차트 설정에 대응하는지 한 줄로 — 기존 차트와 대조하거나 손으로 재현할 때의 좌표 */
 function anChartSpec(ov) {
   const parts = [t(AN_TYPE_KEY[ov.type] || ov.type), `X=${ov.x}`, `Y=${ov.y}`];
@@ -6647,6 +6798,12 @@ function filterText(cfg) {
   return parts.join(' · ');
 }
 function chartSpecText(cfg) {
+  /* 행렬은 X·Y가 아니라 컬럼 목록이다 — 리포트에 `X=undefined`가 나가면 안 된다 */
+  if (isMatrixType(cfg.type)) {
+    const parts = [t(AN_TYPE_KEY[cfg.type] || cfg.type), matrixCols(cfg).join(', ')];
+    if (cfg.group) parts.push(`${t('cfg.group')}=${cfg.group}`);
+    return parts.join(' · ');
+  }
   const parts = [t(AN_TYPE_KEY[cfg.type] || cfg.type), `X=${cfg.x}${cfg.xScale === 'log' ? ' (log)' : ''}`,
     `Y=${cfg.y}${cfg.yScale === 'log' ? ' (log)' : ''}`];
   if (cfg.group) parts.push(`${t('cfg.group')}=${cfg.group}`);

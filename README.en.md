@@ -124,7 +124,7 @@ ours,4000,4.1,0.744,MMLU
 | Feature | How |
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (undo from the toast) — multiple charts per page |
-| **Chart types** | scatter · line · scatter+line · bar · heatmap (2D grid by color) · dumbbell (paired per category) · histogram · box plot (distributions) · violin (the shape, not just the quartiles) · ECDF (what fraction sits at or below a value) · broken axis (fold away the gap when values split into two far-apart groups — axis values stay real) |
+| **Chart types** | scatter · line · scatter+line · bar · heatmap (2D grid by color) · dumbbell (paired per category) · histogram · box plot (distributions) · violin (the shape, not just the quartiles) · ECDF (what fraction sits at or below a value) · broken axis (fold away the gap when values split into two far-apart groups — axis values stay real) · scatter matrix (every pair of the metrics you pick — where the trade-offs are, in one figure) |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (either side alone is fine), grid |
 | **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
@@ -245,11 +245,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.59** — Added the scatter matrix: every pair of the metrics you pick in one grid, so the trade-offs show up in a single figure. Past 8 columns or 5,000 points per cell it trims, and says what it left out.
 - **v0.58** — An audit of the storage and restore paths the last three releases touched. Fixed leftovers after `Reset all` and a case where adding a file mid-restore produced two copies of the same dataset. All 67 chart settings fields are now checked to round-trip through a session unchanged.
 - **v0.57** — The data survives a refresh too. Rows are stored in IndexedDB, so even a 200k-row file comes back (67ms to write, 116ms to read). Browsers without IndexedDB behave exactly as before.
 - **v0.56** — Chart settings now survive even when the data is too large to store (settings and data are kept under separate keys). Data from a served folder is not stored at all — it is reloaded on the next launch. Automatic loading, folder watching and `More examples` refresh once instead of once per file.
 - **v0.55** — The paste box previews what it read before you add it, and `⌘/Ctrl+V` works anywhere on the page. Loading several files refreshes once instead of once per file (10 files: 1,520 → 245ms). When storage fills up and autosave stops, the top bar keeps saying so.
-- **v0.54** — The documentation was rewritten. Both READMEs now open with a five-minute walkthrough and the full history moved to [CHANGELOG.md](CHANGELOG.md). Guide recipes are renumbered ①–⑳ in reading order, and the join recipe that could not be followed now uses a companion file that exists.
 
 ---
 

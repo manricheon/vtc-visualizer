@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.59 — scatter matrix
+> v0.59 — 산점도 행렬
+
+- Seeing how four or five metrics relate meant building one chart per pair. The new **scatter matrix** type draws every pair of the columns you pick in one grid, colored by group. The order you pick is the grid order, and you can drop the redundant half.
+- **The limits are stated, not hidden.** Past 8 columns the cells stop being readable, so the extras are left out and the panel says how many. Past the point cap (5,000 per cell by default) an evenly spaced sample is drawn — the same points every time, and the panel says how many of how many. Set the cap to 0 to draw everything.
+- This type is drawn with WebGL, which means an SVG export embeds the points as raster. Rather than pretend otherwise, both the settings panel and the export say so and point at PNG-with-dpi for print.
+- New guide recipe ㉑ covers when to reach for it: the matrix picks *where to look*, then a normal scatter plot makes the argument.
+
 ### v0.58 — checking what I just built
 > v0.58 — 방금 만든 것부터 점검
 
