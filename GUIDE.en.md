@@ -103,6 +103,8 @@ type=`Line`, Settings → Style → Area fill=`Stack (cumulative area)`. The top
 
 ![Cumulative area chart showing per-method cost stacking across the budget](assets/guide/r4-stack-area.png)
 
+- **If the share matters more than the size**, set the bar layout to `Stacked 100% (share)`. Every bar becomes the same height and each block is that series' share — useful where the total grows and you still want to see the mix. With value labels on, the numbers become **shares**, and the value axis says `(%)`.
+- **Total and composition are different questions** — at 100% "who grew" disappears. If you need both, duplicate the chart and set one to stacked and the other to stacked 100%.
 - **A line chart can fill under one series only** — the fill picker on that series row (`Fill area`). Filling just the protagonist keeps the others readable; stacking stays a chart-wide setting, because stacking only some series makes the "total" unreadable.
 
 ### ⑤ Ranking chart — "Throughput order at a glance"
@@ -406,6 +408,21 @@ Scan them in one figure, then dig into the pair that caught your eye with a norm
 - With many rows the cells clog up. Past the `Point cap` (5,000 by default) an **evenly spaced sample** is drawn and said so — the same points every time. Set the cap to `0` to draw them all.
 - This type is drawn with WebGL, so **an SVG export embeds the points as raster** (axes and text stay vector). For print, use a PNG at a higher dpi.
 - Move whatever stood out into a scatter plot to add baselines, a Pareto front or trend lines. The matrix picks **where to look**; it is not the figure that makes the argument.
+
+### ㉒ How the ranking flipped — bump chart
+
+Sometimes the **placing** matters, not the gap. If the sentence you want is "past 8000 tokens the leader changed", a rank axis says it faster than a value axis.
+
+> Computed column → kind=`Rank`, of=`accuracy`, within=`tokens`, tick descending → name it `rank`
+> New chart: Type=`Scatter + line`, X axis=`tokens` (log), Y axis=`rank`, Group (color)=`method`
+> Axis → tick `Reverse axis` `Y`, Y tick format=`Integer · step 1 (1 2 3)`
+
+![Accuracy ranking across token budgets — first place on top, ensemble taking the lead at 8000](assets/guide/r22-bump.png)
+
+- **Without reversing, first place sits at the bottom.** Rank is a smaller-is-better value, so the axis has to be flipped for "up = good" to hold.
+- Without `Integer · step 1` the ticks land every 0.5 and read `1, 1, 2, 2`.
+- **Dropping the gaps is the point and the trap** — first and second are one step apart whether the difference is 0.001 or 0.1. Put it beside the value chart (recipe ②) rather than letting it stand alone.
+- What you pick for `within` defines what the placing is *within*: `tokens` for a per-budget ranking, empty for an overall one.
 
 ## 3. Principles for effective charts (summary)
 

@@ -125,12 +125,12 @@ ours,4000,4.1,0.744,MMLU
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (undo from the toast) — multiple charts per page |
 | **Chart types** | scatter · line · scatter+line · bar · heatmap (2D grid by color) · dumbbell (paired per category) · histogram · box plot (distributions) · violin (the shape, not just the quartiles) · ECDF (what fraction sits at or below a value) · broken axis (fold away the gap when values split into two far-apart groups — axis values stay real) · scatter matrix (every pair of the metrics you pick — where the trade-offs are, in one figure). **Line types connect in ascending X**, not file order, and text sorts naturally (`v2 → v9 → v10 → v100`). If several points share an X the line passes through them in file order, and the settings panel says so |
-| Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (either side alone is fine), grid |
-| **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
+| Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (either side alone is fine), **reverse axis** (for values like rank, where smaller belongs on top), grid |
+| **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) · **integer with step 1** (so a rank axis reads `1 2 3 4`, not `1 1 2 2`) |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
 | **Aggregate** | Settings → Data → Aggregate: fold the rows that share an X (or a heatmap cell) into one point by mean, median, sum… One row, whatever the chart type |
 | **Error** | Settings → Data → Error: `none / <column> / std dev / std error`. A precomputed ± column (e.g. `score_std`) is drawn as-is, and with a mean aggregate you can pick σ/SE instead (σ around a median, min or max is not that point's spread, so it is not offered). The column is ignored while aggregating. The ±kσ band lives in Settings → Advanced |
-| **Bar charts** | Type → Bar: grouped/stacked, vertical/horizontal, aggregation of rows sharing the same X (mean · sum · median · min · max · count), error bars (±std dev/±std error) with mean, value labels at bar ends, name/value sorting, opacity, treat numeric X as categories (even spacing) — Settings → Bar options (aggregate and error live in Data). E.g. X=method, Y=accuracy, aggregate=mean |
+| **Bar charts** | Type → Bar: grouped/stacked/**stacked 100%** (composition — value labels become shares and the axis says `(%)`), vertical/horizontal, aggregation of rows sharing the same X (mean · sum · median · min · max · count), error bars (±std dev/±std error) with mean, value labels at bar ends, name/value sorting, opacity, treat numeric X as categories (even spacing) — Settings → Bar options (aggregate and error live in Data). E.g. X=method, Y=accuracy, aggregate=mean |
 | **Facet (small multiples)** | Settings → Data → Facet: split into a small chart per column value, laid out in a grid (small multiples without duplicate+filter) |
 | **Shape group (3rd dimension)** | Settings → Data → Shape group: color = group 1, marker shape = group 2. E.g. color=method, shape=frames keeps method colors while distinguishing frames by shape |
 | **Continuous color** | Settings → Data → Continuous color: color by a numeric column as a gradient (colorbar) — mutually exclusive with group color, scatter/line only |
@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.63** — Reverse axis and integer ticks (step 1) make **bump charts** possible with a rank column and a line chart (guide recipe ㉒). Bars gained `Stacked 100%` for composition, with the value labels rewritten as shares.
 - **v0.62** — Values line up the way people read them: lines connect in ascending X, and text sorts naturally (`v2 → v9 → v10 → v100`). Heatmap and dumbbell axes, facets, filter lists and the bar `By label` sort all share that one order.
 - **v0.61.1** — The page-width control in the top bar is a dropdown instead of a button you click through.
 - **v0.61** — Chart width is now a four-way choice (full, two-thirds, half, one-third), and the legend has nine outside positions (right × top/middle/bottom, top and bottom × left/center/right) alongside the four inside corners.
 - **v0.60** — Settings moved from a narrow column inside each card to a **dock on the left**: full window height, and every chart is full width. A card's `⚙ Settings` brings that chart into the dock, and the chart being edited is marked in two places.
-- **v0.59** — Added the scatter matrix: every pair of the metrics you pick in one grid, so the trade-offs show up in a single figure. Past 8 columns or 5,000 points per cell it trims, and says what it left out.
 
 ---
 

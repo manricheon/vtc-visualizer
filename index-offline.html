@@ -506,7 +506,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.62';
+const APP_VERSION = 'v0.63';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -896,7 +896,7 @@ const I18N = {
     'opt.mutedGray': '회색으로', 'opt.mutedColor': '시리즈 색 유지',
     'cfg.bar': '막대 옵션',
     'cfg.barMode': '배치',
-    'opt.barGroup': '나란히 (그룹)', 'opt.barStack': '쌓기 (스택)',
+    'opt.barGroup': '나란히 (그룹)', 'opt.barStack': '쌓기 (스택)', 'opt.barStack100': '쌓기 100% (구성비)',
     'cfg.barOrient': '방향',
     'opt.barVert': '세로', 'opt.barHoriz': '가로',
     'cfg.barAgg': '집계',
@@ -1094,9 +1094,9 @@ const I18N = {
     'cfg.renderMode': '렌더링',
     'cfg.renderModeTitle': '점이 5천 개를 넘으면 자동으로 WebGL로 그립니다 (SVG 내보내기는 자동으로 벡터로 되돌림)',
     'opt.renderAuto': '자동', 'opt.renderSvg': '고품질 (SVG)', 'opt.renderGl': '고속 (WebGL)',
-    'cfg.xTick': 'X 눈금 표기', 'cfg.yTick': 'Y 눈금 표기',
+    'cfg.xTick': 'X 눈금 표기', 'cfg.yTick': 'Y 눈금 표기', 'cfg.reverse': '축 뒤집기',
     'opt.tickAuto': '자동', 'opt.tickPercent': '퍼센트 (67%)', 'opt.tickThousands': '천단위 (12,345)',
-    'opt.tickSci': '지수 (1.2e+4)', 'opt.tickInt': '정수 (12)',
+    'opt.tickSci': '지수 (1.2e+4)', 'opt.tickInt': '정수 (12)', 'opt.tickInt1': '정수 · 1칸씩 (1 2 3)',
     'opt.tickFix1': '소수 1자리 (0.7)', 'opt.tickFix2': '소수 2자리 (0.72)', 'opt.tickFix3': '소수 3자리 (0.718)',
     'cfg.trendStat': '적합도 표시', 'cfg.trendStatTitle': '추세선의 R²·기울기를 차트 구석에 표시합니다',
     'cfg.trendSlope': '기울기', 'opt.trendStatOn': '표시', 'opt.trendStatOff': '숨김',
@@ -1421,7 +1421,7 @@ const I18N = {
     'opt.mutedGray': 'Gray', 'opt.mutedColor': 'Keep series color',
     'cfg.bar': 'Bar options',
     'cfg.barMode': 'Layout',
-    'opt.barGroup': 'Side by side (group)', 'opt.barStack': 'Stacked',
+    'opt.barGroup': 'Side by side (group)', 'opt.barStack': 'Stacked', 'opt.barStack100': 'Stacked 100% (share)',
     'cfg.barOrient': 'Orientation',
     'opt.barVert': 'Vertical', 'opt.barHoriz': 'Horizontal',
     'cfg.barAgg': 'Aggregate',
@@ -1619,9 +1619,9 @@ const I18N = {
     'cfg.renderMode': 'Rendering',
     'cfg.renderModeTitle': 'Above 5,000 points the chart switches to WebGL automatically (SVG export temporarily switches back to vector)',
     'opt.renderAuto': 'Auto', 'opt.renderSvg': 'High quality (SVG)', 'opt.renderGl': 'Fast (WebGL)',
-    'cfg.xTick': 'X tick format', 'cfg.yTick': 'Y tick format',
+    'cfg.xTick': 'X tick format', 'cfg.yTick': 'Y tick format', 'cfg.reverse': 'Reverse axis',
     'opt.tickAuto': 'Auto', 'opt.tickPercent': 'Percent (67%)', 'opt.tickThousands': 'Thousands (12,345)',
-    'opt.tickSci': 'Scientific (1.2e+4)', 'opt.tickInt': 'Integer (12)',
+    'opt.tickSci': 'Scientific (1.2e+4)', 'opt.tickInt': 'Integer (12)', 'opt.tickInt1': 'Integer · step 1 (1 2 3)',
     'opt.tickFix1': '1 decimal (0.7)', 'opt.tickFix2': '2 decimals (0.72)', 'opt.tickFix3': '3 decimals (0.718)',
     'cfg.trendStat': 'Fit readout', 'cfg.trendStatTitle': 'Show the trendline R² and slope in the corner of the chart',
     'cfg.trendSlope': 'slope', 'opt.trendStatOn': 'Show', 'opt.trendStatOff': 'Hide',
@@ -1987,7 +1987,8 @@ function defaultChart() {
     collapsed: false,
     facetBy: '',                // 컬럼 → 값별 작은 다중 차트(subplot 격자)
     facetCols: 0,               // 0=자동(√n), 그 외 열 수
-    barMode: 'group',           // group | stack — 막대 배치
+    barMode: 'group',           // group | stack | stack100 — 막대 배치 (stack100 = 구성비, barnorm)
+    xReverse: false, yReverse: false,   // 축 뒤집기 — 순위처럼 작을수록 위여야 하는 값에 쓴다
     barOrient: 'v',             // v | h — 세로/가로 막대
     barAgg: 'none',             // none | mean | sum | median | min | max | count — 같은 X의 여러 행 집계
     barError: 'none',           // none | std | sem — barAgg=mean일 때 오차 막대
@@ -2565,7 +2566,8 @@ function DASHES() { return [['solid', t('dash.solid')], ['dash', t('dash.dash')]
 /* 축 눈금 표기 — 값은 `buildLayout`의 `TICK_FMT` 키 그대로다(빈 값 = Plotly 기본) */
 function TICK_OPTS() {
   return [['', t('opt.tickAuto')], ['percent', t('opt.tickPercent')], ['thousands', t('opt.tickThousands')], ['sci', t('opt.tickSci')],
-    ['0', t('opt.tickInt')], ['1', t('opt.tickFix1')], ['2', t('opt.tickFix2')], ['3', t('opt.tickFix3')]];
+    ['0', t('opt.tickInt')], ['int1', t('opt.tickInt1')],
+    ['1', t('opt.tickFix1')], ['2', t('opt.tickFix2')], ['3', t('opt.tickFix3')]];
 }
 /* 데이터셋 하나에 실제로 값이 있는 컬럼 — 파일마다 스키마가 다를 때 축 목록을 좁히는 데 쓴다 */
 let dsColCache = null;
@@ -2782,6 +2784,37 @@ function matrixNote(cfg) {
   if (all > drawnRows) notes.push(tf('cfg.matrixSampled', { n: drawnRows.toLocaleString(), all: all.toLocaleString() }));
   return notes.join(' ');
 }
+/* 막대 배치 — `stack100`은 Plotly에 그런 모드가 없다. **쌓기 + `barnorm`**이다.
+   `barnorm`은 **그리는 것만** 정규화한다는 점이 함정이다(값·hover는 원값 그대로). */
+function barModeLayout(cfg) {
+  if (cfg.barMode === 'stack100') return { barmode: 'stack', barnorm: 'percent' };
+  return { barmode: cfg.barMode || 'group' };
+}
+/* 100% 누적에서 막대 값 표시를 **비율로 다시 쓴다** — 안 하면 100% 막대 위에
+   합이 100이 아닌 원값이 찍혀 그림과 글자가 다른 말을 한다. 같은 X의 합을 한 패스로 모아 나눈다. */
+function share100Text(cfg, traces) {
+  if (cfg.barMode !== 'stack100' || cfg.barText !== 'value') return traces;
+  const horiz = cfg.barOrient === 'h';
+  const catKey = t => (horiz ? t.y : t.x) || [], valKey = t => (horiz ? t.x : t.y) || [];
+  const total = new Map();
+  for (const tr of traces) {
+    if (tr.type !== 'bar') continue;
+    catKey(tr).forEach((c, i) => {
+      const v = Number(valKey(tr)[i]);
+      if (Number.isFinite(v)) total.set(String(c), (total.get(String(c)) || 0) + v);
+    });
+  }
+  for (const tr of traces) {
+    if (tr.type !== 'bar' || !tr.text) continue;
+    tr.text = catKey(tr).map((c, i) => {
+      const sum = total.get(String(c)) || 0, v = Number(valKey(tr)[i]);
+      if (!sum || !Number.isFinite(v)) return '';
+      const pct = (v / sum) * 100;
+      return (pct >= 10 ? pct.toFixed(0) : pct.toFixed(1)) + '%';
+    });
+  }
+  return traces;
+}
 function buildTraces(cfg) {
   if (isMatrixType(cfg.type)) return buildMatrix(cfg);
   if (isDistType(cfg.type)) return buildDistribution(cfg, cfg.type);
@@ -2791,7 +2824,7 @@ function buildTraces(cfg) {
   const lineMode = cfg.type === 'line' ? 'lines' : cfg.type === 'scatter+line' ? 'lines+markers' : 'markers';
   if (!cfg.facetBy) {
     const rs = chartRows(cfg);
-    return buildFacetTraces(cfg, rs, lineMode, useGl(cfg, rs.length));
+    return share100Text(cfg, buildFacetTraces(cfg, rs, lineMode, useGl(cfg, rs.length)));
   }
   // facet: 값별 subplot에 같은 시리즈를 배정 (색·정의 공유), 범례는 첫 subplot만
   const vals = facetValues(cfg), all = chartRows(cfg), out = [];
@@ -2805,6 +2838,7 @@ function buildTraces(cfg) {
       out.push(tr);
     });
   });
+  share100Text(cfg, out);   // facet에서도 같은 규칙 (패널마다 그 X의 합으로 나눈다)
   return out;
 }
 /* SVG로 5만 점을 그리면 ~1초, WebGL은 ~20ms. 다만 scattergl은 SVG 내보내기에서 래스터로 나가므로
@@ -3690,8 +3724,13 @@ const legendTopRoom = cfg => (/^top-/.test(legendKey(cfg.legendPos)) ? 34 : 0);
 function buildLayout(cfg, gd, traces) {
   const insideBg = CHROME.overlay;
   const legend = LEGEND_AT(cfg.legendPos, insideBg);
-  const TICK_FMT = { percent: '.0%', thousands: ',d', sci: '.1e', '0': 'd', '1': '.1f', '2': '.2f', '3': '.3f' };
-  const axis = (label, scale, mn, mx, col, tick) => {
+  /* `int1`은 표기(`d`)에 **눈금 간격 1**을 더한다 — 순위축처럼 값이 몇 개뿐인 축 전용이다.
+     기존 `0`은 표기만 바꾼다: 0~16000 같은 축에 `dtick: 1`을 걸면 눈금이 만 육천 개가 된다. */
+  const TICK_FMT = { percent: '.0%', thousands: ',d', sci: '.1e', '0': 'd', int1: 'd', '1': '.1f', '2': '.2f', '3': '.3f' };
+  /* `rev` — 축 뒤집기(v0.63). 순위처럼 **작을수록 위**여야 하는 값에 쓴다.
+     범위를 직접 준 축은 그 범위를 뒤집고, 자동 범위면 `autorange: 'reversed'`를 준다
+     (자동인데 `range`만 뒤집으면 Plotly가 다시 정방향으로 계산한다). */
+  const axis = (label, scale, mn, mx, col, tick, rev) => {
     // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
     const sample = chartRows(cfg).map(r => r[col]).filter(v => v !== null && v !== undefined);
     const isCat = (sample.length > 0 && sample.some(v => typeof v !== 'number'))
@@ -3705,6 +3744,7 @@ function buildLayout(cfg, gd, traces) {
       ticks: 'outside', tickcolor: CHROME.axis, mirror: false, automargin: true,
     };
     if (tick && TICK_FMT[tick]) a.tickformat = TICK_FMT[tick];
+    if (tick === 'int1') a.dtick = 1;   // 표기만이 아니라 **위치**도 한 칸씩 — 순위축이 `1, 1, 2, 2`로 겹쳐 보이던 자리
     const lo = coerce(mn), hi = coerce(mx);
     const hasLo = typeof lo === 'number', hasHi = typeof hi === 'number';
     if ((hasLo || hasHi) && !isCat) {   // 한쪽만 입력해도 동작 — 빈 쪽은 데이터 범위(±5%)로 채움 (category 축은 무시)
@@ -3724,6 +3764,10 @@ function buildLayout(cfg, gd, traces) {
       }
       a.autorange = false;
     }
+    if (rev) {
+      if (a.range) a.range = [a.range[1], a.range[0]];
+      else a.autorange = 'reversed';
+    }
     return a;
   };
   const baseLayout = {
@@ -3738,7 +3782,7 @@ function buildLayout(cfg, gd, traces) {
     type: 'category', showgrid: false, linecolor: CHROME.axis, linewidth: 1, tickfont: { family: cfg.fontFamily, size: cfg.fontSize - 1, color: CHROME.muted }, ticks: 'outside', tickcolor: CHROME.axis, automargin: true });
   if (isDistType(cfg.type)) {
     const dcol = cfg.y || cfg.x;
-    const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick);
+    const valAxis = axis(cfg.yLabel || dcol, cfg.yScale, cfg.yMin, cfg.yMax, dcol, cfg.yTick, cfg.yReverse);
     const legendCfg = {   // 분포 차트도 범례 위치·숨김 설정을 따라야 한다
       showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
@@ -3785,16 +3829,21 @@ function buildLayout(cfg, gd, traces) {
        그룹이 둘 이상인 카테고리에만 생기므로 축이 `uniqueVals` 순서와 어긋난다(실측). */
     const dCats = uniqueVals(cfg.x).map(String);
     const dAxis = { ...catAxis(cfg.xLabel, cfg.x), categoryorder: 'array', categoryarray: dCats };
-    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick), yaxis: dAxis,
+    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse), yaxis: dAxis,
       showlegend: cfg.legendPos !== 'none', legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.group].join('|') };
   }
   // 가로 막대: 카테고리(X 설정)가 y축, 값(Y 설정)이 x축에 놓인다
   const horizBar = cfg.type === 'bar' && cfg.barOrient === 'h';
-  const xaxis = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick)
-                         : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick);
-  const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick)
-                         : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick);
+  const xaxis = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse)
+                         : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick, cfg.xReverse);
+  const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick, cfg.xReverse)
+                         : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse);
+  /* 100% 누적의 값 축은 값이 아니라 **비율**이다 — 라벨을 직접 적어 둔 사람의 것은 건드리지 않는다 */
+  if (cfg.barMode === 'stack100' && cfg.type === 'bar') {
+    const valAx = horizBar ? xaxis : yaxis;
+    if (!(horizBar ? cfg.yLabel : cfg.yLabel)) valAx.title.text = `${cfg.y} (%)`;
+  }
   if (cfg.type === 'bar') {
     /* `label`은 Plotly의 `category ascending`(사전순) 대신 **우리 순서를 배열로** 준다 —
        그대로 두면 같은 컬럼이 막대에서만 다른 순서로 선다. 값 정렬(asc·desc)은 Plotly가 맞다. */
@@ -3873,15 +3922,16 @@ function buildLayout(cfg, gd, traces) {
       showlegend: cfg.legendPos !== 'none',
       legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       margin: { l: 64, r: legendRightFree(cfg) ? 8 : 40, t: (cfg.title ? 52 : 30) + 6 + legendTopRoom(cfg), b: 52 + legendBottomRoom(cfg) },
-      barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
-      uirevision: [cfg.id, cfg.type, cfg.facetBy, cfg.facetCols, cfg.x, cfg.y, cfg.xScale, cfg.yScale].join('|'),
+      ...barModeLayout(cfg), bargap: 0.25, bargroupgap: 0.08,
+      uirevision: [cfg.id, cfg.type, cfg.facetBy, cfg.facetCols, cfg.x, cfg.y, cfg.xScale, cfg.yScale,
+        cfg.xReverse, cfg.yReverse].join('|'),
     };
     const anns = [];
     vals.forEach((v, i) => {
       const sfx = i === 0 ? '' : String(i + 1);
       const rowIdx = Math.floor(i / cols), colIdx = i % cols;
-      const xa = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick) : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick);
-      const ya = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick) : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick);
+      const xa = horizBar ? axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse) : axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick, cfg.xReverse);
+      const ya = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick, cfg.xReverse) : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse);
       if (rowIdx !== rowsN - 1) xa.title = undefined;   // 가장자리에만 축 제목
       if (colIdx !== 0) ya.title = undefined;
       lay['xaxis' + sfx] = xa; lay['yaxis' + sfx] = ya;
@@ -3902,9 +3952,12 @@ function buildLayout(cfg, gd, traces) {
     hovermode: 'closest',
     annotations: [...buildAnnotations(cfg), ...trendFitAnnotations(cfg, traces), ...spanAnnotations(cfg), ...bestAnnotations(cfg), ...baselineAnnotations(cfg)],
     shapes: chartShapes(cfg, gd),
-    barmode: cfg.barMode || 'group', bargap: 0.25, bargroupgap: 0.08,
+    ...barModeLayout(cfg), bargap: 0.25, bargroupgap: 0.08,
     // 스타일 변경 시 줌/팬 유지 — 축·범위·스케일·차트 유형/막대 방향이 바뀔 때만 뷰 리셋
-    uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.y2, cfg.xScale, cfg.yScale, cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax].join('|'),
+    /* 축 뒤집기도 **뷰를 정하는 변경**이라 키에 넣는다 — 안 넣으면 줌 유지 규칙이 옛 범위를 붙들어
+       체크를 켜도 그림이 그대로다(실제로 그랬다). */
+    uirevision: [cfg.id, cfg.type, cfg.barOrient, cfg.x, cfg.y, cfg.y2, cfg.xScale, cfg.yScale,
+      cfg.xMin, cfg.xMax, cfg.yMin, cfg.yMax, cfg.xReverse, cfg.yReverse].join('|'),
   };
 }
 
@@ -4740,7 +4793,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   if (isBar) {
     gBar = el('details', { class: 'grp', open: '', 'data-g': 'bar' }, el('summary', {}, t('cfg.bar')));
     gBar.append(
-      row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
+      row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')], ['stack100', t('opt.barStack100')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
       row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
       /* 집계·오차는 "데이터" 묶음의 한 줄로 옮겼다(유형마다 필드는 그대로) */
       A(row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })), cfg.barText !== 'none'),

@@ -3,6 +3,13 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.63 — rank and share
+> v0.63 — 순위와 구성비
+
+- **Bump charts** (who was ranked where, and when it flipped) no longer need a new chart type: a `Rank` computed column plus a line chart already drew them. Two things were missing and are now here — **Reverse axis**, so first place sits at the top, and **Integer ticks (step 1)**, so a rank axis reads `1 2 3 4` instead of repeating `1 1 2 2`. New guide recipe ㉒ walks through it.
+- **Stacked 100%** bars show composition rather than absolute size. Plotly normalizes only the drawing, so the value labels would have kept printing raw numbers that do not add up to 100 — they are rewritten as shares, and the value axis says `(%)`.
+- Reversing an axis is a view-defining change, so it is part of the key that decides when to keep your zoom. Without that, ticking the box left the old range in place and nothing appeared to happen.
+
 ### v0.62 — values line up the way people read them
 > v0.62 — 값이 줄 서는 순서를 사람이 읽는 순서로
 
