@@ -497,7 +497,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.61.1';
+const APP_VERSION = 'v0.62';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -972,6 +972,7 @@ const I18N = {
     'cfg.error': '오차', 'cfg.errorTitle': '이미 있는 오차 컬럼을 쓰거나, 평균 집계에서 나온 표준편차·표준오차를 씁니다',
     'cfg.errMeanOnly': '표준편차·표준오차는 평균 집계에서만 뜻이 있어 목록에서 빠집니다 — 중앙값·최소·최대 둘레의 σ는 그 점의 산포가 아닙니다.',
     'cfg.ptAggHint': '같은 X의 여러 점(예: seed 반복)을 평균 등으로 요약. 오차막대/밴드는 표준편차(σ)·표준오차(SE) 기준.',
+    'cfg.dupX': '같은 X에 점이 여럿인 자리가 {n}곳입니다 — 선은 그 점들을 파일 순서대로 지나므로 세로로 오갑니다. 집계를 켜면 한 점으로 이어집니다.',
     'opt.aggMedianShort': '중앙값',
     'cfg.facet': '분할 (작은 다중 차트)', 'cfg.facetColsPh': '열',
     'cfg.facetHint': '선택한 컬럼의 값마다 작은 차트로 나눠 그립니다. 분할 시 베이스라인·텍스트 마커·포인트 레이블은 표시되지 않습니다.',
@@ -1496,6 +1497,7 @@ const I18N = {
     'cfg.error': 'Error', 'cfg.errorTitle': 'Use an existing error column, or the standard deviation / standard error from a mean aggregate',
     'cfg.errMeanOnly': 'Std dev and std error only apply to a mean aggregate, so they are not offered here — σ around a median, min or max is not that point\u0027s spread.',
     'cfg.ptAggHint': 'Summarize points sharing the same X (e.g. seed repeats) by mean, etc. Error bars/band use std dev (σ) / std error (SE).',
+    'cfg.dupX': '{n} X value(s) have more than one point — the line passes through them in file order, so it doubles back. Turn on aggregation to connect one point per X.',
     'opt.aggMedianShort': 'Median',
     'cfg.facet': 'Facet (small multiples)', 'cfg.facetColsPh': 'cols',
     'cfg.facetHint': 'Splits into a small chart per value of the chosen column. Baselines, text markers and point labels are hidden while faceting.',
@@ -2394,11 +2396,25 @@ function numericColumns() {
   const all = numericColumnsAll();
   return state.hiddenCols.length ? all.filter(c => !state.hiddenCols.includes(c)) : all;
 }
+/* **값이 줄 서는 순서는 여기 하나로 정한다**(v0.62) — 선을 잇는 순서, 히트맵·덤벨 축, 분할 값,
+   필터 선택지, 막대의 `라벨 순`이 전부 이걸 부른다. 같은 비교식이 네 벌로 흩어져 있어
+   **같은 컬럼이 선 차트와 히트맵에서 다른 순서**로 서던 것이 이 함수의 이유다.
+   문자열은 **자연 정렬**이다: 사전순이면 `v2`가 `v10` 뒤로 가 사람이 읽는 순서와 어긋난다(실측).
+   숫자와 문자열이 섞이면 숫자를 앞에 둔다 — `String()`으로 비교하면 `10`이 `2` 앞에 서서 둘 다 틀린다. */
+const NAT_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+function compareVals(a, b) {
+  const an = a === null || a === undefined, bn = b === null || b === undefined;
+  if (an || bn) return an && bn ? 0 : (an ? 1 : -1);   // 값이 없는 것은 뒤로
+  const na = typeof a === 'number', nb = typeof b === 'number';
+  if (na && nb) return a - b;
+  if (na !== nb) return na ? -1 : 1;
+  return NAT_COLLATOR.compare(String(a), String(b));
+}
 function uniqueVals(col) {
   if (uniqCache.has(col)) return uniqCache.get(col);
   const s = new Set();
   for (const r of allRows()) { const v = r[col]; if (v !== null && v !== undefined) s.add(v); }
-  const out = [...s].sort((a, b) => (typeof a === 'number' && typeof b === 'number') ? a - b : String(a).localeCompare(String(b)));
+  const out = [...s].sort(compareVals);
   uniqCache.set(col, out);
   return out;
 }
@@ -2802,7 +2818,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
     let pts = rows.filter(def.match);
     if (!pts.length) return;
     if (cfg.type !== 'bar' && cfg.type !== 'scatter') {
-      pts = pts.slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
+      pts = pts.slice().sort((a, b) => compareVals(a[cfg.x], b[cfg.x]));
     }
     const name = def.name;   // 내부 식별자(스타일·추세·숨김레이블 키·보조 trace명) — 절대 바꾸지 않음
     const dname = (cfg.seriesLabels && cfg.seriesLabels[name]) || (def.solo && cfg.y ? cfg.y : name);   // 범례·hover 표시용 (단일 시리즈는 컬럼명이 낫다)
@@ -2931,7 +2947,7 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
   if (cfg.y2 && cfg.y2 !== cfg.y && cfg.type !== 'bar' && !cfg.facetBy) {   // 보조 축: 같은 X 위에 다른 스케일의 지표
     seriesDefs(cfg).forEach(def => {
       const pts = rows.filter(def.match).filter(r => typeof r[cfg.y2] === 'number')
-        .slice().sort((a, b) => (a[cfg.x] > b[cfg.x] ? 1 : a[cfg.x] < b[cfg.x] ? -1 : 0));
+        .slice().sort((a, b) => compareVals(a[cfg.x], b[cfg.x]));
       if (!pts.length) return;
       const st = seriesStyle(cfg, def);
       traces.push({
@@ -2952,6 +2968,27 @@ function buildFacetTraces(cfg, rows, lineMode, gl) {
 /* 집계·오차는 유형마다 다른 필드에 살지만(막대 `barAgg`/`barError`, 히트맵 `heatAgg`, 그 외 `ptAgg`/`ptError`)
    사용자에게는 **한 가지 일**이다. 화면은 한 줄로 묶고, 어느 필드에 쓸지는 여기서 정한다.
    필드를 합치지는 않는다 — 세션 하위 호환이 깨지고, 옵션 집합도 유형마다 다르다(막대의 합계·개수). */
+/* 같은 X에 점이 둘 이상인 자리가 몇 곳인지 — 선이 세로로 오가는 이유를 설명하는 데 쓴다.
+   **그리는 것과 같은 행**(`chartRows`)을 보고, 시리즈가 있으면 시리즈 안에서 센다(다른 시리즈끼리는 선을 잇지 않는다). */
+/* 선이 실제로 그려지는 유형인가 — 시리즈별로 모드를 덮어썼을 수 있으므로 그것까지 본다 */
+function lineModeOn(cfg) {
+  if (cfg.type !== 'line' && cfg.type !== 'scatter+line' && !isBreakType(cfg.type)) {
+    return Object.values(cfg.seriesStyles || {}).some(st => String(st.mode || '').includes('lines'));
+  }
+  return true;
+}
+function dupXCount(cfg) {
+  if (!cfg.x || !cfg.y || isDistType(cfg.type) || isMatrixType(cfg.type)
+    || cfg.type === 'heatmap' || cfg.type === 'dumbbell' || cfg.type === 'bar') return 0;
+  const seen = new Map();
+  for (const r of chartRows(cfg)) {
+    const k = (cfg.group ? String(r[cfg.group]) : '') + '\u0001' + String(r[cfg.x]);
+    seen.set(k, (seen.get(k) || 0) + 1);
+  }
+  let n = 0;
+  for (const v of seen.values()) if (v > 1) n++;
+  return n;
+}
 function aggField(cfg) { return cfg.type === 'bar' ? 'barAgg' : cfg.type === 'heatmap' ? 'heatAgg' : 'ptAgg'; }
 function aggOf(cfg) { return cfg[aggField(cfg)] || 'none'; }
 /* σ는 **평균 둘레에서만** 뜻이 있다 — 중앙값·최소·최대 둘레의 표준편차는 그 점의 산포가 아니다.
@@ -3735,7 +3772,11 @@ function buildLayout(cfg, gd, traces) {
       margin: { ...baseLayout.margin, r: 80 }, uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.heatZ].join('|') };
   }
   if (cfg.type === 'dumbbell') {   // 값 축(X=cfg.y) + 카테고리 축(Y=cfg.x, 가로)
-    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick), yaxis: catAxis(cfg.xLabel, cfg.x),
+    /* 카테고리 순서를 **명시**한다 — 안 주면 Plotly가 trace에 나온 순서로 쌓고, 연결선 trace는
+       그룹이 둘 이상인 카테고리에만 생기므로 축이 `uniqueVals` 순서와 어긋난다(실측). */
+    const dCats = uniqueVals(cfg.x).map(String);
+    const dAxis = { ...catAxis(cfg.xLabel, cfg.x), categoryorder: 'array', categoryarray: dCats };
+    return { ...baseLayout, xaxis: axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick), yaxis: dAxis,
       showlegend: cfg.legendPos !== 'none', legend: legend ? { ...legend, traceorder: 'normal' } : undefined,
       uirevision: [cfg.id, cfg.type, cfg.x, cfg.y, cfg.group].join('|') };
   }
@@ -3746,8 +3787,17 @@ function buildLayout(cfg, gd, traces) {
   const yaxis = horizBar ? axis(cfg.xLabel, cfg.xScale, cfg.xMin, cfg.xMax, cfg.x, cfg.xTick)
                          : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick);
   if (cfg.type === 'bar') {
-    const catOrder = { label: 'category ascending', asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
-    if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
+    /* `label`은 Plotly의 `category ascending`(사전순) 대신 **우리 순서를 배열로** 준다 —
+       그대로 두면 같은 컬럼이 막대에서만 다른 순서로 선다. 값 정렬(asc·desc)은 Plotly가 맞다. */
+    if (cfg.barSort === 'label') {
+      const cats = [...new Set(chartRows(cfg).map(r => r[cfg.x]).filter(v => v !== null && v !== undefined))]
+        .sort(compareVals).map(String);
+      const ax = horizBar ? yaxis : xaxis;
+      ax.categoryorder = 'array'; ax.categoryarray = cats;
+    } else {
+      const catOrder = { asc: 'total ascending', desc: 'total descending' }[cfg.barSort];
+      if (catOrder) (horizBar ? yaxis : xaxis).categoryorder = catOrder;
+    }
   }
   /* 축 끊기: 축 둘을 앞뒤 domain으로 쪼개고 나머지 한 축을 공유한다.
      facet·보조축과는 유형이 달라 만날 일이 없다(그래서 유형으로 넣었다). */
@@ -4650,6 +4700,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         : [['none', t('opt.aggNone')], ['mean', t('opt.aggMean')], ['median', t('opt.aggMedianShort')], ['min', t('opt.aggMin')], ['max', t('opt.aggMax')]],
         aggOf(cfg), v => { cfg[aggField(cfg)] = v; rebuildPanel(); }, { title: t('cfg.aggTitle') })),
         isBar || isHeat || aggOf(cfg) !== 'none'),
+      /* 같은 X에 점이 여럿이면 선이 그 점들을 **파일 순서대로** 지나 세로로 오간다 —
+         감추지 않고 그 사실과 빠져나갈 길(집계)을 적는다. 집계를 켜면 한 점이 되므로 안내도 사라진다. */
+      ...(aggOf(cfg) === 'none' && lineModeOn(cfg) && dupXCount(cfg)
+        ? [el('div', { class: 'hint' }, tf('cfg.dupX', { n: dupXCount(cfg) }))] : []),
       ...(isHeat ? [] : [
         /* 오차의 출처는 하나뿐이다 — 이미 있는 컬럼이거나, 평균에서 나온 통계이거나 */
         A(row(t('cfg.error'), select([['', t('opt.noneParen')],

@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.62 — values line up the way people read them
+> v0.62 — 값이 줄 서는 순서를 사람이 읽는 순서로
+
+- Line charts have always connected points in ascending X order, but the comparison was a plain `<`, so **text values sorted like a dictionary**: `v9 v10 v100 v2` was drawn as `v10 → v100 → v2 → v9`. Text now sorts naturally (`v2 → v9 → v10 → v100`).
+- The same comparison was copied in several places, so **one column could line up differently in a line chart than in a heatmap**. There is now a single comparator behind all of it: connecting order, heatmap and dumbbell axes, facet values, filter choices, and the bar chart's `By label` sort.
+- Mixed columns (numbers and text in one column) put numbers first instead of interleaving them as strings.
+- When several points share the same X and no aggregate is on, the settings panel now says so: the line passes through them in file order, which is why it doubles back. It disappears once you aggregate.
+
 ### v0.61.1 — page width is a dropdown too
 > v0.61.1 — 페이지 폭도 드롭다운
 
