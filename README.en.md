@@ -124,7 +124,7 @@ ours,4000,4.1,0.744,MMLU
 | Feature | How |
 |---|---|
 | Add/duplicate/delete charts | `＋ Add chart` at the top, `Duplicate`/`Delete` on each card (undo from the toast) — multiple charts per page |
-| **Chart types** | scatter · line · scatter+line · bar · heatmap (2D grid by color) · dumbbell (paired per category) · histogram · box plot (distributions) · violin (the shape, not just the quartiles) · ECDF (what fraction sits at or below a value) · broken axis (fold away the gap when values split into two far-apart groups — axis values stay real) · scatter matrix (every pair of the metrics you pick — where the trade-offs are, in one figure) |
+| **Chart types** | scatter · line · scatter+line · bar · heatmap (2D grid by color) · dumbbell (paired per category) · histogram · box plot (distributions) · violin (the shape, not just the quartiles) · ECDF (what fraction sits at or below a value) · broken axis (fold away the gap when values split into two far-apart groups — axis values stay real) · scatter matrix (every pair of the metrics you pick — where the trade-offs are, in one figure). **Line types connect in ascending X**, not file order, and text sorts naturally (`v2 → v9 → v10 → v100`). If several points share an X the line passes through them in file order, and the settings panel says so |
 | Axes & scales | Settings → Axes: labels, linear/log toggle, min/max range (either side alone is fine), grid |
 | **Axis tick format** | Settings → Axis → X/Y tick format: auto · percent · thousands · scientific · fixed decimals (0–3) |
 | **Second Y axis** | Settings → Data → Second Y axis: two metrics on different scales in one chart (right axis, dotted line, × markers) |
@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.62** — Values line up the way people read them: lines connect in ascending X, and text sorts naturally (`v2 → v9 → v10 → v100`). Heatmap and dumbbell axes, facets, filter lists and the bar `By label` sort all share that one order.
 - **v0.61.1** — The page-width control in the top bar is a dropdown instead of a button you click through.
 - **v0.61** — Chart width is now a four-way choice (full, two-thirds, half, one-third), and the legend has nine outside positions (right × top/middle/bottom, top and bottom × left/center/right) alongside the four inside corners.
 - **v0.60** — Settings moved from a narrow column inside each card to a **dock on the left**: full window height, and every chart is full width. A card's `⚙ Settings` brings that chart into the dock, and the chart being edited is marked in two places.
 - **v0.59** — Added the scatter matrix: every pair of the metrics you pick in one grid, so the trade-offs show up in a single figure. Past 8 columns or 5,000 points per cell it trims, and says what it left out.
-- **v0.58** — An audit of the storage and restore paths the last three releases touched. Fixed leftovers after `Reset all` and a case where adding a file mid-restore produced two copies of the same dataset. All 67 chart settings fields are now checked to round-trip through a session unchanged.
 
 ---
 

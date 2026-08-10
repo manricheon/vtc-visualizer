@@ -71,6 +71,10 @@ For seed-repeated experiments, `±std error` is the better choice — it shows c
 A doubling sweep becomes evenly spaced on a log X axis, straightening the trend.
 **How to read it**: the point where the curve flattens is where extra spend stops paying — drop a text marker there and the message is complete.
 
+**The line connects in ascending X**, not file order (text uses the order people read: `v2 → v9 → v10 → v100`).
+With repeated seeds several points share an X, so the line passes through them in file order and doubles back — the panel
+says so, and setting the aggregate to `Mean` connects one point per X.
+
 ### ③ Speed–accuracy trade-off — "Is the latency worth it?"
 
 > Type=`Scatter`, X axis=`latency_ms`, Y axis=`accuracy`, Group (color)=`method`
