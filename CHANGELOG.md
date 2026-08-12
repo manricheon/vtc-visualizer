@@ -3,6 +3,12 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.66 — from the matrix to a scatter plot
+> v0.66 — 행렬에서 산점도로
+
+- The scatter matrix picks *where to look*; now the next step follows. **Click any cell** and `Open this pair as a scatter plot` builds that chart — group, dataset, filters and the filter join carried over, so it shows the same rows. Clicking the same pair again scrolls to the existing chart instead of stacking a new card (the same rule recipe chips follow).
+- The diagonal offers nothing — a metric against itself is not a pair.
+
 ### v0.65 — draw what is visible first
 > v0.65 — 보이는 것부터 그리기
 

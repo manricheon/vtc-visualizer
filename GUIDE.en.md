@@ -410,7 +410,7 @@ Scan them in one figure, then dig into the pair that caught your eye with a norm
 - **Up to 8 columns** are drawn. Beyond that the cells are too small to read, so the extras are left out and the panel says how many.
 - With many rows the cells clog up. Past the `Point cap` (5,000 by default) an **evenly spaced sample** is drawn and said so — the same points every time. Set the cap to `0` to draw them all.
 - This type is drawn with WebGL, so **an SVG export embeds the points as raster** (axes and text stay vector). For print, use a PNG at a higher dpi.
-- Move whatever stood out into a scatter plot to add baselines, a Pareto front or trend lines. The matrix picks **where to look**; it is not the figure that makes the argument.
+- **Click the cell** that stood out — `Open this pair as a scatter plot` builds the chart with group and filters carried over (the same pair scrolls to the existing chart). Add baselines, a Pareto front or trend lines there. The matrix picks **where to look**; it is not the figure that makes the argument.
 
 ### ㉒ How the ranking flipped — bump chart
 
