@@ -497,7 +497,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.64';
+const APP_VERSION = 'v0.65';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -596,7 +596,7 @@ function applyTheme() {
   SEQ_SCALE = dark ? DARK_SEQ : LIGHT_SEQ;
   const b = document.getElementById('btnTheme');
   if (b) { b.textContent = dark ? '☀️' : '🌙'; b.title = t('theme.toggle'); }
-  for (const c of state.charts) if (plotDivs[c.id]) renderPlot(c);
+  rerenderAllPlots();
 }
 function toggleTheme() {
   THEME = effectiveDark() ? 'light' : 'dark';   // 현재 상태를 뒤집어 명시적으로 고정
@@ -2507,6 +2507,42 @@ function isDimmed(cfg, r) {
 function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 
 /* ================= chart rendering ================= */
+/* **보이는 것만 그린다**(v0.65). 테마·팔레트·언어·표 조작이 모든 차트를 그 자리에서 다시 그렸다 —
+   12장 × 20만 행에서 931ms. 화면 밖 카드는 `_stale`(화면 상태 — `_` 접두사라 세션 제외)로 미뤘다가 보일 때 그린다.
+   **내보내기·조판·리포트는 `ensureFreshPlot`을 먼저 거친다** — 낡은 그림이 파일로 나가는 것이 최악이다. */
+const plotViz = new Map();   // plotDiv → 보이는가
+const plotObserver = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => {
+  for (const en of entries) {
+    plotViz.set(en.target, en.isIntersecting);
+    if (!en.isIntersecting) continue;
+    const id = Number(en.target.closest('.chart-card')?.dataset.chart);
+    const cfg = state.charts.find(c => c.id === id);
+    if (cfg && cfg._stale) { delete cfg._stale; renderPlot(cfg); }
+  }
+}, { rootMargin: '160px' }) : null;   // 스크롤 직전에 미리 그린다 — 빈 카드가 보이는 순간이 없게
+function plotVisible(cfg) {
+  const gd = plotDivs[cfg.id];
+  if (!gd || !plotObserver) return true;                  // 관찰자가 없으면 예전처럼 전부 그린다
+  if (plotViz.has(gd)) return plotViz.get(gd);
+  const r = gd.getBoundingClientRect();                   // 아직 관찰 전이면 직접 잰다
+  return r.bottom > -160 && r.top < innerHeight + 160;
+}
+/* 전체를 갈아치우는 **유일한 입구** — 보이는 차트는 즉시, 나머지는 stale */
+function rerenderAllPlots() {
+  for (const c of state.charts) {
+    if (!plotDivs[c.id]) continue;
+    if (c.collapsed) { c._stale = true; continue; }       // 접힌 카드는 펼칠 때 그린다 (기존 규칙 유지)
+    if (plotVisible(c)) { delete c._stale; renderPlot(c); }
+    else c._stale = true;
+  }
+}
+/* stale이면 먼저 그리고 이어 간다 — 내보내기 앞에서 부른다 */
+async function ensureFreshPlot(cfg) {
+  if (!cfg._stale) return;
+  delete cfg._stale;
+  renderPlot(cfg);
+  await new Promise(r => setTimeout(r, 250));
+}
 const plotDivs = {};   // chartId -> div
 /* 시리즈 정의: 색=group, 모양=group2. 인덱스는 전체(미필터) 고유값 기준 — 색/모양이 엔티티를 따라감 */
 /* 시리즈 순서 — 기본은 데이터 등장 순이다. 논문 그림에서는 "baseline을 맨 앞에" 같은 요구가 흔한데
@@ -4448,6 +4484,7 @@ function renderChartCard(cfg) {
   card.title = t('card.keysTitle');
   const plotDiv = el('div', { class: 'plot', style: `min-height:${cfg.plotHeight || 460}px;height:${cfg.plotHeight || 460}px` });
   plotDivs[cfg.id] = plotDiv;
+  if (plotObserver) plotObserver.observe(plotDiv);
 
   /* 설정은 v0.60부터 왼쪽 도크에 있다 — 카드 안에 같은 UI를 두지 않으므로 요약은 **항상** 보인다 */
   const specSpan = el('span', { class: 'spec' }, cardSpecText(cfg));
@@ -5370,6 +5407,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
 async function exportImg(cfg, format) {
   const div = plotDivs[cfg.id];
   if (!div || !div.data) { alert(t('err.drawChartFirst')); return; }
+  await ensureFreshPlot(cfg);   // 화면 밖에서 미뤄 둔 차트 — 낡은 그림이 파일로 나가면 안 된다
   /* WebGL로 그려진 차트를 그대로 SVG로 내보내면 그림이 래스터로 박힌다 — 잠시 SVG로 다시 그린 뒤 되돌린다 */
   const wasGl = format === 'svg' && div.data.some(tr => tr.type === 'scattergl');
   if (wasGl) { cfg._forceSvg = true; renderPlot(cfg); await new Promise(r => setTimeout(r, 250)); }
@@ -5553,6 +5591,7 @@ function renumberCards() {
 /* 접기는 세 곳에서 부른다(카드 버튼·모두 접기·복원) — 한 함수로 모은다.
    접힌 카드에서는 조작 안내 줄도 감춘다: 그릴 것이 없는데 "드래그 = 영역 확대"가 남아 있었다. */
 function setCollapsed(cfg, on) {
+  if (!on && cfg._stale) { delete cfg._stale; setTimeout(() => renderPlot(cfg), 0); }
   cfg.collapsed = !!on;
   const card = cardOf(cfg);
   if (card) {
@@ -5669,7 +5708,7 @@ function renderTable() {
       + cols.map(c => `<td${nc(c)} data-fc="${esc(c)}" data-fi="${i}">${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
   });
   table.innerHTML = html + '</tbody>';
-  const rerenderCharts = () => { for (const c of state.charts) renderPlot(c); };
+  const rerenderCharts = () => rerenderAllPlots();
   const sortBy = th => {
     const c = th.dataset.col;
     if (tableState.sortCol === c) tableState.sortDir *= -1;
@@ -6800,7 +6839,7 @@ function renderDerived() {
   panel.hidden = !state.datasets.length;
   if (!state.datasets.length) { panel.innerHTML = ''; return; }
   const nums = numericColumns(), cols = visibleColumns();
-  const commit = () => { applyDerived(); renderDerived(); renderTable(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c); analysisStale(); save(); };
+  const commit = () => { applyDerived(); renderDerived(); renderTable(); refreshCfgPanels(); rerenderAllPlots(); analysisStale(); save(); };
   panel.innerHTML = '';
   panel.append(el('summary', {}, tf('cfg.derivedCount', { n: state.derived.length })));
   // 기존 정의 목록
@@ -7286,6 +7325,7 @@ async function exportReport() {
   for (let i = 0; i < state.charts.length; i++) {   // 그림은 별도 파일로 — 마크다운의 링크 이름과 맞춘다
     const cfg = state.charts[i], gd = plotDivs[cfg.id];
     if (!gd || !gd.data) continue;
+    await ensureFreshPlot(cfg);   // 미뤄 둔 차트가 낡은 채 리포트에 실리면 안 된다
     try {
       /* 리포트의 그림도 그 차트의 출력 규격을 따른다 — 규격을 정해 놓고 리포트만 다른 크기로 나오면 쓸 수가 없다 */
       const url = await Plotly.toImage(gd, { format: 'png', ...exportSize(cfg, gd, 'png') });
@@ -7347,6 +7387,7 @@ async function exportSheet(opt) {
   const cells = [];
   for (const c of cfgs) {
     const gd = plotDivs[c.id];
+    await ensureFreshPlot(c);   // 조판도 마찬가지 — 낡은 그림이 판에 박히면 안 된다
     const gw = gd.clientWidth || 900, gh = gd.clientHeight || 460;
     const h = Math.round(cellW * (gh / gw));
     /* **화면 크기 그대로 뽑고 배율만 준다** — 칸 폭에 맞춰 다시 그리면 글자 크기는 그대로인 채 그림만 작아져
@@ -7751,7 +7792,7 @@ function onDataChanged(autoChart = true) {
   tableState.page = 0;
   renderTable();
   if (autoChart && state.datasets.length && !state.charts.length) addChart();
-  else { refreshCfgPanels(); for (const c of state.charts) renderPlot(c); }
+  else { refreshCfgPanels(); rerenderAllPlots(); }
   updateEmptyCharts();   // 데이터가 비면 빈 상태 안내·예시 버튼이 다시 보여야 한다
   save();
 }
@@ -7976,13 +8017,13 @@ document.getElementById('btnReset').addEventListener('click', () => {
 document.getElementById('restoreExcl').addEventListener('click', () => {
   allRows().forEach(r => { delete r._excluded; });
   bumpCuration(); renderTable(); analysisStale();
-  for (const c of state.charts) renderPlot(c);
+  rerenderAllPlots();
   save();
 });
 document.getElementById('restoreMuted').addEventListener('click', () => {
   allRows().forEach(r => { delete r._muted; });
   bumpCuration(); renderTable(); analysisStale();
-  for (const c of state.charts) renderPlot(c);
+  rerenderAllPlots();
   save();
 });
 document.getElementById('btnExportCsv').addEventListener('click', exportTableCsv);
@@ -7995,7 +8036,7 @@ document.getElementById('btnLangToggle').addEventListener('click', () => {
   localStorage.setItem(LANG_KEY, LANG);
   applyLang();
   paletteSelectRefresh();
-  relabelCards(); refreshCfgPanels(); for (const c of state.charts) renderPlot(c);
+  relabelCards(); refreshCfgPanels(); rerenderAllPlots();
   renderTable(); renderChips(); renderAnalysis();   // 인사이트는 {kind, params}라 재계산 없이 언어만 바뀜
   const b = document.getElementById('btnTheme'); if (b) b.title = t('theme.toggle');
   applyWidth();   // 폭 드롭다운의 선택지 이름도 언어에 맞춰 다시 채운다
