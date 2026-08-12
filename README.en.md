@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.63.1** — Fixes a defect found in a full review: the columns a scatter matrix points at were missed by renaming, deletion checks, dataset switching and presets, so a file with a clashing column name could make the matrix draw different values without saying so.
 - **v0.63** — Reverse axis and integer ticks (step 1) make **bump charts** possible with a rank column and a line chart (guide recipe ㉒). Bars gained `Stacked 100%` for composition, with the value labels rewritten as shares.
 - **v0.62** — Values line up the way people read them: lines connect in ascending X, and text sorts naturally (`v2 → v9 → v10 → v100`). Heatmap and dumbbell axes, facets, filter lists and the bar `By label` sort all share that one order.
 - **v0.61.1** — The page-width control in the top bar is a dropdown instead of a button you click through.
 - **v0.61** — Chart width is now a four-way choice (full, two-thirds, half, one-third), and the legend has nine outside positions (right × top/middle/bottom, top and bottom × left/center/right) alongside the four inside corners.
-- **v0.60** — Settings moved from a narrow column inside each card to a **dock on the left**: full window height, and every chart is full width. A card's `⚙ Settings` brings that chart into the dock, and the chart being edited is marked in two places.
 
 ---
 

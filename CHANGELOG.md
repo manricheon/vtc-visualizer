@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.63.1 — the matrix's columns follow along too
+> v0.63.1 — 행렬이 가리키는 컬럼도 따라오게
+
+- A full code review turned up one defect that changes what you see without saying anything. The list of chart fields that hold a column name only covered **single** fields, and the scatter matrix (v0.59) holds its columns as a **list** — so a matrix slipped through everywhere that list is used. Loading a file whose column shares a name with one of your computed columns renamed the computed one (as it should) but left the matrix pointing at the old name, so **the matrix quietly started drawing the file's values instead**.
+- Three more leaks from the same hole: deleting a computed column said "not used anywhere" while a matrix was drawing it, switching a chart to another file left columns that file does not have, and presets did not carry the computed columns a matrix uses.
+- Column-name fields are now declared as either single or list, and every place that renames, clears, checks usage or bundles them goes through one helper.
+- Also from the review: the duplicate-X hint counted twice per panel build, a dead ternary in the 100% axis title, and reversing an axis is now ignored while the axis is broken (it was only hidden from the UI, so an old session could still apply it to both panels).
+
 ### v0.63 — rank and share
 > v0.63 — 순위와 구성비
 

@@ -506,7 +506,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.63';
+const APP_VERSION = 'v0.63.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -3730,7 +3730,10 @@ function buildLayout(cfg, gd, traces) {
   /* `rev` — 축 뒤집기(v0.63). 순위처럼 **작을수록 위**여야 하는 값에 쓴다.
      범위를 직접 준 축은 그 범위를 뒤집고, 자동 범위면 `autorange: 'reversed'`를 준다
      (자동인데 `range`만 뒤집으면 Plotly가 다시 정방향으로 계산한다). */
-  const axis = (label, scale, mn, mx, col, tick, rev) => {
+  const axis = (label, scale, mn, mx, col, tick, rev0) => {
+    /* 끊긴 축에서는 뒤집기를 **렌더에서도** 무시한다 — UI에서 빼는 것으로 끝내면 옛 세션이 켜 둔 값이
+       두 패널에 적용돼 "어느 쪽이 위인가"라는 규약이 두 벌이 된다(v0.43의 σ와 같은 판단). */
+    const rev = rev0 && !isBreakType(cfg.type);
     // 문자열 컬럼은 category 축 — 막대 정렬(categoryorder)과 문자열 X 산점도가 올바르게 동작
     const sample = chartRows(cfg).map(r => r[col]).filter(v => v !== null && v !== undefined);
     const isCat = (sample.length > 0 && sample.some(v => typeof v !== 'number'))
@@ -3841,8 +3844,9 @@ function buildLayout(cfg, gd, traces) {
                          : axis(cfg.yLabel, cfg.yScale, cfg.yMin, cfg.yMax, cfg.y, cfg.yTick, cfg.yReverse);
   /* 100% 누적의 값 축은 값이 아니라 **비율**이다 — 라벨을 직접 적어 둔 사람의 것은 건드리지 않는다 */
   if (cfg.barMode === 'stack100' && cfg.type === 'bar') {
+    /* 가로 막대여도 **값 축의 라벨은 `yLabel`**이다(축만 바뀌고 설정 이름은 그대로) — 직접 적어 둔 것은 건드리지 않는다 */
     const valAx = horizBar ? xaxis : yaxis;
-    if (!(horizBar ? cfg.yLabel : cfg.yLabel)) valAx.title.text = `${cfg.y} (%)`;
+    if (!cfg.yLabel) valAx.title.text = `${cfg.y} (%)`;
   }
   if (cfg.type === 'bar') {
     /* `label`은 Plotly의 `category ascending`(사전순) 대신 **우리 순서를 배열로** 준다 —
@@ -4642,6 +4646,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const isDist = isDistType(cfg.type), isMatrix = isMatrixType(cfg.type);
   const isBrk = isBreakType(cfg.type), brkAx = brkAxisOf(cfg);
   const rp = () => { renderPlot(cfg); save(); };
+  /* 같은 X에 점이 여럿이면 한 줄로 알린다 — **세는 것은 한 번만**(20만 행에서 48ms짜리 순회다) */
+  const dupXHint = () => {
+    if (aggOf(cfg) !== 'none' || !lineModeOn(cfg)) return [];
+    const n = dupXCount(cfg);
+    return n ? [el('div', { class: 'hint' }, tf('cfg.dupX', { n }))] : [];
+  };
   const rebuildPanel = () => { buildCfgPanel(cfg, panel, nameSpan); renderPlot(cfg); save(); };   // 유형별 옵션 표시가 달라질 때
   /* 산점도 행렬의 입력 — 축 두 줄이 있던 자리에 **컬럼 목록**이 온다.
      고른 순서가 곧 격자 순서이므로 목록에 ↑/↓를 둔다(계산 컬럼 목록과 같은 모양).
@@ -4764,8 +4774,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         isBar || isHeat || aggOf(cfg) !== 'none'),
       /* 같은 X에 점이 여럿이면 선이 그 점들을 **파일 순서대로** 지나 세로로 오간다 —
          감추지 않고 그 사실과 빠져나갈 길(집계)을 적는다. 집계를 켜면 한 점이 되므로 안내도 사라진다. */
-      ...(aggOf(cfg) === 'none' && lineModeOn(cfg) && dupXCount(cfg)
-        ? [el('div', { class: 'hint' }, tf('cfg.dupX', { n: dupXCount(cfg) }))] : []),
+      ...dupXHint(),
       ...(isHeat ? [] : [
         /* 오차의 출처는 하나뿐이다 — 이미 있는 컬럼이거나, 평균에서 나온 통계이거나 */
         A(row(t('cfg.error'), select([['', t('opt.noneParen')],
@@ -5335,13 +5344,44 @@ function guessAxes(cfg) {
 /* 차트 설정에서 **컬럼 이름을 담는 필드**의 유일한 목록.
    예전에는 같은 목록이 세 벌이었고(`DERIVED_REF_FIELDS`·`DATASET_COL_FIELDS`·`onDataChanged`의 손으로 적은 배열)
    그중 하나에는 `y2`·`size`·`errCol`이 빠져 있었다 — 목록을 늘릴 때 한 곳을 빠뜨리는 종류의 버그다. */
+/* **컬럼 이름을 담는 차트 필드는 두 종류다.** 스칼라 하나(`COL_REF_FIELDS`)와 **목록**(`COL_REF_LISTS`).
+   v0.59의 산점도 행렬이 컬럼을 배열로 담는데 스칼라만 훑던 탓에 개명·삭제 경고·데이터셋 전환·프리셋 번들이
+   전부 행렬을 놓쳤다 — 파일이 같은 이름을 들고 오면 **행렬이 아무 말 없이 다른 값을 그렸다**(v0.63.1에서 고침).
+   **새 필드를 더하면 둘 중 하나에 등록할 것.** 훑는 코드는 아래 세 헬퍼만 쓴다. */
 const COL_REF_FIELDS = ['x', 'y', 'y2', 'group', 'group2', 'size', 'colorBy', 'facetBy', 'labelCol', 'heatZ', 'errCol'];
+const COL_REF_LISTS = ['matrixCols'];
 const DATASET_COL_FIELDS = COL_REF_FIELDS;   // 같은 목록이다 — 이름만 다르게 부르던 것
+/* 이 차트가 가리키는 컬럼을 한 번씩 — `fn(name, field)` */
+function forEachColRef(cfg, fn) {
+  for (const k of COL_REF_FIELDS) if (cfg[k]) fn(cfg[k], k);
+  for (const k of COL_REF_LISTS) for (const c of (cfg[k] || [])) if (c) fn(c, k);
+}
+/* 개명 — 스칼라는 바꾸고 목록은 항목을 갈아 끼운다(순서는 그대로: 격자 순서가 곧 읽는 순서다) */
+function renameColRefs(cfg, from, to) {
+  for (const k of COL_REF_FIELDS) if (cfg[k] === from) cfg[k] = to;
+  for (const k of COL_REF_LISTS) if (Array.isArray(cfg[k])) cfg[k] = cfg[k].map(c => (c === from ? to : c));
+}
+/* 컬럼이 사라졌다 — 스칼라는 비우고 목록에서는 그 항목만 뺀다. 바뀐 게 있으면 true */
+function dropColRefs(cfg, name) {
+  let touched = false;
+  for (const k of COL_REF_FIELDS) if (cfg[k] === name) { cfg[k] = ''; touched = true; }
+  for (const k of COL_REF_LISTS) {
+    if (!Array.isArray(cfg[k]) || !cfg[k].includes(name)) continue;
+    cfg[k] = cfg[k].filter(c => c !== name); touched = true;
+  }
+  return touched;
+}
 function switchDataset(cfg, name, rebuild) {
   cfg.dataset = name;
   const ok = chartColumns(cfg);
   const dropped = [];
   for (const k of DATASET_COL_FIELDS) if (cfg[k] && !ok.includes(cfg[k])) { dropped.push(cfg[k]); cfg[k] = ''; }
+  /* 목록(행렬)도 그 파일에 있는 컬럼만 남긴다 — 안 그러면 설정에 없는 컬럼이 남아 화면과 어긋난다 */
+  for (const k of COL_REF_LISTS) {
+    if (!Array.isArray(cfg[k])) continue;
+    const keep = cfg[k].filter(c => ok.includes(c));
+    if (keep.length !== cfg[k].length) { dropped.push(...cfg[k].filter(c => !ok.includes(c))); cfg[k] = keep; }
+  }
   const keptFilters = (cfg.filters || []).filter(f => !f.col || ok.includes(f.col));
   if (keptFilters.length !== (cfg.filters || []).length) {
     (cfg.filters || []).forEach(f => { if (f.col && !ok.includes(f.col)) dropped.push(f.col); });
@@ -6567,7 +6607,8 @@ const DERIVED_REF_FIELDS = COL_REF_FIELDS;   // 〃
 function colUsage(name) {
   const charts = [];
   state.charts.forEach((c, i) => {
-    const fields = DERIVED_REF_FIELDS.filter(k => c[k] === name);
+    const fields = [];
+    forEachColRef(c, (col, k) => { if (col === name && !fields.includes(k)) fields.push(k); });
     const filters = (c.filters || []).filter(f => f.col === name).length;
     if (fields.length || filters) charts.push({ cfg: c, label: c.title || tf('card.chartNum', { n: i + 1 }), fields, filters });
   });
@@ -6579,8 +6620,7 @@ const derivedUsage = colUsage;
 function clearDerivedRefs(name) {
   let n = 0;
   for (const c of state.charts) {
-    let touched = false;
-    for (const k of DERIVED_REF_FIELDS) if (c[k] === name) { c[k] = ''; touched = true; }
+    let touched = dropColRefs(c, name);
     const before = (c.filters || []).length;
     c.filters = (c.filters || []).filter(f => f.col !== name);
     if (c.filters.length !== before) touched = true;
@@ -6629,7 +6669,7 @@ function renameDerived(from, to) {
     renameDerivedInputs(d, from, to);
   }
   for (const c of state.charts) {
-    for (const k of COL_REF_FIELDS) if (c[k] === from) c[k] = to;
+    renameColRefs(c, from, to);
     for (const f of (c.filters || [])) if (f.col === from) f.col = to;
     for (const m of (c.textMarkers || [])) { if (m.xc === from) m.xc = to; if (m.yc === from) m.yc = to; }
     for (const b of (c.baselines || [])) { if (b.xc === from) b.xc = to; if (b.yc === from) b.yc = to; }
@@ -7344,7 +7384,9 @@ function savePresets(p) {
 /* 차트가 참조하는 컬럼 이름 — 프리셋의 계산 컬럼 수집과 숨김 해제가 함께 쓴다.
    손으로 적은 목록을 두면 필드가 늘 때 빠진다(실제로 보조축 y2가 빠져 있었다) — DERIVED_REF_FIELDS 하나만 본다. */
 function chartRefCols(cfg) {
-  return new Set([...DERIVED_REF_FIELDS.map(k => cfg[k]), ...(cfg.filters || []).map(f => f.col)].filter(Boolean));
+  const out = new Set((cfg.filters || []).map(f => f.col).filter(Boolean));
+  forEachColRef(cfg, name => out.add(name));
+  return out;
 }
 function presetDerivedFor(cfg) {
   const used = chartRefCols(cfg);
