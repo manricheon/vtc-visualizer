@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.65 — draw what is visible first
+> v0.65 — 보이는 것부터 그리기
+
+- Switching the theme, palette or language redrew **every chart on the spot** — 931ms with 12 charts of 200k rows. Off-screen charts are now deferred and drawn when scrolled into view (with a little head start, so an empty card is never seen). Measured: **931ms → 303ms**, with 10 of 12 charts deferred.
+- All whole-page redraw paths now go through one entry, so the rule cannot be applied in one place and forgotten in another.
+- **Exports never ship a stale picture.** A deferred chart is rendered first when you save a PNG/SVG, build the report, or lay out a sheet — an outdated figure leaving as a file would be the worst failure mode of this change.
+- A restyle-only path (recoloring traces without re-rendering) was considered and rejected: palette colors live inside markers, lines, bands and annotations, and missing one spot would mean a silently half-themed chart.
+
 ### v0.64 — filters where you are looking
 > v0.64 — 보고 있는 자리에서 필터를
 
