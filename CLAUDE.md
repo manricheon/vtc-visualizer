@@ -47,6 +47,10 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
 - **행렬 칸 → 산점도**(v0.66): `showMatrixCellMenu` — splom 클릭 점의 `xaxis._id`(x·x2·x3…) 번호가 곧 `matrixCols` index다.
   대각선(xi===yi)은 띄우지 않는다. 같은 (type,x,y,group)이 있으면 `anFindChart`로 재사용(누를 때마다 카드가 쌓이면 그게 더 나쁘다 — 레시피 칩과 같은 판단).
   새 차트는 그룹·데이터셋·필터·`filterJoin`을 **복사**해 승계한다(참조 공유 금지 — 한쪽 필터 수정이 다른 쪽을 바꾸면 안 된다).
+- **필터 칩·시리즈 필터**(v0.68): 활성 필터는 카드의 `.fchips`에 칩으로 보인다 — 갱신은 `renderPlot`이
+  `applyCardSpec`과 같은 자리에서 `applyFilterChips(cfg)`를 부른다(걸리고 풀리는 모든 경로가 renderPlot을 지난다).
+  **미완성 필터는 칩이 아니다**(그림에 아무 일도 안 하므로). 제거는 `removeFromList`(자리까지 되살린다).
+  점 팝오버의 시리즈 필터는 **클릭한 차트**에 건다(표 클릭은 도크 차트 — 점은 그 차트 위에 있으니 대상이 자명하다).
 - **보이는 것만 그리기**(v0.65): 전체를 갈아치우는 입구는 **`rerenderAllPlots()` 하나**다(테마·팔레트·언어·표 조작·계산 컬럼 commit).
   보이는 차트는 즉시, 화면 밖은 `_stale`(화면 상태 — 세션 제외)로 미루고 `IntersectionObserver`(rootMargin 160px — 빈 카드가 보이는 순간이 없게)가 보일 때 그린다.
   접힌 카드는 `setCollapsed`가 펼칠 때 그린다. **내보내기·조판·리포트는 `ensureFreshPlot(cfg)`을 먼저 거친다** —

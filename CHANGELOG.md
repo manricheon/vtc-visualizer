@@ -3,6 +3,12 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.68 — filters you can see
+> v0.68 — 보이는 필터
+
+- Since the settings moved to the dock (v0.60), the only trace of a chart's filters on the card was a count. **Active filters now show as chips on the card** — range filters as their interval, multi-selects as a count, dim filters dashed and labeled — with an `×` that removes them right there (undo restores the exact position). Incomplete filters do nothing to the chart, so they get no chip.
+- Clicking a point offers **series filters**: only/drop/dim this series. It is the chart-side twin of clicking a table value (v0.64), and it lands on the chart you clicked.
+
 ### v0.67.1 — the pieces that never shipped
 > v0.67.1 — 실리지 못했던 조각들
 
