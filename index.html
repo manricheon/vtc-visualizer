@@ -181,6 +181,7 @@
   /* 접기는 **탭을 접는 것**이다 — 그림만 감추면 설정 패널이 열려 있는 카드는 그대로 길어서
      "접었는데 아무 일도 안 일어난다"가 된다(실제 보고). 헤더 한 줄만 남긴다. */
   .chart-card.folded > .body,
+  .chart-card.folded > .fchips,
   .chart-card.folded > .chart-table,
   .chart-card.folded > .plot-caption,
   .chart-card.folded > .plot-hint { display: none; }
@@ -194,6 +195,11 @@
     flex-wrap: wrap;   /* 절반 폭에서 버튼이 "설"·"프리"처럼 잘리던 것 — 줄이는 대신 접는다 */
   }
   .chart-card .head button { flex: none; }
+  .fchips { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px 0; }
+  .fchip { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs);
+    background: var(--hover); border: 1px solid var(--border); border-radius: 999px; padding: 1px 4px 1px 9px; }
+  .fchip.dim { border-style: dashed; color: var(--ink-muted); }
+  .fchip button { border: none; background: none; padding: 0 3px; color: var(--ink-muted); font-size: 12px; }
   .chart-card .head .name { font-weight: 600; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* 설정을 접어 둔 카드의 한 줄 요약 — 자리가 모자라면 이것부터 줄어든다(버튼은 flex:none) */
   .chart-card .head .spec {
@@ -503,7 +509,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.67.1';
+const APP_VERSION = 'v0.68';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -833,6 +839,9 @@ const I18N = {
     'cfg.filterHint': '조건을 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 방식은 어느 쪽(조건 밖 / 맞는 것)에 무엇(제거 / 흐리게)을 할지 네 가지 중에 고르고, 필터가 둘 이상이면 결합(모두 만족 / 하나라도)을 정합니다.',
     'op.between': '범위',
     'cell.only': '{v} 만 보기', 'cell.drop': '{v} 빼기', 'cell.dim': '{v} 흐리게',
+    'series.only': '{v} 시리즈만 보기', 'series.drop': '{v} 시리즈 빼기', 'series.dim': '{v} 시리즈 흐리게',
+    'chip.not': '아님:', 'chip.dim': '흐리게', 'chip.dimTitle': '이 조건은 행을 지우지 않고 옅게 합니다',
+    'chip.excTitle': '이 조건에 걸리는 행만 그려집니다', 'toast.filterRemoved': '필터를 지웠습니다: {what}',
     'cell.lte': '{v} 이하만', 'cell.gte': '{v} 이상만',
     'toast.filterAdded': '{chart}에 필터를 걸었습니다: {what}',
     'cfg.betweenLo': '최소', 'cfg.betweenHi': '최대',
@@ -1366,6 +1375,9 @@ const I18N = {
     'cfg.filterHint': 'Rows matching the conditions are drawn (e.g. method = ensemble, tokens ≥ 2000). The mode picks which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed); with several filters, the join decides all-of or any-of.',
     'op.between': 'Range',
     'cell.only': 'Only {v}', 'cell.drop': 'Drop {v}', 'cell.dim': 'Dim {v}',
+    'series.only': 'Only series {v}', 'series.drop': 'Drop series {v}', 'series.dim': 'Dim series {v}',
+    'chip.not': 'not:', 'chip.dim': 'dim', 'chip.dimTitle': 'This condition fades rows instead of removing them',
+    'chip.excTitle': 'Only rows matching this are drawn', 'toast.filterRemoved': 'Filter removed: {what}',
     'cell.lte': '{v} or less', 'cell.gte': '{v} or more',
     'toast.filterAdded': 'Filter added to {chart}: {what}',
     'cfg.betweenLo': 'Min', 'cfg.betweenHi': 'Max',
@@ -4049,6 +4061,7 @@ function renderPlot(cfg) {
     return;
   }
   applyCardSpec(cfg);   // 설정을 바꾸면 요약도 따라와야 한다(모든 변경이 renderPlot을 거친다)
+  applyFilterChips(cfg);   // 필터 칩도 같은 규칙 — 걸리고 풀리는 모든 경로가 여기를 지난다
   const gd = div;
   if (!gd.data) gd.innerHTML = '';   // placeholder 텍스트만 제거 — 기존 플롯 DOM은 Plotly.react가 관리
   gd._vizRendering = true;
@@ -4216,6 +4229,23 @@ function showPointPopover(c, gd, p, mouseEv) {
   });
   popover.append(
     el('div', { class: 'pp-title' }, `(${p.x}, ${p.y})`),
+    /* 시리즈 필터(v0.68) — 표 클릭(v0.64)의 차트판. 대상은 **클릭한 차트**다(도크 차트가 아니라 —
+       점은 이 차트 위에 있다). 그룹이 없으면 시리즈가 없으니 항목도 없다. */
+    ...(c.group && p.data && p.data._g != null ? (() => {
+      const gv = String(p.data._g);
+      const addF = (f, label) => {
+        hidePopover();
+        c.filters.push(f);
+        renderPlot(c); refreshCfgPanels(); save();
+        showToast(tf('toast.filterAdded', { what: label, chart: c.title || tf('card.chartNum', { n: state.charts.indexOf(c) + 1 }) }),
+          t('toast.undo'), () => { const j = c.filters.indexOf(f); if (j >= 0) c.filters.splice(j, 1); renderPlot(c); refreshCfgPanels(); save(); });
+      };
+      const item = (key, mode) => {
+        const label = tf(key, { v: gv });
+        return el('button', { onclick: () => addF({ col: c.group, op: '=', value: gv, mode }, label) }, label);
+      };
+      return [item('series.only', 'exclude'), item('series.drop', 'excludeIn'), item('series.dim', 'dimIn')];
+    })() : []),
     el('button', {
       onclick: () => {
         if (bIdx >= 0) c.baselines.splice(bIdx, 1);
@@ -4492,6 +4522,35 @@ function cardSpecText(cfg) {
   if (cfg.dataset) parts.push(cfg.dataset);
   return parts.join(' · ');
 }
+/* 활성 필터 칩(v0.68) — 설정이 도크로 나간 뒤(v0.60) 걸려 있는 필터는 "필터 2"라는 개수뿐이었다.
+   **무엇이 걸렸는지**를 카드에서 보이고, ×로 그 자리에서 지운다(되돌리기는 자리까지 — removeFromList).
+   미완성 필터는 그림에 아무 일도 안 하므로 칩이 되지 않는다. */
+function filterChipText(f) {
+  if (f.op === 'between') {
+    const lo = f.value !== '' && f.value !== undefined ? f.value : '', hi = f.v2 !== '' && f.v2 !== undefined ? f.v2 : '';
+    return `${f.col}: ${lo}–${hi}`;
+  }
+  if (f.op === 'in') return `${f.col} ∈ ${(f.value || []).length}`;
+  return `${f.col} ${f.op} ${f.value}`;
+}
+function applyFilterChips(cfg) {
+  const card = cardOf(cfg);
+  const box = card && card.querySelector('.fchips');
+  if (!box) return;
+  box.innerHTML = '';
+  cfg.filters.forEach((f, i) => {
+    if (!filterActive(f)) return;
+    const dim = f.mode === 'dim' || f.mode === 'dimIn';
+    const neg = f.mode === 'excludeIn' || f.mode === 'dimIn';
+    box.append(el('span', { class: 'fchip' + (dim ? ' dim' : ''), title: t(dim ? 'chip.dimTitle' : 'chip.excTitle') },
+      (neg ? t('chip.not') + ' ' : '') + filterChipText(f) + (dim ? ` (${t('chip.dim')})` : ''),
+      el('button', { title: t('btn.removeItem'), onclick: () => {
+        removeFromList(cfg.filters, i, tf('toast.filterRemoved', { what: filterChipText(f) }),
+          () => { renderPlot(cfg); refreshCfgPanels(); save(); });
+      } }, '×')));
+  });
+  box.hidden = !box.children.length;
+}
 function applyCardSpec(cfg) {
   const card = cardOf(cfg);
   const sp = card && card.querySelector('.head .spec');
@@ -4549,7 +4608,8 @@ function renderChartCard(cfg) {
   capDiv.hidden = !cfg.caption;
   /* 이 카드를 다시 지으면(프리셋·유형 변경) 도크 내용도 낡는다 — 같은 차트를 보고 있으면 함께 다시 짓는다 */
   if (dockChartId === cfg.id) { card.classList.add('editing'); queueMicrotask(() => refreshCfgPanels()); }
-  card.append(head, el('div', { class: 'body' }, plotDiv),
+  card.append(head, el('div', { class: 'fchips', hidden: '' }),
+    el('div', { class: 'body' }, plotDiv),
     el('div', { class: 'chart-table', hidden: '' }),
     capDiv,
     el('div', { class: 'plot-hint' }, t('card.plotHint')));

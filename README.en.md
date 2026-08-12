@@ -113,7 +113,7 @@ ours,4000,4.1,0.744,MMLU
 | **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. The data is untouched and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
 | Raw data | Bottom table: search, click-to-sort (or Enter on the header), per-dataset delete, uncheck a row to exclude it from charts, `Fade` column to de-emphasise it. Numeric columns are right-aligned so digits line up |
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws only that file's rows, with the axis, group and filter lists narrowed to the columns that file actually has. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
-| Filters | Cut rows by column conditions — operators (=·≠·comparisons·range·multi-select·contains), four modes (the others/the matching × dropped/dimmed), and with several filters a join (all-of AND / any-of OR). Numeric ranges also have a two-handle slider. **Clicking a table value creates one too** — it lands on the chart the dock is editing |
+| Filters | Cut rows by column conditions — operators (=·≠·comparisons·range·multi-select·contains), four modes (the others/the matching × dropped/dimmed), and with several filters a join (all-of AND / any-of OR). Numeric ranges also have a two-handle slider. **Clicking a table value creates one too** (landing on the chart the dock is editing), and clicking a chart point offers series-level filters. Active filters show as chips on the card, removable right there |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
 | **Exclude a point** | Click a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
 | **Focus / de-emphasize** | Click a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table. Style → `Dimmed color` can keep the series color at low opacity instead of gray |
@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.68** — Active filters show as chips on the card (× removes them right there, with undo). Clicking a point also offers only/drop/dim for that series.
 - **v0.67.1** — Restored two pieces that were documented and tested but unreachable: the reverse-axis checkbox (v0.63) and the range filter's overlapping two-handle slider (v0.64). Tests now verify the controls exist and work by clicking, not just that the fields function.
 - **v0.67** — Internal tidy-up: the 686-line settings-panel builder is now one function per group. Nothing visible changed — the full regression suite passing unchanged is the proof.
 - **v0.66** — Clicking a scatter-matrix cell offers `Open this pair as a scatter plot`, carrying over group, dataset and filters. The same pair reuses the existing chart.
 - **v0.65** — Theme, palette and language switches redraw only the charts on screen; the rest draw as you scroll (931 → 303ms with 12 charts). Exports, sheets and reports render deferred charts first, so a stale figure never leaves as a file.
-- **v0.64** — Click a table value to filter by it right there (only/drop/dim, ≤/≥ for numbers). Adds a numeric range filter with a two-handle slider, and an any-of (OR) join between filters.
 
 ---
 
