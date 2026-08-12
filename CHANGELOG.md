@@ -3,6 +3,13 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.67 — internal tidy-up, zero behavior change
+> v0.67 — 내부 정리, 동작 변화 0
+
+- The settings panel was one 686-line function. It is now one function per group (data, bar, filters, axes, style, labels, baselines, advanced, export — the largest piece is 138 lines) plus a 47-line orchestrator. Nothing looks or behaves differently; **the entire regression suite passing unchanged is the verification.**
+- Exactly two things cross group boundaries, and both are now explicit in one context object: the series list re-render (a group change redraws it) and the label list (baseline changes refresh it too). A comment marks the line to revisit if a third ever appears.
+- `analyzeData` (395 lines) was deliberately **left alone**: its stage banners already segment it, its stages share over a dozen intermediate structures, and its comments twice warn about subtle ordering invariants — plumbing a context through it would add risk with no behavioral gain.
+
 ### v0.66 — from the matrix to a scatter plot
 > v0.66 — 행렬에서 산점도로
 
