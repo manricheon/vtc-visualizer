@@ -113,7 +113,7 @@ ours,4000,4.1,0.744,MMLU
 | **Hide columns** | The table's `Columns n/m` button: unchecking one drops it from the table, axis pickers, filters and the analysis at once. The data is untouched and existing charts keep drawing (references are never cleared). For logs with 20-40 columns — `In use only` keeps just what the charts reference, `Show all` puts everything back |
 | Raw data | Bottom table: search, click-to-sort (or Enter on the header), per-dataset delete, uncheck a row to exclude it from charts, `Fade` column to de-emphasise it. Numeric columns are right-aligned so digits line up |
 | **Per-chart data** | With two or more files loaded, each chart's settings start with a `Data` dropdown. Pick a file and the chart draws only that file's rows, with the axis, group and filter lists narrowed to the columns that file actually has. Different charts can point at different files, so unrelated datasets sit side by side (`(all)` merges them again) |
-| Filters | Settings → Filters: pick a column → categorical columns get value checkboxes (multi-select — e.g. check just baseline & ensemble), numeric columns get comparisons (>, ≥, …) or the "Select" operator for multi-select values. Each filter runs in Exclude (drop non-matching rows) or Dim (fade non-matching rows into the background = rule-based highlight) mode |
+| Filters | Cut rows by column conditions — operators (=·≠·comparisons·range·multi-select·contains), four modes (the others/the matching × dropped/dimmed), and with several filters a join (all-of AND / any-of OR). Numeric ranges also have a two-handle slider. **Clicking a table value creates one too** — it lands on the chart the dock is editing |
 | Copy filters | Settings → Filters → `Copy these filters to…` — apply the same conditions to one or all charts |
 | **Exclude a point** | Click a point → "Exclude this point" → removed from every chart. Roll back via the toast's `Undo`, the table checkboxes, or `Restore all excluded` |
 | **Focus / de-emphasize** | Click a point → "De-emphasize (fade)" → not excluded, just receded into a light-gray backdrop (focus + context). Keeps only the highlighted points/lines prominent. Restore via toast/table. Style → `Dimmed color` can keep the series color at low opacity instead of gray |
@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.64** — Click a table value to filter by it right there (only/drop/dim, ≤/≥ for numbers). Adds a numeric range filter with a two-handle slider, and an any-of (OR) join between filters.
 - **v0.63.1** — Fixes a defect found in a full review: the columns a scatter matrix points at were missed by renaming, deletion checks, dataset switching and presets, so a file with a clashing column name could make the matrix draw different values without saying so.
 - **v0.63** — Reverse axis and integer ticks (step 1) make **bump charts** possible with a rank column and a line chart (guide recipe ㉒). Bars gained `Stacked 100%` for composition, with the value labels rewritten as shares.
 - **v0.62** — Values line up the way people read them: lines connect in ascending X, and text sorts naturally (`v2 → v9 → v10 → v100`). Heatmap and dumbbell axes, facets, filter lists and the bar `By label` sort all share that one order.
 - **v0.61.1** — The page-width control in the top bar is a dropdown instead of a button you click through.
-- **v0.61** — Chart width is now a four-way choice (full, two-thirds, half, one-third), and the legend has nine outside positions (right × top/middle/bottom, top and bottom × left/center/right) alongside the four inside corners.
 
 ---
 

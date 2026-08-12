@@ -3,6 +3,13 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.64 — filters where you are looking
+> v0.64 — 보고 있는 자리에서 필터를
+
+- **Click a value in the data table to filter by it.** The cell menu offers only/drop/dim this value, and ≤/≥ for numbers. The filter lands on the chart the dock is editing — the card outline already tells you which one — and the toast has Undo.
+- **Numeric range filter** (`Range`): min and max boxes plus a two-handle slider spanning the column's actual values. Bounds are inclusive; leave one side empty to cut in one direction only, like axis ranges.
+- **Filters can now combine as any-of (OR)**, per chart. AND remains the default and old sessions open unchanged. Dimming follows the same join, and the per-filter sentence says how it combines. Per-filter OR groups were left out on purpose — that way lies a query builder; duplicating the chart answers the same need.
+
 ### v0.63.1 — the matrix's columns follow along too
 > v0.63.1 — 행렬이 가리키는 컬럼도 따라오게
 

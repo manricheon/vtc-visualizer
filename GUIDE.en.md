@@ -127,7 +127,10 @@ With X=tokens, Y=accuracy, Group (color)=method:
 4. **Point labels** with Label column=`frames` — the value appears next to each point
 5. **Facet**=`frames` — Settings → Data → Facet: a small chart per frames value, auto-arranged in a grid (no more repeated duplicate+filter)
 
-When the secondary group has many unique values (e.g. 6 frames values → 24 combos) the legend explodes — **filter down to 2–3 contrasting values** before using the shape group:
+When the secondary group has many unique values (e.g. 6 frames values → 24 combos) the legend explodes — **filter down to 2–3 contrasting values** before using the shape group.
+Filters can be typed by hand, but **clicking a value in the raw-data table is faster** — a menu like `Only 8` appears and
+lands on the chart the dock is editing (marked by the outline). Numeric columns take a `Range` operator with a two-handle
+slider, and with several filters the join can be `Any may match (OR)` for conditions like "baseline, or ≥ 8000":
 
 ![Color=method, shape=frames (filtered to 8·64) — shape separates the budget tiers](assets/guide/r6-shape-group.png)
 

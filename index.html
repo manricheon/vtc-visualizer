@@ -497,7 +497,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.63.1';
+const APP_VERSION = 'v0.64';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -824,7 +824,14 @@ const I18N = {
     'opt.noneParen': '(없음)', 'opt.select': '(선택)', 'opt.column': '(컬럼)', 'opt.selectValue': '(값 선택)', 'opt.auto': '(자동)',
     'cfg.filterColFirst': '← 컬럼 먼저',
     'cfg.filterValuePh': '값',
-    'cfg.filterHint': '조건을 모두 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 방식은 어느 쪽(조건 밖 / 맞는 것)에 무엇(제거 / 흐리게)을 할지 네 가지 중에 고릅니다.',
+    'cfg.filterHint': '조건을 만족하는 행만 그려집니다 (예: method = ensemble, tokens ≥ 2000). 방식은 어느 쪽(조건 밖 / 맞는 것)에 무엇(제거 / 흐리게)을 할지 네 가지 중에 고르고, 필터가 둘 이상이면 결합(모두 만족 / 하나라도)을 정합니다.',
+    'op.between': '범위',
+    'cell.only': '{v} 만 보기', 'cell.drop': '{v} 빼기', 'cell.dim': '{v} 흐리게',
+    'cell.lte': '{v} 이하만', 'cell.gte': '{v} 이상만',
+    'toast.filterAdded': '{chart}에 필터를 걸었습니다: {what}',
+    'cfg.betweenLo': '최소', 'cfg.betweenHi': '최대',
+    'cfg.filterJoin': '결합', 'opt.joinAnd': '모두 만족 (AND)', 'opt.joinOr': '하나라도 (OR)',
+    'cfg.filterJoinAndNote': '(다른 필터와 모두 만족일 때)', 'cfg.filterJoinOrNote': '(다른 필터와 하나라도 맞으면)',
     'opt.filterExclude': '조건 밖 제거', 'opt.filterDim': '조건 밖 흐리게',
     'opt.filterExcludeIn': '맞는 것 제거', 'opt.filterDimIn': '맞는 것 흐리게',
     'cfg.filterModeTitle': '조건 밖 / 맞는 것 중 어느 쪽에, 제거 / 흐리게 중 무엇을 할지 고릅니다.',
@@ -1349,7 +1356,14 @@ const I18N = {
     'opt.noneParen': '(None)', 'opt.select': '(select)', 'opt.column': '(column)', 'opt.selectValue': '(select value)', 'opt.auto': '(auto)',
     'cfg.filterColFirst': '← pick a column first',
     'cfg.filterValuePh': 'value',
-    'cfg.filterHint': 'Only rows matching every condition are drawn (e.g. method = ensemble, tokens ≥ 2000). The mode picks which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed).',
+    'cfg.filterHint': 'Rows matching the conditions are drawn (e.g. method = ensemble, tokens ≥ 2000). The mode picks which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed); with several filters, the join decides all-of or any-of.',
+    'op.between': 'Range',
+    'cell.only': 'Only {v}', 'cell.drop': 'Drop {v}', 'cell.dim': 'Dim {v}',
+    'cell.lte': '{v} or less', 'cell.gte': '{v} or more',
+    'toast.filterAdded': 'Filter added to {chart}: {what}',
+    'cfg.betweenLo': 'Min', 'cfg.betweenHi': 'Max',
+    'cfg.filterJoin': 'Join', 'opt.joinAnd': 'All must match (AND)', 'opt.joinOr': 'Any may match (OR)',
+    'cfg.filterJoinAndNote': '(combined with the other filters: all)', 'cfg.filterJoinOrNote': '(combined with the other filters: any)',
     'opt.filterExclude': 'Drop others', 'opt.filterDim': 'Dim others',
     'opt.filterExcludeIn': 'Drop matching', 'opt.filterDimIn': 'Dim matching',
     'cfg.filterModeTitle': 'Pick which side is affected (the others / the matching rows) and what happens to it (dropped / dimmed).',
@@ -1918,7 +1932,8 @@ function defaultChart() {
     matrixCols: [], matrixDiag: 'none', matrixHalf: 'both', matrixMax: 5000,
     dataset: '',                // 이 차트가 쓸 데이터셋(_source). 빈 값 = 전체 (파일이 2개 이상일 때만 UI 노출)
     x: '', y: '', group: '', group2: '', size: '',   // group=색상, group2=마커 모양 (2차 그룹)
-    filters: [],                // {col, op, value}
+    filters: [],                // {col, op, value, v2?, mode} — v2는 between의 상한
+    filterJoin: 'and',          // and | or — 필터끼리의 결합 (v0.64)
     title: '',
     xLabel: '', yLabel: '',
     xScale: 'linear', yScale: 'linear',
@@ -2422,6 +2437,15 @@ function uniqueVals(col) {
 /* 단일 필터 매칭 — 컬럼 미선택·값 미입력은 통과(true)로 취급 */
 function matchFilter(f, r) {
   if (!f.col) return true;
+  /* 범위(between)는 값이 둘이다 — **경계 포함**, 한쪽만 넣으면 그 방향만 거른다(축 범위와 같은 규약) */
+  if (f.op === 'between') {
+    const lo = coerce(f.value), hi = coerce(f.v2);
+    const hasLo = typeof lo === 'number', hasHi = typeof hi === 'number';
+    if (!hasLo && !hasHi) return true;   // 미완성 필터
+    const v = r[f.col];
+    if (typeof v !== 'number') return false;
+    return (!hasLo || v >= lo) && (!hasHi || v <= hi);
+  }
   if (f.value === '' || f.value === null || f.value === undefined) return true;
   const v = r[f.col];
   if (v === null || v === undefined) return false;
@@ -2453,23 +2477,32 @@ function filterRuleInfo(cfg, f) {
    "맞는 것"에 동작하는 모드(excludeIn/dimIn)는 이 판정이 없으면 미완성 필터가 전부를 지워 버린다. */
 function filterActive(f) {
   if (!f.col) return false;
+  if (f.op === 'between') return (f.value !== '' && f.value !== null && f.value !== undefined)
+    || (f.v2 !== '' && f.v2 !== null && f.v2 !== undefined);
   if (Array.isArray(f.value)) return f.value.length > 0;
   return f.value !== '' && f.value !== null && f.value !== undefined;
 }
 /* 모드는 "어느 쪽에 무엇을 하는가" 네 가지다 — 조건 밖/맞는 것 × 제거/흐리게.
    두 방향을 다 두는 이유: "조건에 맞는 쪽을 남긴다"와 "고른 행에 동작을 적용한다"가
    둘 다 자연스러운 읽기라서, 한쪽만 두면 반대로 이해한 사람이 조용히 틀린 그림을 얻는다. */
-function applyFilters(rows, filters) {
-  const excl = filters.filter(f => (f.mode || 'exclude') === 'exclude' || f.mode === 'excludeIn');
+/* 결합은 차트 단위 하나다(`filterJoin: and|or`) — 필터별 OR 그룹은 조합이 폭발한다(그건 차트 복제의 일이다).
+   **미완성 필터는 결합에서도 빠진다**: OR에서 미완성이 true를 주면 필터 하나만 지워도 전부가 통과한다. */
+function applyFilters(rows, filters, join) {
+  const excl = filters.filter(f => ((f.mode || 'exclude') === 'exclude' || f.mode === 'excludeIn') && filterActive(f));
   if (!excl.length) return rows;
-  return rows.filter(r => excl.every(f => f.mode === 'excludeIn'
-    ? (!filterActive(f) || !matchFilter(f, r))   // 맞는 것을 뺀다
-    : matchFilter(f, r)));                        // 조건 밖을 뺀다 (기본)
+  const pass = (f, r) => (f.mode === 'excludeIn' ? !matchFilter(f, r) : matchFilter(f, r));
+  return join === 'or'
+    ? rows.filter(r => excl.some(f => pass(f, r)))
+    : rows.filter(r => excl.every(f => pass(f, r)));
 }
 /* 흐리게(강조 안 함) 판정 */
+/* 흐리게도 같은 결합 규칙 — AND는 "어느 조건이든 못 맞추면 흐리게", OR는 "**모든** 조건을 못 맞출 때만 흐리게".
+   (드모르간: 남는 것 기준으로 보면 exclude와 같은 뜻이 된다.) `dimIn`(맞는 것을 흐리게)은 반대로 편다. */
 function isDimmed(cfg, r) {
-  return (cfg.filters || []).some(f => f.mode === 'dim' ? !matchFilter(f, r)
-    : f.mode === 'dimIn' ? (filterActive(f) && matchFilter(f, r)) : false);
+  const dims = (cfg.filters || []).filter(f => (f.mode === 'dim' || f.mode === 'dimIn') && filterActive(f));
+  if (!dims.length) return false;
+  const keeps = f => (f.mode === 'dim' ? matchFilter(f, r) : !matchFilter(f, r));   // "밝게 남는" 판정
+  return cfg.filterJoin === 'or' ? !dims.some(keeps) : !dims.every(keeps);
 }
 function isMutedRow(cfg, r) { return !!r._muted || isDimmed(cfg, r); }
 
@@ -2614,7 +2647,7 @@ function chartNumCols(cfg) {
 function chartBaseRows(cfg) {
   let rows = allRows().filter(r => !r._excluded);
   if (cfg.dataset) rows = rows.filter(r => r._source === cfg.dataset);   // 차트별 데이터셋 선택
-  return applyFilters(rows, cfg.filters);
+  return applyFilters(rows, cfg.filters, cfg.filterJoin);
 }
 function chartRows(cfg) {
   let rows = chartBaseRows(cfg);
@@ -4825,13 +4858,36 @@ function buildCfgPanel(cfg, panel, nameSpan) {
         ruleEl.innerHTML = tf(key, { hit: info.hit, total: info.total, rest: info.rest });
       };
       const ops = !f.col ? [['=', '=']]
-        : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['in', t('op.select')]]
+        : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['between', t('op.between')], ['in', t('op.select')]]
         : [['in', t('op.select')], ['=', '='], ['≠', '≠'], ['포함', t('op.contains')]];
       if (!ops.some(o => o[0] === f.op)) { f.op = ops[0][0]; f.value = f.op === 'in' ? [] : ''; }
       // 다중 선택(in)은 컬럼 타입 무관 체크박스, 그 외 카테고리는 고유값 드롭다운, 숫자는 숫자 입력
       let valueCtrl = null, valsBox = null;
       if (!f.col) {
         valueCtrl = el('input', { type: 'text', disabled: '', placeholder: t('cfg.filterColFirst') });
+      } else if (isNum && f.op === 'between') {
+        /* 범위: 숫자 입력 둘 + **겹친 슬라이더 둘**(양쪽 손잡이 — 라이브러리 금지 규칙 안에서).
+           슬라이더 범위는 그 컬럼의 실제 min/max다. 어느 쪽을 움직여도 넷이 함께 간다. */
+        const mm = minMax(uniqueVals(f.col).filter(v => typeof v === 'number'));
+        const span = mm.ok ? mm.mx - mm.mn : 1;
+        const step = span > 0 ? span / 200 : 1;
+        const loIn = el('input', { type: 'number', step: 'any', value: f.value ?? '', placeholder: t('cfg.betweenLo'), 'aria-label': t('cfg.betweenLo') });
+        const hiIn = el('input', { type: 'number', step: 'any', value: f.v2 ?? '', placeholder: t('cfg.betweenHi'), 'aria-label': t('cfg.betweenHi') });
+        const loR = el('input', { type: 'range', min: mm.ok ? mm.mn : 0, max: mm.ok ? mm.mx : 1, step, value: f.value !== '' && f.value !== undefined ? f.value : (mm.ok ? mm.mn : 0), 'aria-label': t('cfg.betweenLo') });
+        const hiR = el('input', { type: 'range', min: mm.ok ? mm.mn : 0, max: mm.ok ? mm.mx : 1, step, value: f.v2 !== '' && f.v2 !== undefined ? f.v2 : (mm.ok ? mm.mx : 1), 'aria-label': t('cfg.betweenHi') });
+        const syncAll = () => { rp(); syncRule(); };
+        loIn.addEventListener('input', () => { f.value = loIn.value; if (loIn.value !== '') loR.value = loIn.value; syncAll(); });
+        hiIn.addEventListener('input', () => { f.v2 = hiIn.value; if (hiIn.value !== '') hiR.value = hiIn.value; syncAll(); });
+        loR.addEventListener('input', () => {
+          if (Number(loR.value) > Number(hiR.value)) loR.value = hiR.value;   // 손잡이가 서로를 넘지 않는다
+          f.value = loIn.value = loR.value; syncAll();
+        });
+        hiR.addEventListener('input', () => {
+          if (Number(hiR.value) < Number(loR.value)) hiR.value = loR.value;
+          f.v2 = hiIn.value = hiR.value; syncAll();
+        });
+        valueCtrl = loIn;
+        valsBox = el('div', { class: 'filter-range' }, hiIn, el('div', { class: 'dual-range' }, loR, hiR));
       } else if (isNum && f.op !== 'in') {
         valueCtrl = el('input', { type: 'number', step: 'any', value: f.value !== undefined ? f.value : '', placeholder: t('cfg.filterValuePh'), oninput: e => { f.value = e.target.value; rp(); syncRule(); } });
       } else if (f.op === 'in') {
@@ -4858,7 +4914,7 @@ function buildCfgPanel(cfg, panel, nameSpan) {
           f.value = f.op === 'in' ? [] : '';
           renderFilters(); rp();
         }),
-        select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; renderFilters(); rp(); }, { class: 'op' }),
+        select(ops, f.op, v => { f.op = v; f.value = v === 'in' ? [] : ''; f.v2 = ''; renderFilters(); rp(); }, { class: 'op' }),
         ...(valueCtrl ? [valueCtrl] : []),
         select([['exclude', t('opt.filterExclude')], ['excludeIn', t('opt.filterExcludeIn')],
           ['dim', t('opt.filterDim')], ['dimIn', t('opt.filterDimIn')]], f.mode || 'exclude',
@@ -4875,6 +4931,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   renderFilters();
   gFilter.append(
     el('div', { class: 'hint' }, t('cfg.filterHint')),
+    /* 결합은 차트 단위 하나 — 필터가 둘 이상일 때만 보인다(하나면 AND/OR가 같은 뜻이다) */
+    ...(cfg.filters.length >= 2 ? [el('div', { class: 'row filter-join' },
+      el('span', { class: 'lbl' }, t('cfg.filterJoin')),
+      select([['and', t('opt.joinAnd')], ['or', t('opt.joinOr')]], cfg.filterJoin || 'and',
+        v => { cfg.filterJoin = v; rp(); renderFilters(); }))] : []),
     fBox,
     el('button', { class: 'small', onclick: e => showCopyMenu(cfg, e, 'filters') }, t('cfg.copyFilters')),
     el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '', mode: 'exclude' }); renderFilters(); } }, t('cfg.addFilter')));
@@ -5539,6 +5600,34 @@ function refreshCfgPanels() {
 }
 
 /* ================= data table ================= */
+/* **표에서 값을 눌러 필터를 만든다**(v0.64) — 값을 보고 있는 자리에서 조건이 만들어져야 한다.
+   대상은 도크가 보고 있는 차트다: "어느 차트에 걸리나"는 이미 있는 표시(테두리·도크 제목)가 답한다.
+   리스너는 표 요소에 **위임 하나**만 둔다 — `renderTable`이 innerHTML을 통째로 갈아 끼우기 때문이다. */
+function showCellFilterMenu(col, value, ev) {
+  const cfg = state.charts.find(c => c.id === dockChartId) || state.charts[0];
+  if (!cfg) return;
+  const isNum = typeof value === 'number';
+  const addFilter = (f, label) => {
+    cfg.filters.push(f);
+    renderPlot(cfg); refreshCfgPanels(); save();
+    showToast(tf('toast.filterAdded', { what: label, chart: cfg.title || tf('card.chartNum', { n: state.charts.indexOf(cfg) + 1 }) }),
+      t('toast.undo'), () => { const j = cfg.filters.indexOf(f); if (j >= 0) cfg.filters.splice(j, 1); renderPlot(cfg); refreshCfgPanels(); save(); });
+  };
+  popover.innerHTML = '';
+  const item = (label, f) => el('button', { onclick: () => { hidePopover(); addFilter(f, label); } }, label);
+  const vs = String(value);
+  popover.append(
+    el('div', { class: 'pp-title' }, `${col} = ${vs}`),
+    item(tf('cell.only', { v: vs }), { col, op: '=', value: vs, mode: 'exclude' }),
+    item(tf('cell.drop', { v: vs }), { col, op: '=', value: vs, mode: 'excludeIn' }),
+    item(tf('cell.dim', { v: vs }), { col, op: '=', value: vs, mode: 'dimIn' }),
+    ...(isNum ? [
+      item(tf('cell.lte', { v: vs }), { col, op: '≤', value: vs, mode: 'exclude' }),
+      item(tf('cell.gte', { v: vs }), { col, op: '≥', value: vs, mode: 'exclude' }),
+    ] : []),
+  );
+  placePopover(ev.target, `${col} = ${vs}`);
+}
 const tableState = { search: '', sortCol: null, sortDir: 1, page: 0, pageSize: 200 };
 function renderTable() {
   const cols = visibleColumns();
@@ -5577,7 +5666,7 @@ function renderTable() {
     html += `<tr class="${r._excluded ? 'excl' : ''}${r._muted ? ' muted' : ''}">`
       + `<td class="chk"><input type="checkbox" data-i="${i}"${r._excluded ? '' : ' checked'} aria-label="${esc(tf('table.includeRow', { row: rk }))}"></td>`
       + `<td class="chk"><input type="checkbox" data-m="${i}"${r._muted ? ' checked' : ''} aria-label="${esc(tf('table.muteRow', { row: rk }))}"></td>`
-      + cols.map(c => `<td${nc(c)}>${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
+      + cols.map(c => `<td${nc(c)} data-fc="${esc(c)}" data-fi="${i}">${r[c] === null || r[c] === undefined ? '<span style="color:var(--axis)">–</span>' : esc(r[c])}</td>`).join('') + '</tr>';
   });
   table.innerHTML = html + '</tbody>';
   const rerenderCharts = () => { for (const c of state.charts) renderPlot(c); };
@@ -5607,6 +5696,14 @@ function renderTable() {
     const r = view[Number(cb.dataset.m)];
     if (cb.checked) r._muted = true; else delete r._muted;
     afterToggle(`data-m="${cb.dataset.m}"`);
+  }));
+  /* 값 셀 클릭 → 필터 메뉴 — 리스너는 렌더마다 다시 붙는다(innerHTML 통짜 재생성과 같은 수명) */
+  table.querySelectorAll('tbody td[data-fc]').forEach(td => td.addEventListener('click', e => {
+    const r = view[Number(td.dataset.fi)];
+    if (!r) return;
+    const v = r[td.dataset.fc];
+    if (v === null || v === undefined) return;
+    showCellFilterMenu(td.dataset.fc, v, e);
   }));
   const chkAll = table.querySelector('#chkAll');
   if (chkAll) chkAll.addEventListener('change', () => {
