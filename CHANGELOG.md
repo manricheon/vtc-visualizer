@@ -3,6 +3,13 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.70 — the annotation tool grows up
+> v0.70 — 주석 도구 확장
+
+- Two new tools: **Pen** (freehand — drawn exactly as you draw it, no smoothing) and **Ellipse**. Moving a pen mark moves the whole stroke; its points are deep-copied so a move never drags the original.
+- **Duplicate** (`⧉`) on every mark in the list — the same callout stamped in several places is a common job.
+- **Save/load marks** as JSON. This was deliberately left out in v0.29 because it creates a format contract; adding it now, the contract comes first: a versioned `{v: 1, marks}` file holding the marks alone (the image is not included — the file is the truth), and an unknown version is refused outright rather than half-read onto your picture. Loading replaces the current marks and is undoable.
+
 ### v0.69 — global undo
 > v0.69 — 전역 언두
 
