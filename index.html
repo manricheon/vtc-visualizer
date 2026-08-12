@@ -497,7 +497,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.66';
+const APP_VERSION = 'v0.67';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -4728,8 +4728,12 @@ function restoreGroupState(cfg, panel) {
     });
   });
 }
-function buildCfgPanel(cfg, panel, nameSpan) {
-  panel.innerHTML = '';
+/* ===== 설정 패널 (v0.67에서 그룹별 함수로 분해 — DOM·동작 불변) =====
+   묶음 하나 = 함수 하나(`cfgGrp*`). 공유 헬퍼는 `cfgPanelCtx`가 한 번 만들어 ctx로 넘긴다.
+   묶음 사이를 가로지르는 것은 둘뿐이다: `rebuild`(그룹 변경 → 시리즈 목록 갱신 — 스타일 묶음이
+   `ctx.renderSeries`를 걸면 그때부터 동작하는 늦은 바인딩)와 `renderLabelLists`(베이스라인 묶음의
+   `cfg._refreshLists`가 레이블 목록도 함께 되그린다). 셋째를 더하게 되면 설계를 다시 볼 것. */
+function cfgPanelCtx(cfg, panel, nameSpan) {
   const numCols = numericColumns();
   const isBar = cfg.type === 'bar';
   const isHeat = cfg.type === 'heatmap', isDumbbell = cfg.type === 'dumbbell';
@@ -4806,6 +4810,13 @@ function buildCfgPanel(cfg, panel, nameSpan) {
      감추면 켜 둔 보조축·분할을 끌 길이 사라져, 화면과 설정이 어긋난 채로 남는다. */
   const A = (node, keep) => { if (!keep) node.classList.add('adv'); return node; };
 
+  const ctx = { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx,
+    rp, rebuildPanel, dupXHint, matrixRows_, row, A };
+  ctx.rebuild = () => { if (ctx.renderSeries) ctx.renderSeries(); };
+  return ctx;
+}
+function cfgGrpData(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 데이터 --- */
   const gData = el('details', { class: 'grp', open: '', 'data-g': 'data' }, el('summary', {}, t('cfg.data')));
   gData.append(
@@ -4887,23 +4898,28 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     ]),
   );
 
+  return gData;
+}
+function cfgGrpBar(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 막대 옵션 (type=bar일 때만) --- */
-  let gBar = null;
-  if (isBar) {
-    gBar = el('details', { class: 'grp', open: '', 'data-g': 'bar' }, el('summary', {}, t('cfg.bar')));
-    gBar.append(
-      row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')], ['stack100', t('opt.barStack100')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
-      row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
-      /* 집계·오차는 "데이터" 묶음의 한 줄로 옮겼다(유형마다 필드는 그대로) */
-      A(row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })), cfg.barText !== 'none'),
-      A(row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })), cfg.barSort !== 'auto'),
-      A(row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
-        el('input', { type: 'checkbox', ...(cfg.barCatX ? { checked: '' } : {}), onchange: e => { cfg.barCatX = e.target.checked; rp(); } }))), cfg.barCatX),
-      A(row(t('cfg.barOpacity'), el('input', { type: 'range', min: 0.3, max: 1, step: 0.05, value: cfg.barOpacity, oninput: e => { cfg.barOpacity = Number(e.target.value); rp(); } })), cfg.barOpacity !== defaultChart().barOpacity),
-      A(el('div', { class: 'hint' }, t('cfg.barAggHint')), cfg.barAgg !== 'none'),
-    );
-  }
+  const gBar = el('details', { class: 'grp', open: '', 'data-g': 'bar' }, el('summary', {}, t('cfg.bar')));
+  gBar.append(
+    row(t('cfg.barMode'), select([['group', t('opt.barGroup')], ['stack', t('opt.barStack')], ['stack100', t('opt.barStack100')]], cfg.barMode, v => { cfg.barMode = v; rp(); })),
+    row(t('cfg.barOrient'), select([['v', t('opt.barVert')], ['h', t('opt.barHoriz')]], cfg.barOrient, v => { cfg.barOrient = v; rp(); })),
+    /* 집계·오차는 "데이터" 묶음의 한 줄로 옮겼다(유형마다 필드는 그대로) */
+    A(row(t('cfg.barText'), select([['none', t('opt.none')], ['value', t('opt.barTextValue')]], cfg.barText, v => { cfg.barText = v; rp(); })), cfg.barText !== 'none'),
+    A(row(t('cfg.barSort'), select([['auto', t('opt.sortAuto')], ['label', t('opt.sortLabel')], ['asc', t('opt.sortAsc')], ['desc', t('opt.sortDesc')]], cfg.barSort, v => { cfg.barSort = v; rp(); })), cfg.barSort !== 'auto'),
+    A(row(t('cfg.barCatX'), el('label', { class: 'inline', title: t('cfg.barCatXTitle') },
+      el('input', { type: 'checkbox', ...(cfg.barCatX ? { checked: '' } : {}), onchange: e => { cfg.barCatX = e.target.checked; rp(); } }))), cfg.barCatX),
+    A(row(t('cfg.barOpacity'), el('input', { type: 'range', min: 0.3, max: 1, step: 0.05, value: cfg.barOpacity, oninput: e => { cfg.barOpacity = Number(e.target.value); rp(); } })), cfg.barOpacity !== defaultChart().barOpacity),
+    A(el('div', { class: 'hint' }, t('cfg.barAggHint')), cfg.barAgg !== 'none'),
+  );
 
+  return gBar;
+}
+function cfgGrpFilter(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 필터 --- */
   const gFilter = el('details', { class: 'grp', 'data-g': 'filter' }, el('summary', {}, tf('cfg.filterCount', { n: cfg.filters.length })));
   const fBox = el('div');
@@ -5006,6 +5022,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     el('button', { class: 'small', onclick: e => showCopyMenu(cfg, e, 'filters') }, t('cfg.copyFilters')),
     el('button', { class: 'small', onclick: () => { cfg.filters.push({ col: '', op: '=', value: '', mode: 'exclude' }); renderFilters(); } }, t('cfg.addFilter')));
 
+  return gFilter;
+}
+function cfgGrpAxis(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 축 --- */
   const gAxis = el('details', { class: 'grp', 'data-g': 'axis' }, el('summary', {}, t('cfg.axis')));
   gAxis.append(
@@ -5038,6 +5058,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     A(row(t('cfg.plotFace'), select([['none', t('opt.faceNone')], ['soft', t('opt.faceSoft')], ['tint', t('opt.faceTint')]], cfg.plotFace || 'none', v => { cfg.plotFace = v; rp(); }, { title: t('cfg.plotFaceTitle') })), cfg.plotFace && cfg.plotFace !== 'none'),
   );
 
+  return gAxis;
+}
+function cfgGrpStyle(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 스타일 --- */
   const gStyle = el('details', { class: 'grp', 'data-g': 'style' }, el('summary', {}, t('cfg.style')));
   const seriesBox = el('div');
@@ -5147,6 +5171,11 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     seriesBox,
   );
 
+  ctx.renderSeries = renderSeries;   // 데이터 묶음의 그룹 변경(rebuild)이 이 목록을 되그린다
+  return gStyle;
+}
+function cfgGrpLabels(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 포인트 레이블 & 텍스트 마커 --- */
   const gLabel = el('details', { class: 'grp', 'data-g': 'label' }, el('summary', {}, t('cfg.pointLabels')));
   const hiddenBox = el('div');
@@ -5213,6 +5242,12 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     markerBox,
   );
 
+  ctx.renderLabelLists = renderLabelLists;   // 베이스라인 묶음의 _refreshLists가 함께 쓴다
+  return gLabel;
+}
+function cfgGrpBaselines(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
+  const renderLabelLists = ctx.renderLabelLists;
   /* --- 베이스라인 --- */
   const gBase = el('details', { class: 'grp', 'data-g': 'base' }, el('summary', {}, tf('cfg.baselineCount', { n: cfg.baselines.length })));
   const baseBox = el('div');
@@ -5346,6 +5381,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
       el('button', { class: 'small', onclick: addSpan }, t('cfg.addSpan'))),
   );
 
+  return gBase;
+}
+function cfgGrpAdvanced(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 고급 --- */
   const gAdv = el('details', { class: 'grp', 'data-g': 'adv' }, el('summary', {}, t('cfg.advanced')));
   gAdv.append(
@@ -5374,6 +5413,10 @@ function buildCfgPanel(cfg, panel, nameSpan) {
     ...(cfg.pareto ? [el('div', { class: 'hint' }, t('cfg.paretoHint'))] : []),
   );
 
+  return gAdv;
+}
+function cfgGrpExport(ctx) {
+  const { cfg, panel, nameSpan, numCols, isBar, isHeat, isDumbbell, isDist, isMatrix, isBrk, brkAx, rp, rebuildPanel, dupXHint, matrixRows_, row, A, rebuild } = ctx;
   /* --- 내보내기 규격 ---
      화면 크기 × 3배로만 뽑히던 것을 제출 규격(단 폭 mm/inch, dpi)에 맞춘다.
      글자 크기는 CSS 픽셀이라 dpi와 무관하게 물리 크기가 정해진다 — 결과 pt를 계산해 보여 준다. */
@@ -5412,6 +5455,21 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   );
   syncExp();
 
+  return gExp;
+}
+function buildCfgPanel(cfg, panel, nameSpan) {
+  panel.innerHTML = '';
+  const ctx = cfgPanelCtx(cfg, panel, nameSpan);
+  const { isBar, isHeat, isDumbbell, isDist } = ctx;
+  const gData = cfgGrpData(ctx);
+  const gBar = isBar ? cfgGrpBar(ctx) : null;
+  const gFilter = cfgGrpFilter(ctx);
+  const gAxis = cfgGrpAxis(ctx);
+  const gStyle = cfgGrpStyle(ctx);
+  const gLabel = cfgGrpLabels(ctx);
+  const gBase = cfgGrpBaselines(ctx);
+  const gAdv = cfgGrpAdvanced(ctx);
+  const gExp = cfgGrpExport(ctx);
   // 고급(추세선·Pareto)은 산점/선 전용 — 막대에서는 숨김
   // 히트맵·덤벨은 포인트 레이블·베이스라인·추세선/Pareto가 무의미 → 숨김
   const heatDumb = isHeat || isDumbbell || isDist;
@@ -5430,8 +5488,6 @@ function buildCfgPanel(cfg, panel, nameSpan) {
   const nAdv = panel.querySelectorAll('.row.adv').length;
   if (nAdv) panel.append(el('div', { class: 'cfg-more' },
     el('button', { class: 'small', onclick: () => setSimple(!SIMPLE) }, SIMPLE ? tf('cfg.showAll', { n: nAdv }) : t('cfg.showSimple'))));
-
-  function rebuild() { renderSeries(); }
 }
 async function exportImg(cfg, format) {
   const div = plotDivs[cfg.id];

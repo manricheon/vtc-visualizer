@@ -266,7 +266,12 @@ CSV/JSON을 브라우저에서 논문 스타일 인터랙티브 그래프로 그
     dataviz 지침상 마크에 테두리를 둘러 구분하는 것은 금지이므로 focus+context(옅게)로 처리한다.
   - **주의**: `renderPlot`에서 플롯이 이미 있는 div의 innerHTML을 지우면 안 된다(placeholder일 때만 지움) —
     지우면 Plotly.react가 증분 업데이트만 해서 화면이 빈 채로 남는다 (실제 있었던 버그)
-- **설정 UI**: `buildCfgPanel` — 그룹(details)별 입력 위젯. 새 옵션의 UI는 여기에. 동적 목록(베이스라인/마커/숨긴 레이블)은 `cfg._refreshLists()`로 갱신
+- **설정 UI**(v0.67에서 분해): 묶음 하나 = 함수 하나(`cfgGrpData`·`cfgGrpBar`·`cfgGrpFilter`·`cfgGrpAxis`·`cfgGrpStyle`·
+  `cfgGrpLabels`·`cfgGrpBaselines`·`cfgGrpAdvanced`·`cfgGrpExport`), 공유 헬퍼(`row`·`A`·`rp`·`rebuildPanel` …)는
+  `cfgPanelCtx`가 만들어 ctx로 넘기고 `buildCfgPanel`은 조립만 한다(47줄). 새 옵션의 UI는 **해당 묶음 함수**에.
+  묶음을 가로지르는 것은 둘뿐이다(`ctx.rebuild` → 스타일 묶음의 시리즈 목록, `ctx.renderLabelLists` → 베이스라인의 `_refreshLists`) —
+  셋째가 생기면 설계를 다시 볼 것. `analyzeData`는 **일부러 안 나눴다**: 단계 배너로 이미 구획돼 있고
+  단계 사이 공유 구조가 열 개를 넘으며 순서 불변 경고가 두 번 적혀 있다 — 배관을 얹으면 위험만 는다. 동적 목록(베이스라인/마커/숨긴 레이블)은 `cfg._refreshLists()`로 갱신
   - **라벨 규칙**(v0.24): `row(label, ...ctrl)`은 **labelable 컨트롤이 정확히 하나일 때만** id(`vzc<n>`, 전역 `ctlSeq`)를 발급해 `<label class="lbl" for>`로 잇는다.
     둘 이상이면 `<span class="lbl">`를 그대로 두고 각 컨트롤에 `aria-label`(자기 `title`/`placeholder`/앞 보조 라벨, 없으면 순번)을 준다 —
     **하나에만 이으면 나머지를 조용히 잘못 이름 짓는다**(이름이 없는 것보다 나쁘다). CSS는 `.row > .lbl`이다(`span.lbl`로 좁히지 말 것 — 검증 스위트가 이걸로 라벨을 찾는다).
