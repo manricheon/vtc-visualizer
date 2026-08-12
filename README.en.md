@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.67.1** — Restored two pieces that were documented and tested but unreachable: the reverse-axis checkbox (v0.63) and the range filter's overlapping two-handle slider (v0.64). Tests now verify the controls exist and work by clicking, not just that the fields function.
 - **v0.67** — Internal tidy-up: the 686-line settings-panel builder is now one function per group. Nothing visible changed — the full regression suite passing unchanged is the proof.
 - **v0.66** — Clicking a scatter-matrix cell offers `Open this pair as a scatter plot`, carrying over group, dataset and filters. The same pair reuses the existing chart.
 - **v0.65** — Theme, palette and language switches redraw only the charts on screen; the rest draw as you scroll (931 → 303ms with 12 charts). Exports, sheets and reports render deferred charts first, so a stale figure never leaves as a file.
 - **v0.64** — Click a table value to filter by it right there (only/drop/dim, ≤/≥ for numbers). Adds a numeric range filter with a two-handle slider, and an any-of (OR) join between filters.
-- **v0.63.1** — Fixes a defect found in a full review: the columns a scatter matrix points at were missed by renaming, deletion checks, dataset switching and presets, so a file with a clashing column name could make the matrix draw different values without saying so.
 
 ---
 

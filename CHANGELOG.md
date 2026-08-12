@@ -3,6 +3,13 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.67.1 — the pieces that never shipped
+> v0.67.1 — 실리지 못했던 조각들
+
+- An orphan-key scan caught two features that were **documented, tested and unreachable**. The reverse-axis option (v0.63) had its field, rendering and tests — but the checkbox itself was never committed, so no user could turn it on. The range filter's two-handle slider (v0.64) worked, but its CSS never landed, so the two sliders stacked instead of overlapping; the filter sentence's join note was lost the same way.
+- Root cause in the release process, recorded in the code: when a patch script dies partway, **all** of its edits are unapplied — re-running only part of it ships a gap. The tests passed because they set the fields directly; there are now checks that the controls **exist and work by clicking**, not just that the fields function.
+- Two dictionary entries left behind by the v0.61 legend rework were removed.
+
 ### v0.67 — internal tidy-up, zero behavior change
 > v0.67 — 내부 정리, 동작 변화 0
 

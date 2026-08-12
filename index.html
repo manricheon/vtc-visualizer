@@ -247,6 +247,12 @@
   .filter-row .op { flex: 0 1 auto; min-width: 74px; width: auto; }
   .filter-row input { flex: 1 1 96px; min-width: 80px; }
   .filter-row button.small { flex: none; }
+  .filter-range { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 4px; }
+  /* 양쪽 손잡이 — range 둘을 포갠다. 트랙은 클릭을 안 받고 **손잡이만** 받아야 아래 슬라이더도 잡힌다 */
+  .dual-range { position: relative; height: 22px; }
+  .dual-range input[type=range] { position: absolute; inset: 0; width: 100%; margin: 0; background: none; pointer-events: none; }
+  .dual-range input[type=range]::-webkit-slider-thumb { pointer-events: auto; }
+  .dual-range input[type=range]::-moz-range-thumb { pointer-events: auto; }
   .filter-rule { font-size: var(--fs-xs); color: var(--ink-muted); margin: 2px 0 0 2px; line-height: 1.5; }
   .filter-rule b { color: var(--ink-2); font-weight: 600; }
   .filter-vals { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 2px 0 8px 6px; }
@@ -497,7 +503,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.67';
+const APP_VERSION = 'v0.67.1';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -864,7 +870,7 @@ const I18N = {
     'opt.widthTwoThird': '3분의 2 폭', 'opt.widthThird': '3분의 1 폭',
     'cfg.chartSize': '차트 크기', 'cfg.chartHeightTitle': '차트 높이(px)',
     'opt.widthFull': '전체 폭', 'opt.widthHalf': '절반 폭(나란히)',
-    'opt.right': '오른쪽', 'opt.top': '위', 'opt.inside': '차트 안', 'opt.hidden': '숨김',
+    'opt.inside': '차트 안', 'opt.hidden': '숨김',
     'opt.insideTL': '안 ↖ 좌상단', 'opt.insideTR': '안 ↗ 우상단', 'opt.insideBL': '안 ↙ 좌하단', 'opt.insideBR': '안 ↘ 우하단',
     'cfg.seriesLabelTitle': '범례 표시 이름 (비우면 원래 이름)',
     'cfg.seriesColor': '색',
@@ -1397,7 +1403,7 @@ const I18N = {
     'opt.widthTwoThird': 'Two-thirds width', 'opt.widthThird': 'One-third width',
     'cfg.chartSize': 'Chart size', 'cfg.chartHeightTitle': 'Chart height (px)',
     'opt.widthFull': 'Full width', 'opt.widthHalf': 'Half width (side by side)',
-    'opt.right': 'Right', 'opt.top': 'Top', 'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
+    'opt.inside': 'Inside chart', 'opt.hidden': 'Hidden',
     'opt.insideTL': 'Inside ↖ top-left', 'opt.insideTR': 'Inside ↗ top-right', 'opt.insideBL': 'Inside ↙ bottom-left', 'opt.insideBR': 'Inside ↘ bottom-right',
     'cfg.seriesLabelTitle': 'Legend display name (blank = original)',
     'cfg.seriesColor': 'Colour',
@@ -4937,7 +4943,9 @@ function cfgGrpFilter(ctx) {
         if (empty) { ruleEl.textContent = t('cfg.filterRuleEmpty'); return; }
         const info = filterRuleInfo(cfg, f);
         const key = { dim: 'cfg.filterRuleDim', dimIn: 'cfg.filterRuleDimIn', excludeIn: 'cfg.filterRuleExcIn' }[f.mode] || 'cfg.filterRuleExc';
-        ruleEl.innerHTML = tf(key, { hit: info.hit, total: info.total, rest: info.rest });
+        const joinNote = cfg.filters.filter(filterActive).length >= 2
+          ? ' ' + t(cfg.filterJoin === 'or' ? 'cfg.filterJoinOrNote' : 'cfg.filterJoinAndNote') : '';
+        ruleEl.innerHTML = tf(key, { hit: info.hit, total: info.total, rest: info.rest }) + joinNote;
       };
       const ops = !f.col ? [['=', '=']]
         : isNum ? [['=', '='], ['≠', '≠'], ['>', '>'], ['<', '<'], ['≥', '≥'], ['≤', '≤'], ['between', t('op.between')], ['in', t('op.select')]]
@@ -5054,6 +5062,17 @@ function cfgGrpAxis(ctx) {
     /* 눈금 표기 — 필드도 렌더 코드(`TICK_FMT`)도 v0.14부터 있었는데 UI만 없어 세션 JSON으로만 닿았다 */
     A(row(t('cfg.xTick'), select(TICK_OPTS(), cfg.xTick || '', v => { cfg.xTick = v; rp(); })), cfg.xTick),
     A(row(t('cfg.yTick'), select(TICK_OPTS(), cfg.yTick || '', v => { cfg.yTick = v; rp(); })), cfg.yTick),
+    /* 축 뒤집기 — 순위처럼 작을수록 위여야 하는 값에 쓴다. 끊긴 축과는 함께 두지 않는다:
+       두 패널의 범위를 뒤집으면 "어느 쪽이 위인가"라는 규약이 두 벌이 된다(렌더도 무시한다).
+       ※ v0.63에서 필드·렌더만 실리고 이 행이 빠진 채 나갔었다 — 패치 스크립트가 중간에 죽으면
+       그 스크립트의 **모든** 편집이 안 실린 것이다. 일부만 다시 돌리지 말 것(v0.67.1). */
+    ...(isBrk ? [] : [
+      A(row(t('cfg.reverse'),
+        el('label', { class: 'inline' }, el('input', { type: 'checkbox', ...(cfg.xReverse ? { checked: '' } : {}),
+          onchange: e => { cfg.xReverse = e.target.checked; rp(); } }), 'X'),
+        el('label', { class: 'inline' }, el('input', { type: 'checkbox', ...(cfg.yReverse ? { checked: '' } : {}),
+          onchange: e => { cfg.yReverse = e.target.checked; rp(); } }), 'Y')), cfg.xReverse || cfg.yReverse),
+    ]),
     A(row(t('cfg.grid'), el('input', { type: 'checkbox', ...(cfg.grid ? { checked: '' } : {}), onchange: e => { cfg.grid = e.target.checked; rp(); } })), !cfg.grid),
     A(row(t('cfg.plotFace'), select([['none', t('opt.faceNone')], ['soft', t('opt.faceSoft')], ['tint', t('opt.faceTint')]], cfg.plotFace || 'none', v => { cfg.plotFace = v; rp(); }, { title: t('cfg.plotFaceTitle') })), cfg.plotFace && cfg.plotFace !== 'none'),
   );
