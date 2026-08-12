@@ -133,6 +133,8 @@
     <span class="sub" data-i18n="header.sub"></span>
     <nav class="actions">
       <button id="btnUndo" data-i18n="btn.undo"></button>
+      <button id="btnMarksSave" class="ghost" data-i18n="btn.marksSave" data-i18n-title="btn.marksSaveTitle"></button>
+      <button id="btnMarksLoad" class="ghost" data-i18n="btn.marksLoad" data-i18n-title="btn.marksLoadTitle"></button>
       <button id="btnExport" class="primary" data-i18n="btn.export"></button>
       <select id="selScale" class="ghost" data-i18n-aria="btn.scale">
         <option value="1">1x</option><option value="2" selected>2x</option>
@@ -163,6 +165,8 @@
         <button class="small tool" data-tool="arrow" data-i18n="tool.arrow"></button>
         <button class="small tool" data-tool="rect" data-i18n="tool.rect"></button>
         <button class="small tool" data-tool="mask" data-i18n="tool.mask"></button>
+        <button class="small tool" data-tool="pen" data-i18n="tool.pen"></button>
+        <button class="small tool" data-tool="ellipse" data-i18n="tool.ellipse"></button>
         <span class="hint" data-i18n="tool.hint"></span>
       </div>
       <div class="row">
@@ -200,7 +204,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = 'v0.69';
+const APP_VERSION = 'v0.70';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -213,11 +217,16 @@ const I18N = {
     'btn.open': '이미지 열기…', 'btn.undo': '실행 취소', 'btn.export': 'PNG 저장', 'btn.scale': '저장 배율',
     'btn.deleteMark': '선택 삭제',
     'tool.text': '텍스트', 'tool.arrow': '화살표', 'tool.rect': '사각형', 'tool.mask': '가리기',
+    'tool.pen': '펜', 'tool.ellipse': '타원',
+    'btn.marksSave': '마크 저장', 'btn.marksSaveTitle': '표시들만 JSON으로 저장합니다 (이미지는 담지 않습니다 — 파일이 진실입니다)',
+    'btn.marksLoad': '마크 불러오기', 'btn.marksLoadTitle': '저장해 둔 표시들을 지금 이미지 위에 얹습니다 (지금 표시는 대체 — 되돌리기 가능)',
+    'toast.marksLoaded': '마크를 불러왔습니다 (되돌리기: 위의 실행 취소)', 'toast.marksBad': '읽을 수 없는 마크 파일입니다 — 이 도구가 저장한 v1 형식만 받습니다.',
     'tool.hint': '그림판에서 끌어 그리고, 마크를 눌러 고릅니다. 고른 마크는 드래그로 옮깁니다.',
     'cfg.style': '스타일', 'cfg.color': '색', 'cfg.width': '선 굵기', 'cfg.font': '글자 크기', 'cfg.bg': '글자 배경',
     'stage.empty': '이미지를 먼저 넣으세요.',
     'stage.hint': '드래그 = 그리기 · 클릭 = 고르기 · Delete = 삭제 · ⌘/Ctrl+Z = 실행 취소. 목록에서도 고르고 지울 수 있습니다.',
     'mark.text': '텍스트', 'mark.arrow': '화살표', 'mark.rect': '사각형', 'mark.mask': '가리기',
+    'mark.pen': '곡선', 'mark.ellipse': '타원', 'mark.dup': '복제',
     'prompt.text': '넣을 문구:',
     'confirm.replace': '새 이미지를 넣으면 지금 주석 {n}개가 사라집니다(되돌릴 수 없음). 계속할까요?',
     'toast.pasted': '붙여넣은 이미지를 넣었습니다.', 'toast.exported': 'PNG로 저장했습니다.',
@@ -240,11 +249,16 @@ const I18N = {
     'btn.open': 'Open image…', 'btn.undo': 'Undo', 'btn.export': 'Save PNG', 'btn.scale': 'Export scale',
     'btn.deleteMark': 'Delete selected',
     'tool.text': 'Text', 'tool.arrow': 'Arrow', 'tool.rect': 'Box', 'tool.mask': 'Redact',
+    'tool.pen': 'Pen', 'tool.ellipse': 'Ellipse',
+    'btn.marksSave': 'Save marks', 'btn.marksSaveTitle': 'Saves the marks alone as JSON (the image is not included — the file is the truth)',
+    'btn.marksLoad': 'Load marks', 'btn.marksLoadTitle': 'Lays saved marks onto the current image (replacing the current ones — undoable)',
+    'toast.marksLoaded': 'Marks loaded (Undo above reverses it)', 'toast.marksBad': 'Not a readable marks file — only the v1 format this tool saves.',
     'tool.hint': 'Drag on the canvas to draw, click a mark to select it. A selected mark can be dragged.',
     'cfg.style': 'Style', 'cfg.color': 'Colour', 'cfg.width': 'Line width', 'cfg.font': 'Font size', 'cfg.bg': 'Text backdrop',
     'stage.empty': 'Add an image first.',
     'stage.hint': 'Drag = draw · click = select · Delete = remove · ⌘/Ctrl+Z = undo. The list below selects and deletes too.',
     'mark.text': 'Text', 'mark.arrow': 'Arrow', 'mark.rect': 'Box', 'mark.mask': 'Redaction',
+    'mark.pen': 'Curve', 'mark.ellipse': 'Ellipse', 'mark.dup': 'Duplicate',
     'prompt.text': 'Text to place:',
     'confirm.replace': 'Loading a new image discards the {n} annotation(s) you have (no undo). Continue?',
     'toast.pasted': 'Pasted image loaded.', 'toast.exported': 'Saved as PNG.',
@@ -365,6 +379,25 @@ function drawMark(c, m, s, isSel) {
     c.fillRect(Math.min(x, x2), Math.min(y, y2), Math.abs(x2 - x), Math.abs(y2 - y));
     if (isSel) { c.setLineDash([4, 3]); c.strokeStyle = '#2a78d6'; c.lineWidth = 1;
       c.strokeRect(Math.min(x, x2) - 3, Math.min(y, y2) - 3, Math.abs(x2 - x) + 6, Math.abs(y2 - y) + 6); }
+  } else if (m.kind === 'pen') {
+    /* 자유 곡선 — 점 목록을 그대로 잇는다. 스무딩은 안 한다: 그린 대로 나오는 것이 이 도구의 계약이다 */
+    if (m.pts && m.pts.length) {
+      c.beginPath();
+      c.moveTo(m.pts[0].x * s, m.pts[0].y * s);
+      for (let i = 1; i < m.pts.length; i++) c.lineTo(m.pts[i].x * s, m.pts[i].y * s);
+      c.stroke();
+      if (isSel) {
+        const b = markBox(m);
+        c.setLineDash([4, 3]); c.strokeStyle = '#2a78d6'; c.lineWidth = 1;
+        c.strokeRect(b.x * s - 4, b.y * s - 4, b.w * s + 8, b.h * s + 8);
+      }
+    }
+  } else if (m.kind === 'ellipse') {
+    c.beginPath();
+    c.ellipse((x + x2) / 2, (y + y2) / 2, Math.abs(x2 - x) / 2, Math.abs(y2 - y) / 2, 0, 0, Math.PI * 2);
+    c.stroke();
+    if (isSel) { c.setLineDash([4, 3]); c.strokeStyle = '#2a78d6'; c.lineWidth = 1;
+      c.strokeRect(Math.min(x, x2) - 3, Math.min(y, y2) - 3, Math.abs(x2 - x) + 6, Math.abs(y2 - y) + 6); }
   } else {   // arrow
     c.beginPath(); c.moveTo(x, y); c.lineTo(x2, y2); c.stroke();
     const a = Math.atan2(y2 - y, x2 - x), hl = Math.max(8, m.width * s * 3.2);
@@ -382,6 +415,11 @@ function draw() { if (img) paint(ctx, view, true); }
 
 /* ---- 집기 ---- */
 function markBox(m) {
+  if (m.kind === 'pen') {
+    let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+    for (const p2 of (m.pts || [])) { if (p2.x < mnx) mnx = p2.x; if (p2.x > mxx) mxx = p2.x; if (p2.y < mny) mny = p2.y; if (p2.y > mxy) mxy = p2.y; }
+    return m.pts && m.pts.length ? { x: mnx, y: mny, w: mxx - mnx, h: mxy - mny } : { x: m.x, y: m.y, w: 0, h: 0 };
+  }
   if (m.kind === 'text') {
     const w = (m.text || '').length * m.font * 0.6, h = m.font * 1.25;
     return { x: m.x, y: m.y, w, h };
@@ -416,7 +454,21 @@ function renderMarks() {
     del.className = 'small danger'; del.textContent = '×';
     del.setAttribute('aria-label', `${t('btn.deleteMark')}: ${t('mark.' + m.kind)} ${i + 1}`);
     del.onclick = () => { snapshot(); marks.splice(i, 1); if (sel >= marks.length) sel = -1; draw(); renderMarks(); syncInfo(); };
-    row.append(kind, btn, del);
+    /* 복제 — 깊은 복사(펜의 pts가 배열이다)를 살짝 옮겨 붙인다. 같은 표시를 여러 곳에 찍는 흔한 일이다 */
+    const dup = document.createElement('button');
+    dup.className = 'small'; dup.textContent = '⧉'; dup.title = t('mark.dup');
+    dup.setAttribute('aria-label', t('mark.dup') + ' — ' + (name || t('mark.' + m.kind)));
+    dup.onclick = () => {
+      snapshot();
+      const c2 = JSON.parse(JSON.stringify(m));
+      const off = 14;
+      c2.x += off; c2.y += off;
+      if (c2.x2 !== undefined) { c2.x2 += off; c2.y2 += off; }
+      if (c2.pts) c2.pts = c2.pts.map(p2 => ({ x: p2.x + off, y: p2.y + off }));
+      marks.push(c2); sel = marks.length - 1;
+      draw(); renderMarks();
+    };
+    row.append(kind, btn, dup, del);
     box.append(row);
   });
   syncInfo();
@@ -431,9 +483,10 @@ stage.addEventListener('pointerdown', e => {
   const hit = hitTest(px, py);
   if (hit >= 0 && (hit === sel || tool === 'move')) {   // 고른 것을 다시 누르면 이동
     sel = hit; snapshot();
-    drag = { mode: 'move', px, py, orig: { ...marks[hit] } };
+    /* 펜은 pts가 배열이라 얕은 복사면 **이동이 원본을 함께 끈다** — 깊게 뜬다 */
+    drag = { mode: 'move', px, py, orig: JSON.parse(JSON.stringify(marks[hit])) };
     stage.classList.add('move');
-    stage.setPointerCapture(e.pointerId);
+    try { stage.setPointerCapture(e.pointerId); } catch (e2) { /* 〃 */ }
     return;
   }
   if (hit >= 0) { sel = hit; syncStyleInputs(); draw(); renderMarks(); return; }   // 첫 클릭은 고르기만
@@ -446,10 +499,14 @@ stage.addEventListener('pointerdown', e => {
     draw(); renderMarks(); return;
   }
   snapshot();
-  marks.push({ kind: tool, x: px, y: py, x2: px, y2: py, color: colorVal(), width: widthVal(), font: fontVal() });
+  if (tool === 'pen') {
+    marks.push({ kind: 'pen', x: px, y: py, pts: [{ x: px, y: py }], color: colorVal(), width: widthVal(), font: fontVal() });
+  } else {
+    marks.push({ kind: tool, x: px, y: py, x2: px, y2: py, color: colorVal(), width: widthVal(), font: fontVal() });
+  }
   sel = marks.length - 1;
   drag = { mode: 'draw' };
-  stage.setPointerCapture(e.pointerId);
+  try { stage.setPointerCapture(e.pointerId); } catch (e2) { /* 합성 이벤트(검사)에는 활성 포인터가 없다 */ }
 });
 stage.addEventListener('pointermove', e => {
   if (!drag || !img) return;
@@ -457,11 +514,15 @@ stage.addEventListener('pointermove', e => {
   const px = (e.clientX - r.left) / view, py = (e.clientY - r.top) / view;
   const m = marks[sel];
   if (!m) return;
-  if (drag.mode === 'draw') { m.x2 = px; m.y2 = py; }
+  if (drag.mode === 'draw') {
+    if (m.kind === 'pen') m.pts.push({ x: px, y: py });
+    else { m.x2 = px; m.y2 = py; }
+  }
   else {
     const dx = px - drag.px, dy = py - drag.py;
     m.x = drag.orig.x + dx; m.y = drag.orig.y + dy;
     if (drag.orig.x2 !== undefined) { m.x2 = drag.orig.x2 + dx; m.y2 = drag.orig.y2 + dy; }
+    if (drag.orig.pts) m.pts = drag.orig.pts.map(p2 => ({ x: p2.x + dx, y: p2.y + dy }));
   }
   draw();
 });
@@ -600,6 +661,38 @@ function showJoinDialog(onPick) {
   const first = box.querySelector('button');
   if (first) first.focus();
 }
+/* ===== 마크 저장 (v0.70) =====
+   v0.29에서 "작업 상태 저장"을 뺀 이유는 **계약 없는 저장 포맷**이 생기는 것이었다.
+   넣는 지금은 버전부터 박는다: `{v: 1, marks: [...]}`. 이미지가 없는 마크만 담고(이미지는 파일이 진실),
+   모르는 버전은 **조용히 읽지 않고 거절한다** — 반쯤 읽힌 마크가 그림 위에 얹히는 것이 최악이다. */
+const MARKS_FORMAT_V = 1;
+function marksExportJson() { return JSON.stringify({ v: MARKS_FORMAT_V, marks }, null, 1); }
+function marksImportJson(json) {
+  let d;
+  try { d = JSON.parse(json); } catch (e) { return false; }
+  if (!d || d.v !== MARKS_FORMAT_V || !Array.isArray(d.marks)) return false;
+  snapshot();
+  marks.length = 0;
+  for (const m of d.marks) marks.push(m);
+  sel = -1;
+  draw(); renderMarks(); syncInfo();
+  return true;
+}
+document.getElementById('btnMarksSave').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([marksExportJson()], { type: 'application/json' }));
+  a.download = 'vtc-annotate-marks.json';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+document.getElementById('btnMarksLoad').addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.addEventListener('change', async () => {
+    const ok = marksImportJson(await inp.files[0].text());
+    showToast(t(ok ? 'toast.marksLoaded' : 'toast.marksBad'));
+  });
+  inp.click();
+});
 const dz = document.getElementById('dropzone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
