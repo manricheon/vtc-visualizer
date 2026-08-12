@@ -3,6 +3,14 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.69 — global undo
+> v0.69 — 전역 언두
+
+- Every destructive action already had an Undo on its toast — but toasts fade, and the way back fades with them. **⌘/Ctrl+Z now walks back through settings changes globally** (Shift to redo): axes, deleted charts, computed columns, hidden columns, and the excluded/dimmed marks on rows.
+- One undo step is "a pause in your work", not a keystroke — snapshots ride the same debounce as autosave.
+- **Row data is not in the snapshot.** It is large, and it is not something to undo — the file is the truth. Snapshots hold settings plus the row-identity keys of your marks, a few KB each, capped at 50.
+- Ctrl+Z inside a text field is never intercepted — the browser's own text undo comes first. A new change clears the redo stack: there is only one future.
+
 ### v0.68 — filters you can see
 > v0.68 — 보이는 필터
 

@@ -509,7 +509,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.68';
+const APP_VERSION = 'v0.69';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -1193,6 +1193,8 @@ const I18N = {
     'toast.filtersCopied': '차트 {n}개에 필터를 적용했습니다.',
     'toast.exampleLoaded': '예시 데이터를 불러왔습니다 — 차트가 자동으로 생성됩니다.',
     'toast.reloaded': '파일 {n}개를 최신 내용으로 불러왔습니다.',
+    'toast.undone': '되돌렸습니다 (⌘/Ctrl+Z · 다시 하려면 Shift 추가)',
+    'toast.redone': '다시 했습니다', 'toast.nothingToUndo': '되돌릴 것이 없습니다',
     'toast.quota': '데이터가 커서 자동 저장이 꺼졌습니다 — 세션 내보내기로 보관하세요.',
     'toast.quotaData': '데이터가 커서 데이터는 저장하지 못했습니다 — 차트 설정은 남습니다. 데이터를 보관하려면 세션 내보내기를 쓰세요.',
     'chips.ghostTitle': '이전 세션이 쓰던 파일입니다 — 아직 들어오지 않았습니다',
@@ -1729,6 +1731,8 @@ const I18N = {
     'toast.filtersCopied': 'Filters applied to {n} chart(s).',
     'toast.exampleLoaded': 'Example data loaded — a chart is created automatically.',
     'toast.reloaded': 'Reloaded {n} file(s) with their latest contents.',
+    'toast.undone': 'Undone (⌘/Ctrl+Z · add Shift to redo)',
+    'toast.redone': 'Redone', 'toast.nothingToUndo': 'Nothing to undo',
     'toast.quota': 'Autosave is off because the data is too large — keep a copy with Export session.',
     'toast.quotaData': 'The data was too large to store — your chart settings are kept. Use Export session to keep the data too.',
     'chips.ghostTitle': 'A file the previous session used — it has not arrived yet',
@@ -7173,6 +7177,76 @@ function renderDerived() {
 
 /* ================= session persistence ================= */
 let saveTimer = null;
+/* ===== 전역 언두 (v0.69) =====
+   토스트의 되돌리기는 5초 뒤 사라진다 — 길이 함께 사라진다. 전역 스택을 둔다.
+   **스냅샷에 행 데이터는 없다**: 20만 행을 50벌 들고 있을 수 없고, 데이터는 되돌릴 대상도 아니다
+   (파일이 진실이다). 설정(charts·derived·hiddenCols) + 큐레이션 표시(rowKey 목록)만 담는다 — KB 단위.
+   스냅샷은 `save()` 디바운스가 만든다: 언두 한 칸 = "손을 멈춘 순간"이다(키 입력마다가 아니라).
+   **입력칸 안의 Ctrl+Z는 가로채지 않는다** — 브라우저의 글자 되돌리기가 먼저다. */
+const UNDO_MAX = 50;
+let undoStack = [], redoStack = [], undoApplying = false;
+function undoSnapshot() {
+  const marks = {};
+  for (const ds of state.datasets) {
+    const cols = rowKeyCols(ds.name);
+    const ex = [], mu = [];
+    for (const r of ds.rows) {
+      if (r._excluded) ex.push(rowKey(r, cols));
+      if (r._muted) mu.push(rowKey(r, cols));
+    }
+    if (ex.length || mu.length) marks[ds.name] = { ex, mu };
+  }
+  return JSON.stringify({ charts: state.charts.map(serializableChart), derived: state.derived,
+    hiddenCols: state.hiddenCols, marks });
+}
+function undoCapture() {
+  if (undoApplying) return;                       // 되돌리는 중의 save가 스택을 다시 쌓으면 안 된다
+  const snap = undoSnapshot();
+  if (undoStack[undoStack.length - 1] === snap) return;
+  undoStack.push(snap);
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  redoStack = [];                                 // 새 변경은 미래를 하나로 만든다
+}
+function undoApply(snap) {
+  const s2 = JSON.parse(snap);
+  undoApplying = true;
+  try {
+    state.derived = s2.derived || [];
+    state.hiddenCols = s2.hiddenCols || [];
+    state.charts = (s2.charts || []).map(c => ({ ...defaultChart(), ...c }));
+    for (const ds of state.datasets) {
+      const cols = rowKeyCols(ds.name);
+      const m = s2.marks[ds.name] || { ex: [], mu: [] };
+      const ex = new Set(m.ex), mu = new Set(m.mu);
+      for (const r of ds.rows) {
+        const k = rowKey(r, cols);
+        if (ex.has(k)) r._excluded = true; else delete r._excluded;
+        if (mu.has(k)) r._muted = true; else delete r._muted;
+      }
+    }
+    bumpCuration(); invalidateDataCaches();
+    onDataChanged(false); refreshCharts(); renderTable(); analysisStale();
+    save();
+  } finally {
+    /* save 디바운스(400ms)가 끝난 뒤에 풀어야 그 save가 스택을 안 쌓는다 */
+    setTimeout(() => { undoApplying = false; }, 600);
+  }
+}
+function undoGlobal() {
+  if (undoStack.length < 2) { showToast(t('toast.nothingToUndo')); return; }
+  redoStack.push(undoStack.pop());
+  undoApply(undoStack[undoStack.length - 1]);
+  showToast(t('toast.undone'));
+}
+function redoGlobal() {
+  if (!redoStack.length) return;
+  const snap = redoStack.pop();
+  undoStack.push(snap);
+  undoApply(snap);
+  showToast(t('toast.redone'));
+}
+function undoDepth() { return undoStack.length; }
+function undoPeek() { return undoStack[undoStack.length - 1] || ''; }
 let quotaWarned = false;
 const STALE_KEY = STORAGE_KEY + ':stale';
 const DATA_KEY = STORAGE_KEY + ':data';
@@ -7232,6 +7306,7 @@ function setSaveOff(on) {
 function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
+    undoCapture();   // 언두 한 칸 = 손을 멈춘 순간 (키 입력마다가 아니라)
     let dataOk = true, settingsOk = true;
     try {
       const charts = state.charts.map(serializableChart);
@@ -8093,6 +8168,16 @@ document.getElementById('btnDataFold').addEventListener('click', () => setDataFo
    정말로 디바운스하려면 responsive를 끄고 이쪽을 유일한 경로로 삼아야 하는데,
    그러면 창 크기와 무관한 컨테이너 변화(카드 폭 토글 등)를 놓칠 위험이 있다. */
 
+document.addEventListener('keydown', e => {   // Ctrl/Cmd+Z — 전역 언두
+  if (e.key !== 'z' && e.key !== 'Z') return;
+  if (!e.metaKey && !e.ctrlKey) return;
+  const tgt = e.target;
+  /* 입력칸의 Ctrl+Z는 브라우저의 글자 되돌리기다 — 절대 가로채지 않는다 */
+  if (tgt && (tgt.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName || ''))) return;
+  if (document.getElementById('modalBack').classList.contains('show')) return;
+  e.preventDefault();
+  if (e.shiftKey) redoGlobal(); else undoGlobal();
+});
 document.addEventListener('keydown', e => {   // ESC로 모달·팝오버 닫기
   if (e.key !== 'Escape') return;
   const modal = document.getElementById('modalBack');
