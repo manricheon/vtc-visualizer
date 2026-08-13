@@ -3,6 +3,12 @@
 All notable changes, newest first. Versions match the git tags (`v0.x`) and the version shown in the app's header.
 변경 이력입니다. 최신이 위에 있고, 버전은 git 태그·앱 헤더 표시와 같습니다.
 
+### v0.71 — a smarter melt guess
+> v0.71 — 녹이기 추정 개선
+
+- The wide→long melt guessed "numeric = value to melt", which swept sweep knobs (numeric conditions like `tokens`) into the value list — the guide literally told you to move them back by hand. The guess now looks at shape first: **columns sharing a name stem** (`run1·run2`, `acc_1k·acc_2k`) are the values; failing that, **the largest bundle of columns whose value ranges overlap** (method columns living in 0.6–0.8) are the values and the lone numeric far away (`tokens` at 500–16000) stays a condition; failing both, the old rule applies unchanged.
+- Name stems come first because monotone measurements (`latency_1k…16k`) never overlap in range. Bundles only ever *shrink* the value set, so the guess cannot be worse than before — and it is still just a default you can fix with the checkboxes.
+
 ### v0.70 — the annotation tool grows up
 > v0.70 — 주석 도구 확장
 

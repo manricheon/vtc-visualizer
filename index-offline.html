@@ -518,7 +518,7 @@ const PRISTINE_BODY = document.body.innerHTML;
  * ===================================================================== */
 
 /* 릴리스 시 이 상수를 올리고 같은 이름의 git 태그(v0.2 등)를 함께 만든다 — 표시는 헤더·푸터 자동 */
-const APP_VERSION = 'v0.70';
+const APP_VERSION = 'v0.71';
 /* 첫 실행용 예시 데이터 — file://이나 오프라인 파일에서는 example.csv를 읽을 수 없어 인라인한다 */
 const EXAMPLE_CSV = "method,tokens,frames,accuracy,f1,latency_ms,throughput_fps,tokens_per_s,memory_gb,cost_usd\nbaseline,500,2,0.599,0.575,21.4,93.6,23412.3,7.2,0.0107\nbaseline,1000,4,0.615,0.591,26.7,150.0,37510.2,7.4,0.0133\nbaseline,2000,8,0.641,0.615,38.4,208.5,52128.4,7.78,0.0192\nbaseline,4000,16,0.671,0.645,63.5,252.0,63004.6,8.56,0.0317\nbaseline,8000,32,0.701,0.674,111.7,286.5,71631.0,10.21,0.0558\nbaseline,16000,64,0.708,0.69,207.2,308.8,77207.0,13.36,0.1036\ndistill,500,2,0.605,0.585,18.0,111.4,27845.8,3.7,0.009\ndistill,1000,4,0.627,0.6,21.6,185.0,46260.9,3.91,0.0108\ndistill,2000,8,0.654,0.629,28.2,284.2,71043.2,4.28,0.0141\ndistill,4000,16,0.68,0.652,42.0,381.3,95321.2,5.12,0.021\ndistill,8000,32,0.688,0.668,67.2,476.0,118998.3,6.67,0.0336\ndistill,16000,64,0.691,0.669,122.3,523.4,130855.9,9.89,0.0611\nadaptive,500,2,0.614,0.587,21.2,94.5,23620.0,8.18,0.0106\nadaptive,1000,4,0.64,0.617,28.7,139.2,34792.5,8.39,0.0144\nadaptive,2000,8,0.674,0.65,41.9,191.1,47776.9,8.78,0.0209\nadaptive,4000,16,0.716,0.695,69.1,231.7,57921.8,9.62,0.0345\nadaptive,8000,32,0.742,0.722,118.7,269.6,67410.7,11.16,0.0593\nadaptive,16000,64,0.751,0.731,226.7,282.3,70566.5,14.4,0.1134\nensemble,500,2,0.601,0.576,27.8,72.0,17996.1,13.71,0.0139\nensemble,1000,4,0.621,0.599,40.9,97.7,24435.2,13.88,0.0205\nensemble,2000,8,0.658,0.632,67.3,118.9,29731.4,14.33,0.0336\nensemble,4000,16,0.702,0.68,122.3,130.8,32703.9,15.11,0.0612\nensemble,8000,32,0.749,0.721,223.6,143.1,35777.3,16.68,0.1118\nensemble,16000,64,0.777,0.755,433.8,147.5,36880.3,19.87,0.2169";
 
@@ -6852,6 +6852,38 @@ function meltRows(rows, idCols, valCols, varName, valName) {
   }
   return out;
 }
+/* v0.71 — 녹일 값 추정. "숫자 = 값"은 스윕 노브(숫자인 조건)까지 값으로 잡았다(가이드가 손으로 옮기라던 자리).
+   ① 이름 줄기가 같은 숫자 컬럼 2개 이상(run1·run2, acc_1k·acc_2k)은 그 묶음이 값이다 — 이름이 먼저다:
+      단조 증가하는 측정값(latency_1k…16k)은 범위가 안 겹쳐 ②로는 못 잡는다.
+   ② 줄기 묶음이 없으면 값 범위가 겹치는 가장 큰 묶음(method 이름 컬럼들 0.6~0.8)을 값으로,
+      혼자 다른 자리의 숫자(tokens 500~16000)는 조건으로 둔다.
+   ③ 그것도 없으면 예전 규칙(숫자 전부 값) — 이름이 제각각인 측정값 파일이 그렇다.
+   묶음은 값 집합을 줄이기만 하므로 예전 추정보다 나빠질 수 없고, 틀리면 여전히 체크로 고친다. */
+function meltGuess(cols, rows, numeric) {
+  const nums = cols.filter(c => numeric.has(c));
+  const stemOf = c => {
+    const m = /^(.+?)[ _.-]*\d+$/.exec(c);
+    if (m) return m[1].toLowerCase();
+    const i = Math.max(c.lastIndexOf('_'), c.lastIndexOf('-'), c.lastIndexOf(' '), c.lastIndexOf('.'));
+    return (i > 0 ? c.slice(0, i) : c).toLowerCase();
+  };
+  const bySt = new Map();
+  nums.forEach(c => { const s = stemOf(c); if (!bySt.has(s)) bySt.set(s, []); bySt.get(s).push(c); });
+  const stemVal = nums.filter(c => bySt.get(stemOf(c)).length >= 2);
+  if (stemVal.length) return new Set(stemVal);
+  const spans = nums.map(c => {
+    const mm = minMax(rows.map(r => r[c]));
+    return mm.ok ? { c, lo: mm.mn, hi: mm.mx } : null;
+  }).filter(Boolean).sort((a, b) => a.lo - b.lo || a.hi - b.hi);
+  let best = [], cur = [], hi = -Infinity;
+  for (const s of spans) {
+    if (cur.length && s.lo <= hi) { cur.push(s.c); hi = Math.max(hi, s.hi); }
+    else { if (cur.length > best.length) best = cur; cur = [s.c]; hi = s.hi; }
+  }
+  if (cur.length > best.length) best = cur;
+  if (best.length >= 2 && best.length < nums.length) return new Set(best);
+  return new Set(nums);
+}
 function showMeltPopover(ds, mouseEv) {
   popover.innerHTML = '';
   const cols = Object.keys(ds.rows[0] || {}).filter(c => !c.startsWith('_'));
@@ -6860,8 +6892,8 @@ function showMeltPopover(ds, mouseEv) {
     el('input', { type: 'checkbox', 'data-c': c, ...(checked ? { checked: '' } : {}) }), c);
   const valBox = el('div', { class: 'pp-list melt-list' });
   const idBox = el('div', { class: 'pp-list melt-list' });
-  /* 기본 추정: 숫자 컬럼이 녹일 값, 나머지가 남길 조건 — 대개 이게 맞고 틀리면 체크로 고친다 */
-  cols.forEach(c => { valBox.append(mk(c, numeric.has(c))); idBox.append(mk(c, !numeric.has(c))); });
+  const guessVal = meltGuess(cols, ds.rows, numeric);
+  cols.forEach(c => { valBox.append(mk(c, guessVal.has(c))); idBox.append(mk(c, !guessVal.has(c))); });
   const varInp = el('input', { type: 'text', value: t('melt.varDefault'), 'aria-label': t('melt.varName') });
   const valInp = el('input', { type: 'text', value: t('melt.valDefault'), 'aria-label': t('melt.valName') });
   const info = el('div', { class: 'pp-note' });
