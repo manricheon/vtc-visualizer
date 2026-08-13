@@ -347,7 +347,8 @@ To try it, press `More examples` in the data card — `wide.csv` is exactly this
 > `⇲` on the dataset chip → in the melt list **uncheck the condition columns (tokens and friends)**, leaving the measurements → `Melt and add`
 
 The original is untouched and a `…-long.csv` appears. The new `variable` column *is* the method, so it works as a group/facet/filter straight away.
-**The default guess is wrong often** — sweep knobs are numeric too, so move the condition columns across by hand.
+The default guess now keeps only measurement groups (columns sharing a name stem or a value range) as values, leaving sweep knobs as conditions (v0.71).
+It is still a guess — glance over both lists before you click, and move any column that landed wrong.
 The preview says how many rows you will get before you commit.
 
 ### ⑱ When measurements and metadata live in different files — joining

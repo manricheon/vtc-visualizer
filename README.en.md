@@ -246,11 +246,11 @@ Things that could be fixed but did not look worth it. Writing down the reason be
 
 The last five releases are below. The full history lives in [CHANGELOG.md](CHANGELOG.md), and versions match the git tags.
 
+- **v0.71** — The wide→long melt guesses better: only columns sharing a name stem or a value range are picked as values, and lone sweep knobs (`tokens`) stay as conditions — less moving things by hand.
 - **v0.70** — The annotation tool gains a freehand pen, ellipses, mark duplication, and versioned save/load of the marks alone (unknown formats are refused, never half-read).
 - **v0.69** — Global undo with ⌘/Ctrl+Z (Shift to redo): axes, deleted charts, computed columns and row marks. One step is a pause in your work, and Ctrl+Z inside a text field stays with the browser.
 - **v0.68** — Active filters show as chips on the card (× removes them right there, with undo). Clicking a point also offers only/drop/dim for that series.
 - **v0.67.1** — Restored two pieces that were documented and tested but unreachable: the reverse-axis checkbox (v0.63) and the range filter's overlapping two-handle slider (v0.64). Tests now verify the controls exist and work by clicking, not just that the fields function.
-- **v0.67** — Internal tidy-up: the 686-line settings-panel builder is now one function per group. Nothing visible changed — the full regression suite passing unchanged is the proof.
 
 ---
 
